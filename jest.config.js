@@ -13,7 +13,7 @@ module.exports = {
     ],
     rootDir: './',
     transform: {
-      '^.+\\.jsx?$': 'babel-jest',  // Transform JS and JSX files with babel-jest
+      '^.+\\.(js|jsx)$': 'babel-jest',  // Transform JS and JSX files with babel-jest
     },
     transformIgnorePatterns: [
       '/node_modules/', 
