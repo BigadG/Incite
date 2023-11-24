@@ -1,6 +1,6 @@
 module.exports = {
-    transform: {
-      '^.+\\.jsx?$': 'babel-jest', // This line tells Jest to use babel-jest for .js and .jsx files
+  transform: {
+      '^.+\\.(js|jsx)$': 'babel-jest',  // Transform JS and JSX files with babel-jest
     },
     moduleFileExtensions: [
       'js',
@@ -12,17 +12,14 @@ module.exports = {
       '**/?(*.)+(spec|test).[tj]s?(x)',
     ],
     rootDir: './',
-    transform: {
-      '^.+\\.(js|jsx)$': 'babel-jest',  // Transform JS and JSX files with babel-jest
-    },
     transformIgnorePatterns: [
       '/node_modules/', 
       '\\.pnp\\.[^\\/]+$'  // Ignore transformations for node_modules except for ESM packages
     ],
     verbose: true,
-  
+    testEnvironment: 'jsdom',
     // Setup file for React Testing Library
-    setupFilesAfterEnv: ['./jest.setup.js'],
+    setupFilesAfterEnv: ['@testing-library/jest-dom/extend-expect'],
   
     // Mock static file imports
     moduleNameMapper: {
