@@ -1,0 +1,76 @@
+# .gitlab-ci.yml for the 'Incite' project
+
+stages:
+  - test
+  - build
+  - deploy
+
+# Job to test the Node.js server
+test_server:
+  stage: test
+  image: node:latest
+  script:
+    - cd server
+    - npm install
+    - npm test
+  only:
+    - master
+
+# Job to test the React client application
+test_client:
+  stage: test
+  image: node:latest
+  script:
+    - cd client
+    - npm install
+    - npm test
+  only:
+    - master
+
+# Job to build the React client application
+build_client:
+  stage: build
+  image: node:latest
+  script:
+    - cd client
+    - npm install
+    - npm run build
+  artifacts:
+    paths:
+      - client/dist/
+  only:
+    - master
+
+# Job to deploy the Node.js server
+deploy_server:
+  stage: deploy
+  image: node:latest
+  script:
+    - cd server
+    - npm install
+    # Add server deployment commands here
+  only:
+    - master
+
+# Job to deploy the built React client application
+deploy_client:
+  stage: deploy
+  image: node:latest
+  script:
+    - cd client
+    # Add client deployment commands here (e.g., upload the 'dist' folder to a web server)
+  only:
+    - master
+  dependencies:
+    - build_client
+
+# Template for caching node_modules for efficiency
+cache:
+  paths:
+    - server/node_modules/
+    - client/node_modules/
+
+# Customize the following as needed:
+# - 'npm test' assumes you have test scripts defined in your package.json
+# - Deployment scripts depend on your hosting solution and should be added to deploy jobs
+# - If you have a different branch strategy (like using 'develop' for development), adjust the 'only' directive accordingly
