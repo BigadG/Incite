@@ -19,10 +19,14 @@ These instructions will get you a copy of the project up and running on your loc
 - npm (Node Package Manager)
 - Git
 
+### Installing
+
+A step-by-step series of examples that tell you how to get a development environment running.
+
 1. **Clone the Repository**
 
    ```
-   git clone git@gitlab.com:BigadG/incite.git
+   git clone your-repository-url
    cd Incite
    ```
 
@@ -44,6 +48,8 @@ These instructions will get you a copy of the project up and running on your loc
    npm install
    ```
 
+   Additional server testing dependencies like `jest`, `supertest`, and `babel` configurations for testing have been included.
+
 4. **Run the Application**
 
    - To start the client (React app), run:
@@ -63,15 +69,19 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Running the Tests
 
-To run the tests for the React application, navigate to the `client` directory and run:
+- **Client Tests**: To run the tests for the React application, navigate to the `client` directory and run:
+  ```
+  npm test
+  ```
 
-```
-npm test
-```
+- **Server Tests**: For testing the server, navigate to the `server` directory and execute:
+  ```
+  npm test
+  ```
 
 ## Deployment
 
-(Later) Add additional notes about how to deploy this on a live system.
+Add additional notes about how to deploy this on a live system.
 
 ## Built With
 
