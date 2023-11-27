@@ -5,7 +5,7 @@ image: node:latest
 stages:
   - test
   - build
-  - deploy
+  - deploy 
 
 # Caching node_modules for efficiency
 cache:
