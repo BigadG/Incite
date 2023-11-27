@@ -74,7 +74,13 @@ cache:
     - server/node_modules/
     - client/node_modules/
 
+
+eslint_job:
+  stage: test
+  script:
+    - npm install
+    - npm run lint
+
+
 # Customize the following as needed:
-# - 'npm test' assumes you have test scripts defined in your package.json
 # - Deployment scripts depend on your hosting solution and should be added to deploy jobs
-# - If you have a different branch strategy (like using 'develop' for development), adjust the 'only' directive accordingly
