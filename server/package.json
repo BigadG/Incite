@@ -103,7 +103,8 @@
   "scripts": {
     "test": "jest",
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "lint": "eslint '**/*.js' --ignore-path .gitignore --ignore-path .eslintignore"
   },
   "keywords": [],
   "author": "",
@@ -111,6 +112,7 @@
   "devDependencies": {
     "@babel/preset-env": "^7.23.3",
     "babel-jest": "^29.7.0",
+    "eslint": "^8.54.0",
     "jest": "^29.7.0",
     "nodemon": "^3.0.1",
     "supertest": "^6.3.3"

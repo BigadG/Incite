@@ -1,4 +1,8 @@
 # .gitlab-ci.yml for the 'Incite' project
+cache:
+  paths:
+    - client/node_modules/
+    - server/node_modules/
 
 stages:
   - test
