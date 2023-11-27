@@ -11,7 +11,7 @@
     "axios": "^0.21.4",
     "balanced-match": "^1.0.2",
     "binary-extensions": "^2.2.0",
-    "body-parser": "^1.20.1",
+    "body-parser": "^1.20.2",
     "brace-expansion": "^1.1.11",
     "braces": "^3.0.2",
     "bytes": "^3.1.2",
