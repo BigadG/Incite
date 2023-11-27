@@ -1,5 +1,7 @@
 # .gitlab-ci.yml for the 'Incite' project
 
+image: node:latest
+
 stages:
   - test
   - build
@@ -14,7 +16,6 @@ cache:
 # Job to test the Node.js server
 test_server:
   stage: test
-  image: node:latest
   script:
     - cd server
     - npm install
@@ -25,7 +26,6 @@ test_server:
 # Job to test the React client application
 test_client:
   stage: test
-  image: node:latest
   script:
     - cd client
     - npm install
@@ -36,7 +36,6 @@ test_client:
 # ESLint Job for Code Quality Check
 eslint_job:
   stage: test
-  image: node:latest
   script:
     - npm install -g eslint
     - cd client
@@ -49,7 +48,6 @@ eslint_job:
 # Job to build the React client application
 build_client:
   stage: build
-  image: node:latest
   script:
     - cd client
     - npm install
@@ -63,7 +61,6 @@ build_client:
 # Job to deploy the Node.js server
 deploy_server:
   stage: deploy
-  image: node:latest
   script:
     - cd server
     - npm install
@@ -74,7 +71,6 @@ deploy_server:
 # Job to deploy the built React client application
 deploy_client:
   stage: deploy
-  image: node:latest
   script:
     - cd client
     # Add client deployment commands here (e.g., upload the 'dist' folder to a web server)
@@ -82,6 +78,7 @@ deploy_client:
     - master
   dependencies:
     - build_client
+
 
 # Customize the following as needed:
 # - Deployment scripts depend on your hosting solution and should be added to deploy jobs
