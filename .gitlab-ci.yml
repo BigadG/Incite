@@ -1,13 +1,15 @@
 # .gitlab-ci.yml for the 'Incite' project
-cache:
-  paths:
-    - client/node_modules/
-    - server/node_modules/
 
 stages:
   - test
   - build
   - deploy
+
+# Caching node_modules for efficiency
+cache:
+  paths:
+    - client/node_modules/
+    - server/node_modules/
 
 # Job to test the Node.js server
 test_server:
@@ -28,6 +30,19 @@ test_client:
     - cd client
     - npm install
     - npm test
+  only:
+    - master
+
+# ESLint Job for Code Quality Check
+eslint_job:
+  stage: test
+  image: node:latest
+  script:
+    - npm install -g eslint
+    - cd client
+    - npm run lint
+    - cd ../server
+    - npm run lint
   only:
     - master
 
@@ -67,20 +82,6 @@ deploy_client:
     - master
   dependencies:
     - build_client
-
-# Template for caching node_modules for efficiency
-cache:
-  paths:
-    - server/node_modules/
-    - client/node_modules/
-
-
-eslint_job:
-  stage: test
-  script:
-    - npm install
-    - npm run lint
-
 
 # Customize the following as needed:
 # - Deployment scripts depend on your hosting solution and should be added to deploy jobs
