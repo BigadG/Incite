@@ -1,5 +1,79 @@
-test_example:
+stages:
+  - test
+  - build
+  - deploy
+
+# Caching node_modules for efficiency
+cache:
+  paths:
+    - client/node_modules/
+    - server/node_modules/
+
+test_server:
   image: node:latest
+  stage: test
   script:
-    - node --version
-    - npm --version
+    - cd server
+    - npm install
+    - npm test
+  only:
+    - master
+
+test_client:
+  image: node:latest
+  stage: test
+  script:
+    - cd client
+    - npm install
+    - npm test
+  only:
+    - master
+
+eslint_job:
+  image: node:latest
+  stage: test
+  script:
+    - npm install -g eslint
+    - cd client
+    - npm run lint
+    - cd ../server
+    - npm run lint
+  only:
+    - master
+
+build_client:
+  image: node:latest
+  stage: build
+  script:
+    - cd client
+    - npm install
+    - npm run build
+  artifacts:
+    paths:
+      - client/dist/
+  only:
+    - master
+
+deploy_server:
+  image: node:latest
+  stage: deploy
+  script:
+    - cd server
+    - npm install
+    # Add server deployment commands here
+  only:
+    - master
+
+deploy_client:
+  image: node:latest
+  stage: deploy
+  script:
+    - cd client
+    # Add client deployment commands here
+  only:
+    - master
+  dependencies:
+    - build_client
+
+# Customize the following as needed:
+# - Deployment scripts depend on your hosting solution and should be added to deploy jobs
