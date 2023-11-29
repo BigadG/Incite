@@ -29,7 +29,17 @@ test_client:
   only:
     - master
 
-
+eslint_job:
+  image: node:latest
+  stage: test
+  script:
+    - npm install -g eslint
+    - cd client
+    - npm run lint
+    - cd ../server
+    - npm run lint
+  only:
+    - master
 
 build_client:
   image: node:latest
