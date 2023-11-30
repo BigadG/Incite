@@ -14,7 +14,7 @@ test_server:
   stage: test
   script:
     - cd server
-    - npm install
+    - npm ci
     - npm test
   only:
     - master
@@ -24,7 +24,7 @@ test_client:
   stage: test
   script:
     - cd client
-    - npm install
+    - npm ci
     - npm test
   only:
     - master
@@ -32,8 +32,9 @@ test_client:
 eslint_job:
   image: node:latest
   stage: test
+  before_script:
+    - npm ci
   script:
-    - npm install -g eslint
     - cd client
     - npm run lint
     - cd ../server
@@ -46,11 +47,11 @@ build_client:
   stage: build
   script:
     - cd client
-    - npm install
+    - npm ci
     - npm run build
   artifacts:
     paths:
-      - client/dist/
+      - client/build/ # Ensure this path is correct for where your build artifacts are placed
   only:
     - master
 
@@ -59,7 +60,7 @@ deploy_server:
   stage: deploy
   script:
     - cd server
-    - npm install
+    - npm ci
     # Add server deployment commands here
   only:
     - master
