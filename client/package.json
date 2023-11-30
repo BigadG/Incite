@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "jest --verbose",
-    "lint": "eslint . --ext .js,.jsx",
+    "lint": "eslint 'src/**/*.{js,jsx}' --fix",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
