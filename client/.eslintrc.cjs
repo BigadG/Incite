@@ -1,44 +1,43 @@
 module.exports = {
-  root: true,
-  env: { 
-    browser: true, 
-    es2021: true,
-    'jest/globals': true, 
-    node: true, // Add node environment for backend code
+  "root": true,
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "jest/globals": true,
+    "node": true
   },
-  extends: [
-    'eslint:recommended',
-    'plugin:react/recommended',
-    'plugin:jest/recommended', // Use recommended jest linting
-    'plugin:react/jsx-runtime',
-    'plugin:react-hooks/recommended',
+  "extends": [
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:jest/recommended",
+    "plugin:react/jsx-runtime",
+    "plugin:react-hooks/recommended"
   ],
-  ignorePatterns: ['dist', '.eslintrc.cjs'],
-  parserOptions: { 
-    ecmaVersion: 'latest', 
-    sourceType: 'module',
-    ecmaFeatures: {
-      jsx: true, // Enable linting for JSX
-    },
+  "ignorePatterns": ["dist", ".eslintrc.cjs"],
+  "parserOptions": {
+    "ecmaVersion": 12, // or "latest" if using ES2021 features
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
   },
-  settings: { 
-    react: { 
-      version: 'detect',
-    },
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
   },
-  plugins: [
-    'react-refresh', 
-    'jest',
-    'react', // Add react plugin
+  "plugins": [
+    "react-refresh",
+    "jest",
+    "react"
   ],
-  rules: {
-    'react-refresh/only-export-components': [
-      'warn',
-      { allowConstantExport: true },
-    ],
-    'react/react-in-jsx-scope': 'off', // Disable since React 17+ doesn't require React in scope
-    'react/jsx-no-target-blank': 'warn', // Warn about security risk of target="_blank" without rel="noreferrer"
-    'no-unused-vars': 'warn', // Change to warning to reduce noise from unused variables
-    'no-undef': 'warn', // Change to warning for undefined variables
-  },
-}
+  "rules": {
+    "react-refresh/only-export-components": ["warn", { "allowConstantExport": true }],
+    "react/react-in-jsx-scope": "off",
+    "react/jsx-no-target-blank": "warn",
+    "no-unused-vars": "warn",
+    "no-undef": "warn"
+    // Add any specific client-side rules or override defaults here
+  }
+};
+
