@@ -10,7 +10,6 @@ cache:
     - server/node_modules/
 
 test_server:
-  image: node:latest
   stage: test
   script:
     - cd server
@@ -20,7 +19,6 @@ test_server:
     - master
 
 test_client:
-  image: node:latest
   stage: test
   script:
     - cd client
@@ -30,20 +28,20 @@ test_client:
     - master
 
 eslint_job:
-  image: node:latest
   stage: test
-  before_script:
-    - npm ci
   script:
+    - echo "Linting Client..."
     - cd client
+    - npm ci
     - npm run lint
+    - echo "Linting Server..."
     - cd ../server
+    - npm ci
     - npm run lint
   only:
     - master
 
 build_client:
-  image: node:latest
   stage: build
   script:
     - cd client
@@ -56,7 +54,6 @@ build_client:
     - master
 
 deploy_server:
-  image: node:latest
   stage: deploy
   script:
     - cd server
@@ -66,7 +63,6 @@ deploy_server:
     - master
 
 deploy_client:
-  image: node:latest
   stage: deploy
   script:
     - cd client
