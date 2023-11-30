@@ -6,7 +6,7 @@ module.exports = {
     },
     "extends": "eslint:recommended",
     "parserOptions": {
-      "ecmaVersion": "latest", // or "latest" if using ES2021 features
+      "ecmaVersion": "latest",
       "sourceType": "module"
     },
     "rules": {

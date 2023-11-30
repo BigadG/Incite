@@ -15,7 +15,7 @@ module.exports = {
   ],
   "ignorePatterns": ["dist", ".eslintrc.cjs"],
   "parserOptions": {
-    "ecmaVersion": 12, // or "latest" if using ES2021 features
+    "ecmaVersion": "latest",
     "sourceType": "module",
     "ecmaFeatures": {
       "jsx": true
