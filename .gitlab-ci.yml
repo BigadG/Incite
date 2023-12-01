@@ -9,7 +9,7 @@ cache:
     - client/node_modules/
     - server/node_modules/
 
-test_server:
+test_server: 
   stage: test
   script:
     - cd server
