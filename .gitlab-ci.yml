@@ -27,6 +27,20 @@ test_client:
   only:
     - master
 
+eslint_job:
+  stage: test
+  script:
+    - echo "Linting Client..."
+    - cd client
+    - npm ci
+    - npm run lint
+    - echo "Linting Server..."
+    - cd ../server
+    - npm ci
+    - npm run lint
+  only:
+    - master
+
 build_client:
   stage: build
   script:
