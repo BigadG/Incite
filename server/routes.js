@@ -31,4 +31,19 @@ router.get('/selections/:userId', async (req, res) => {
     }
   });
 
+// POST route to clear the selections
+router.post('/clearSelections', async (req, res) => {
+    try {
+      const db = await connect();
+      const { userId } = req.body; // Replace with your actual request body fields.
+      const result = await db.collection('Users').updateOne(
+        { userId },
+        { $set: { selections: [] } }
+      );
+      res.status(200).json({ message: 'Selections cleared', result });
+    } catch (error) {
+      res.status(500).json({ message: 'Error clearing selections', error });
+    }
+  });
+
 module.exports = router;
