@@ -2,8 +2,7 @@ const { connect } = require('./database');
 const express = require('express');
 const router = express.Router();
 
-// Other imports or router configuration...
-
+// POST route to add selection
 router.post('/addSelection', async (req, res) => {
   try {
     const db = await connect();
@@ -19,5 +18,17 @@ router.post('/addSelection', async (req, res) => {
     res.status(500).json({ message: 'Error adding selection', error });
   }
 });
+
+// GET route to retrieve selections
+router.get('/selections/:userId', async (req, res) => {
+    try {
+      const db = await connect();
+      const userId = req.params.userId; // Assuming you're passing userId as a URL parameter.
+      const user = await db.collection('Users').findOne({ userId });
+      res.status(200).json(user ? user.selections : []);
+    } catch (error) {
+      res.status(500).json({ message: 'Error retrieving selections', error });
+    }
+  });
 
 module.exports = router;
