@@ -18,6 +18,15 @@ test_server:
   only:
     - main
 
+test_server: 
+  stage: test
+  script:
+    - cd server
+    - npm ci
+    - npm test
+  only:
+    - main
+
 test_client:
   stage: test
   script:
