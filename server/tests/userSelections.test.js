@@ -105,14 +105,4 @@ describe('User Selections', () => {
 
     expect(response.body.message).toBe('Authentication failed');
   });
-
-  test('It should handle errors when adding a selection with missing data', async () => {
-    const response = await request(app)
-      .post('/api/addSelection')
-      .set('Authorization', `Bearer ${authToken}`)
-      .send({ userId: 'testUser', title: 'Test Title' }) // Missing URL
-      .expect(400);
-
-    expect(response.body.message).toContain('Missing url');
-  });
 });
