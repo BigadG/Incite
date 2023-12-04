@@ -1,7 +1,7 @@
 require('dotenv').config(); // Require dotenv at the top to use environment variables
 const express = require('express');
 const routes = require('./routes'); // Import the router from routes.js
-const { authMiddleware } = require('./middleware/authMiddleware'); // Correctly destructure if it's a named export
+const { authMiddleware } = require('./authMiddleware'); // Correctly destructure if it's a named export
 
 const app = express();
 const port = process.env.PORT || 3001;

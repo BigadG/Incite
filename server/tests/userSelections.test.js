@@ -1,11 +1,11 @@
 require('dotenv').config();
 const request = require('supertest');
-const { MongoClient } = require('mongodb');
-const { MongoMemoryServer } = require('mongodb-memory-server');
 const jwt = require('jsonwebtoken');
-const app = require('../server'); // Make sure this points to your Express app
+const app = require('../server'); // Ensure this points to your Express app
 
-jest.mock('../middleware/authMiddleware', () => {
+jest.mock('../authMiddleware', () => {
+  const jwt = require('jsonwebtoken'); // Import jwt within the mock factory
+
   return {
     authMiddleware: (req, res, next) => {
       try {
@@ -20,34 +20,52 @@ jest.mock('../middleware/authMiddleware', () => {
   };
 });  
 
-let mongoServer;
-let db;
+jest.mock('../database', () => {
+  let mongoServer;
+  let db;
+
+  return {
+    connect: async () => {
+      if (!mongoServer) {
+        const { MongoMemoryServer } = require('mongodb-memory-server');
+        const { MongoClient } = require('mongodb');
+
+        mongoServer = await MongoMemoryServer.create();
+        const mongoUri = mongoServer.getUri();
+        const client = new MongoClient(mongoUri);
+        await client.connect();
+        db = client.db('InciteTestDB');
+      }
+      return db;
+    },
+    close: async () => {
+      if (mongoServer) {
+        await mongoServer.stop();
+      }
+    }
+  };
+});
+
 let authToken;
 
 beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
-  const mongoUri = mongoServer.getUri();
-  const client = new MongoClient(mongoUri);
-  await client.connect();
-  db = client.db('InciteTestDB');
+  const database = require('../database');
+  const db = await database.connect();
 
-  // Create a mock user and generate a test JWT
   const testUser = { userId: 'testUser', email: 'test@example.com' };
   authToken = jwt.sign(testUser, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-  jest.mock('../database', () => ({
-    connect: async () => {
-      return db;
-    }
-  }));
 });
 
 afterAll(async () => {
-  await mongoServer.stop();
+  const database = require('../database');
+  await database.close();
 });
 
 describe('User Selections', () => {
+  let db;
+
   beforeEach(async () => {
+    db = await require('../database').connect();
     await db.collection('Users').insertOne({
       userId: 'testUser',
       selections: []
@@ -106,4 +124,5 @@ describe('User Selections', () => {
     expect(response.body.message).toBe('Authentication failed');
   });
 });
+
 
