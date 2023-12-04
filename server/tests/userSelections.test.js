@@ -1,5 +1,6 @@
 require('dotenv').config();
 const request = require('supertest');
+const { MongoClient, ObjectId } = require('mongodb');
 const jwt = require('jsonwebtoken');
 const app = require('../server'); // Ensure this points to your Express app
 
@@ -89,7 +90,7 @@ describe('User Selections', () => {
   test('It should retrieve selections', async () => {
     await db.collection('Users').updateOne(
       { userId: 'testUser' },
-      { $push: { selections: { title: 'Test Title', url: 'http://test.com', pageId: new MongoClient.ObjectId(), timestamp: new Date() } } }
+      { $push: { selections: { title: 'Test Title', url: 'http://test.com', pageId: new ObjectId(), timestamp: new Date() } } }
     );
 
     const response = await request(app)
@@ -103,7 +104,7 @@ describe('User Selections', () => {
   test('It should clear selections', async () => {
     await db.collection('Users').updateOne(
       { userId: 'testUser' },
-      { $set: { selections: [{ title: 'Test Title', url: 'http://test.com', pageId: new MongoClient.ObjectId(), timestamp: new Date() }] } }
+      { $set: { selections: [{ title: 'Test Title', url: 'http://test.com', pageId: new ObjectId(), timestamp: new Date() }] } }
     );
 
     const response = await request(app)
