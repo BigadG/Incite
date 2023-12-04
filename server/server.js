@@ -1,4 +1,3 @@
-// server/server.js
 require('dotenv').config(); // Require dotenv at the top to use environment variables
 const express = require('express');
 const routes = require('./routes'); // Import the router from routes.js

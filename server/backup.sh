@@ -1,4 +1,3 @@
-# server/backup.sh
 
 # MongoDB credentials and database name
 USER="your_username"
