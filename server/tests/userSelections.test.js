@@ -1,24 +1,23 @@
 require('dotenv').config();
 const request = require('supertest');
-const { MongoMemoryServer } = require('mongodb-memory-server');
 const { MongoClient } = require('mongodb');
+const { MongoMemoryServer } = require('mongodb-memory-server');
+const jwt = require('jsonwebtoken');
 const app = require('../server'); // Make sure this points to your Express app
 
 jest.mock('../middleware/authMiddleware', () => {
-    const jwt = require('jsonwebtoken');  // Import jwt within the mock factory
-  
-    return {
-      authMiddleware: (req, res, next) => {
-        try {
-          const token = req.headers.authorization.split(' ')[1];
-          const decoded = jwt.verify(token, process.env.JWT_SECRET);
-          req.user = decoded;
-          next();
-        } catch (error) {
-          return res.status(401).json({ message: 'Authentication failed' });
-        }
+  return {
+    authMiddleware: (req, res, next) => {
+      try {
+        const token = req.headers.authorization.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded;
+        next();
+      } catch (error) {
+        return res.status(401).json({ message: 'Authentication failed' });
       }
-    };
+    }
+  };
 });  
 
 let mongoServer;
@@ -32,20 +31,19 @@ beforeAll(async () => {
   await client.connect();
   db = client.db('InciteTestDB');
 
-  // Replace the actual connect method with the connection to the in-memory database
-  jest.mock('../database', () => ({
-    connect: () => db
-  }));
-
   // Create a mock user and generate a test JWT
   const testUser = { userId: 'testUser', email: 'test@example.com' };
   authToken = jwt.sign(testUser, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+  jest.mock('../database', () => ({
+    connect: async () => {
+      return db;
+    }
+  }));
 });
 
 afterAll(async () => {
-  if (mongoServer) {
-    await mongoServer.stop();
-  }
+  await mongoServer.stop();
 });
 
 describe('User Selections', () => {
@@ -73,7 +71,7 @@ describe('User Selections', () => {
   test('It should retrieve selections', async () => {
     await db.collection('Users').updateOne(
       { userId: 'testUser' },
-      { $push: { selections: { title: 'Test Title', url: 'http://test.com', pageId: new ObjectId(), timestamp: new Date() } } }
+      { $push: { selections: { title: 'Test Title', url: 'http://test.com', pageId: new MongoClient.ObjectId(), timestamp: new Date() } } }
     );
 
     const response = await request(app)
@@ -87,7 +85,7 @@ describe('User Selections', () => {
   test('It should clear selections', async () => {
     await db.collection('Users').updateOne(
       { userId: 'testUser' },
-      { $set: { selections: [{ title: 'Test Title', url: 'http://test.com', pageId: new ObjectId(), timestamp: new Date() }] } }
+      { $set: { selections: [{ title: 'Test Title', url: 'http://test.com', pageId: new MongoClient.ObjectId(), timestamp: new Date() }] } }
     );
 
     const response = await request(app)
@@ -108,3 +106,4 @@ describe('User Selections', () => {
     expect(response.body.message).toBe('Authentication failed');
   });
 });
+
