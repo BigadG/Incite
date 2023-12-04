@@ -1,21 +1,24 @@
+require('dotenv').config();
 const express = require('express');
+const routes = require('./routes');
+const { authMiddleware } = require('./authMiddleware');
+
 const app = express();
 const port = process.env.PORT || 3001;
 
-// use built-in Express middleware for JSON
 app.use(express.json());
+app.use('/api', authMiddleware);
+app.use('/api', routes);
 
 app.get('/', (req, res) => {
   res.send('Incite Server is running!');
 });
 
-app.listen(port, () => {
-  console.log(`Server listening at http://localhost:${port}`);
-});
-
-// Placeholder route for adding a selection
-app.post('/api/add-selection', (req, res) => {
-    // Placeholder response - in a real scenario, you would handle the request here
-    res.status(200).send('Selection added successfully (placeholder)');
+// Start the server only if running this file directly (i.e., not in test mode)
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`Server listening at http://localhost:${port}`);
   });
-  
+}
+
+module.exports = app;
