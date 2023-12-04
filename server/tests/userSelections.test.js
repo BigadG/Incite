@@ -1,4 +1,4 @@
-// server/tests/userSelections.test.js
+require('dotenv').config();
 const request = require('supertest');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const { MongoClient } = require('mongodb');
