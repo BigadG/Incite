@@ -6,7 +6,6 @@ const app = require('../server'); // Ensure this points to your Express app
 
 jest.mock('../authMiddleware', () => {
   const jwt = require('jsonwebtoken'); // Import jwt within the mock factory
-
   return {
     authMiddleware: (req, res, next) => {
       try {
@@ -47,19 +46,30 @@ jest.mock('../database', () => {
   };
 });
 
+let mongoServer;
+let db;
 let authToken;
 
 beforeAll(async () => {
-  const database = require('../database');
-  const db = await database.connect();
+  // Set up the in-memory MongoDB server
+  const { MongoMemoryServer } = require('mongodb-memory-server');
+  mongoServer = await MongoMemoryServer.create();
+  const uri = mongoServer.getUri();
+  db = new MongoClient(uri);
+  await db.connect();
+  await db.db("InciteTestDB").command({ ping: 1 });
 
   const testUser = { userId: 'testUser', email: 'test@example.com' };
   authToken = jwt.sign(testUser, process.env.JWT_SECRET, { expiresIn: '1h' });
 });
 
 afterAll(async () => {
-  const database = require('../database');
-  await database.close();
+  if (db) {
+    await db.close();
+  }
+  if (mongoServer) {
+    await mongoServer.stop();
+  }
 });
 
 describe('User Selections', () => {
