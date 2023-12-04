@@ -2,22 +2,24 @@
 const request = require('supertest');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const { MongoClient } = require('mongodb');
-const jwt = require('jsonwebtoken');
 const app = require('../server'); // Make sure this points to your Express app
 
-jest.mock('../middleware/authMiddleware', () => ({
-  authMiddleware: (req, res, next) => {
-    // Mock user object
-    try {
-      const token = req.headers.authorization.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = decoded;
-      next();
-    } catch (error) {
-      return res.status(401).json({ message: 'Authentication failed' });
-    }
-  }
-}));
+jest.mock('../middleware/authMiddleware', () => {
+    const jwt = require('jsonwebtoken');  // Import jwt within the mock factory
+  
+    return {
+      authMiddleware: (req, res, next) => {
+        try {
+          const token = req.headers.authorization.split(' ')[1];
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          req.user = decoded;
+          next();
+        } catch (error) {
+          return res.status(401).json({ message: 'Authentication failed' });
+        }
+      }
+    };
+});  
 
 let mongoServer;
 let db;
