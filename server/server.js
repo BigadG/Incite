@@ -1,21 +1,25 @@
+// server/server.js
 const express = require('express');
+const authMiddleware = require('./authMiddleware'); // Import the middleware
+
 const app = express();
 const port = process.env.PORT || 3001;
 
-// use built-in Express middleware for JSON
 app.use(express.json());
+
+// Use the auth middleware for routes that need protection
+app.use('/api', authMiddleware);
 
 app.get('/', (req, res) => {
   res.send('Incite Server is running!');
 });
 
+// Secure this route with the auth middleware
+app.post('/api/add-selection', authMiddleware, (req, res) => {
+  // Your secure logic here
+  res.status(200).send('Selection added successfully');
+});
+
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);
 });
-
-// Placeholder route for adding a selection
-app.post('/api/add-selection', (req, res) => {
-    // Placeholder response - in a real scenario, you would handle the request here
-    res.status(200).send('Selection added successfully (placeholder)');
-  });
-  
