@@ -90,9 +90,8 @@ document.addEventListener('DOMContentLoaded', function () {
       showSelections();
     });
   
-    clearButton.addEventListener('click', function() {
+ /*   clearButton.addEventListener('click', function() {
       clearSelections();
     });
+*/
   });
-  
-  
