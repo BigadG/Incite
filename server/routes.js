@@ -7,10 +7,10 @@ router.post('/addSelection', async (req, res) => {
   try {
     const db = await connect();
     const { title, url } = req.body;
-    const userId = req.userId; // Use the userId from the authMiddleware
+    const uuid = req.userId; // Now using the UUID provided by the middleware
 
     const result = await db.collection('Users').updateOne(
-      { _id: userId },
+      { uuid },
       { $push: { selections: { title, url, pageId: new ObjectId(), timestamp: new Date() } } },
       { upsert: true }
     );
@@ -23,9 +23,9 @@ router.post('/addSelection', async (req, res) => {
 router.get('/selections', async (req, res) => {
   try {
     const db = await connect();
-    const userId = req.userId; // Use the userId from the authMiddleware
+    const uuid = req.userId; // Now using the UUID provided by the middleware
 
-    const user = await db.collection('Users').findOne({ _id: userId });
+    const user = await db.collection('Users').findOne({ uuid });
     res.status(200).json(user ? user.selections : []);
   } catch (error) {
     res.status(500).json({ message: 'Error retrieving selections', error });
@@ -35,10 +35,10 @@ router.get('/selections', async (req, res) => {
 router.post('/clearSelections', async (req, res) => {
   try {
     const db = await connect();
-    const userId = req.userId; // Use the userId from the authMiddleware
+    const uuid = req.userId; // Now using the UUID provided by the middleware
 
     const result = await db.collection('Users').updateOne(
-      { _id: userId },
+      { uuid },
       { $set: { selections: [] } }
     );
     res.status(200).json({ message: 'Selections cleared', result });
@@ -48,6 +48,7 @@ router.post('/clearSelections', async (req, res) => {
 });
 
 module.exports = router;
+
 
 
 
