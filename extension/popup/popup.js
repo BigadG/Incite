@@ -4,26 +4,40 @@ document.addEventListener('DOMContentLoaded', function () {
   const addButton = document.getElementById('addButton');
   const showButton = document.getElementById('showButton');
 
-  async function addSelection(url, title) {
-      try {
-          const response = await fetch(`${serverUrl}/addSelection`, {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json',
-                  // Authorization header must be provided as per your application's authentication strategy
-              },
-              body: JSON.stringify({ url, title }),
-          });
+  // Retrieve the UUID from storage and include it in the header of every request
+  async function getUUID() {
+    return new Promise((resolve, reject) => {
+      chrome.storage.local.get(['userId'], function(result) {
+        if (result.userId) {
+          resolve(result.userId);
+        } else {
+          reject('No UUID found');
+        }
+      });
+    });
+  }
 
-          if (response.ok) {
-              console.log('Selection added');
-          } else {
-              const errorData = await response.json();
-              throw new Error(errorData.message || 'Failed to add selection');
-          }
-      } catch (error) {
-          console.error('Error adding selection:', error);
+  async function addSelection(url, title) {
+    try {
+      const uuid = await getUUID();
+      const response = await fetch(`${serverUrl}/addSelection`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${uuid}`
+        },
+        body: JSON.stringify({ url, title }),
+      });
+
+      if (response.ok) {
+        console.log('Selection added');
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to add selection');
       }
+    } catch (error) {
+      console.error('Error adding selection:', error);
+    }
   }
 
   async function showSelections() {
