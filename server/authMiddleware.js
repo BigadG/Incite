@@ -1,19 +1,13 @@
-const jwt = require('jsonwebtoken');
-
-const secret = process.env.JWT_SECRET; // Using the secret from the environment variable
-
+// This middleware will now check for a UUID instead of a JWT token
 const authMiddleware = (req, res, next) => {
   try {
-    const token = req.headers.authorization.split(' ')[1]; // Assumes Bearer token
-    const decoded = jwt.verify(token, secret);
-
-    // Ensure that your JWT token contains a user ID field, typically as 'userId'.
-    // This field should be set when the token is created (usually at the time of login).
-    if (decoded && decoded.userId) {
-      req.userId = decoded.userId; // Attach the user ID to the request object
+    // This assumes the UUID is sent in the Authorization header as a Bearer token
+    const uuid = req.headers.authorization.split(' ')[1]; 
+    if (uuid) {
+      req.userId = uuid; // Attach the UUID to the request object
       next();
     } else {
-      throw new Error('Authentication token is missing user ID');
+      throw new Error('Authentication UUID is missing');
     }
   } catch (error) {
     return res.status(401).json({ message: 'Authentication failed', error: error.message });
@@ -21,3 +15,4 @@ const authMiddleware = (req, res, next) => {
 };
 
 module.exports = authMiddleware;
+
