@@ -20,6 +20,8 @@ document.addEventListener('DOMContentLoaded', function () {
   async function addSelection(url, title) {
     try {
       const uuid = await getUUID();
+      console.log('UUID retrieved:', uuid); // Debug: Check the retrieved UUID
+  
       const response = await fetch(`${serverUrl}/addSelection`, {
         method: 'POST',
         headers: {
@@ -28,17 +30,22 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         body: JSON.stringify({ url, title }),
       });
-
+  
       if (response.ok) {
         console.log('Selection added');
       } else {
         const errorData = await response.json();
+        // Use JSON.stringify to see the details of the errorData object
+        console.error('Error data:', JSON.stringify(errorData, null, 2)); // Debug: Inspect the error data
         throw new Error(errorData.message || 'Failed to add selection');
       }
     } catch (error) {
-      console.error('Error adding selection:', error);
+      // Include error details in the log
+      console.error('Error adding selection:', error, JSON.stringify(error, null, 2));
     }
   }
+  
+  
 
   async function showSelections() {
       try {
