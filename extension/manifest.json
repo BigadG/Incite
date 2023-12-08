@@ -3,7 +3,13 @@
     "name": "Incite",
     "description": "Save and display web page selections for essay generation.",
     "version": "1.0",
-    "permissions": ["activeTab", "storage"],
+    "permissions": [
+      "activeTab",
+      "storage"
+    ],
+    "host_permissions": [
+      "http://localhost:3001/*"
+    ],
     "action": {
       "default_popup": "popup/popup.html",
       "default_icon": {
@@ -21,4 +27,5 @@
       "service_worker": "background.js"
     }
   }
+  
   
