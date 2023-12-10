@@ -1,24 +1,85 @@
-// client/src/Components/Popup.jsx
-import React from 'react';
-import './Popup.css'; // Assuming CSS modules are not used
+// client/src/components/Popup.jsx
+import React, { useState, useEffect } from 'react';
+import './Popup.css'; // Assuming the use of CSS Modules or import directly if not
 
 const Popup = () => {
-  // Event handlers and state management here
+  const serverUrl = 'http://localhost:3001/api';
 
-  const handleAddSelection = () => {
-    // Logic to add the current webpage to selections
+  const [uuid, setUUID] = useState('');
+
+  useEffect(() => {
+    // Fetch the UUID from Chrome's local storage
+    chrome.storage.local.get(['userId'], function(result) {
+      if (result.userId) {
+        setUUID(result.userId);
+      } else {
+        console.error('No UUID found');
+      }
+    });
+  }, []);
+
+  const addSelection = async (url, title) => {
+    try {
+      const response = await fetch(`${serverUrl}/addSelection`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${uuid}`
+        },
+        body: JSON.stringify({ url, title }),
+      });
+
+      if (response.ok) {
+        console.log('Selection added');
+      } else {
+        const errorData = await response.json();
+        console.error('Error data:', JSON.stringify(errorData, null, 2));
+      }
+    } catch (error) {
+      console.error('Error adding selection:', error);
+    }
   };
 
-  const handleShowSelections = () => {
-    // Logic to show selections
+  const showSelections = async () => {
+    try {
+      const response = await fetch(`${serverUrl}/selections`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${uuid}`
+        },
+      });
+
+      if (response.ok) {
+        const selections = await response.json();
+        console.log(selections);
+      } else {
+        const errorData = await response.json();
+        console.error('Error data:', JSON.stringify(errorData, null, 2));
+      }
+    } catch (error) {
+      console.error('Error retrieving selections:', error);
+    }
+  };
+
+  const handleAddButtonClick = () => {
+    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+      const currentTab = tabs[0];
+      addSelection(currentTab.url, currentTab.title);
+    });
+  };
+
+  const handleShowButtonClick = () => {
+    showSelections();
   };
 
   return (
     <div id="popup-content">
-      <button id="addButton" onClick={handleAddSelection}>Add to selections</button>
-      <button id="showButton" onClick={handleShowSelections}>Show selections</button>
+      <button id="addButton" onClick={handleAddButtonClick}>ADD TO LIST</button>
+      <button id="showButton" onClick={handleShowButtonClick}>SHOW LIST</button>
     </div>
   );
 };
 
 export default Popup;
+
