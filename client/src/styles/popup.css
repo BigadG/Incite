@@ -1,24 +1,25 @@
+/* client/src/styles/Popup.css */
 @import url('https://fonts.googleapis.com/css2?family=Dhurjati&display=swap');
 
-body {
+#popup-content {
   display: flex;
+  flex-direction: column;
   width: 200px;
   padding: 5px;
   background-color: rgb(28, 28, 28);
 }
-  
+
 button {
   width: 100%;
-  margin-right: 15px;
   margin-bottom: 5px;
   border-radius: 13px;
-  border-color: rgb(95, 95, 251);
-  border-style: solid;
+  border: solid rgb(95, 95, 251);
   font-size: 40px;
   font-family: 'Dhurjati', sans-serif;
   font-weight: 900;
   background-color: rgb(28, 28, 28);
   color: lightblue;
+  cursor: pointer;
 }
 
 button:hover {
