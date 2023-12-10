@@ -6,10 +6,11 @@ import { resolve } from 'path';
 export default defineConfig({
   plugins: [react()],
   build: {
+    outDir: 'dist', // Specify the output directory as 'dist'
     rollupOptions: {
       input: {
-        main: resolve(__dirname, 'index.html'),
-        popup: resolve(__dirname, 'public/popup.html') // Path to your popup.html
+        main: resolve(__dirname, 'index.html'), // Your main entry file
+        popup: resolve(__dirname, 'public', 'popup.html'), // Path to your popup.html
       },
       output: {
         entryFileNames: 'assets/[name].js',
@@ -19,3 +20,4 @@ export default defineConfig({
     }
   }
 });
+
