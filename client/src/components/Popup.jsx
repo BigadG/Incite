@@ -1,6 +1,5 @@
-// client/src/components/Popup.jsx
 import React, { useState, useEffect } from 'react';
-import '../styles/popup.css'; // Assuming the use of CSS Modules or import directly if not
+import '../styles/popup.css';
 
 const Popup = () => {
   const serverUrl = 'http://localhost:3001/api';
