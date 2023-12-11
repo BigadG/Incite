@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const routes = require('./routes');
-const authMiddleware = require('./authMiddleware');
+//const authMiddleware = require('./authMiddleware');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -9,11 +9,8 @@ const port = process.env.PORT || 3001;
 console.log(typeof authMiddleware); // Should log 'function'
 console.log(typeof routes); // Should also log 'function'
 
-app.use('/api', authMiddleware);
-app.use('/api', routes);
-
 app.use(express.json());
-app.use('/api', authMiddleware);
+//app.use('/api', authMiddleware);
 app.use('/api', routes);
 
 app.get('/', (req, res) => {

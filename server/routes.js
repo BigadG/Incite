@@ -16,6 +16,7 @@ router.post('/addSelection', async (req, res) => {
     );
     res.status(200).json({ message: 'Selection added', result });
   } catch (error) {
+    console.error('Add Selection Error:', error); // This will log the error to the console
     res.status(500).json({ message: 'Error adding selection', error });
   }
 });
