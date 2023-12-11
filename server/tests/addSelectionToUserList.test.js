@@ -11,7 +11,7 @@ beforeAll(async () => {
   const uri = mongoServer.getUri();
   const client = new MongoClient(uri);
   await client.connect();
-  db = client.db(await mongoServer.getDbName());
+  db = client.db(InciteDB);
   app.locals.db = db;
 });
 
