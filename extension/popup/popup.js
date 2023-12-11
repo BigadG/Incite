@@ -1,98 +1,83 @@
-// popup.js
-
 document.addEventListener('DOMContentLoaded', function () {
-    // Define the server endpoint URL
-    const serverUrl = 'http://localhost:3000';
-  
-    // Button references
-    const addButton = document.getElementById('addButton');
-    const showButton = document.getElementById('showButton');
-    const clearButton = document.getElementById('clearButton');
-  
-    // Function to send a POST request to the server to add a selection
-    async function addSelection(url, title) {
-      try {
-        const response = await fetch(`${serverUrl}/addSelection`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            // Add any necessary headers like authorization tokens here
-          },
-          body: JSON.stringify({ url, title }),
-        });
-  
-        if (response.ok) {
-          console.log('Selection added');
+  const serverUrl = 'http://localhost:3001/api';
+
+  const addButton = document.getElementById('addButton');
+  const showButton = document.getElementById('showButton');
+
+  // Retrieve the UUID from storage and include it in the header of every request
+  async function getUUID() {
+    return new Promise((resolve, reject) => {
+      chrome.storage.local.get(['userId'], function(result) {
+        if (result.userId) {
+          resolve(result.userId);
         } else {
-          throw new Error('Failed to add selection');
+          reject('No UUID found');
         }
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  
-    // Function to get the user's selections from the server
-    async function showSelections() {
-      try {
-        const response = await fetch(`${serverUrl}/selections`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            // Add any necessary headers like authorization tokens here
-          },
-        });
-  
-        if (response.ok) {
-          const selections = await response.json();
-          // Code to display the selections to the user goes here
-          console.log(selections);
-        } else {
-          throw new Error('Failed to retrieve selections');
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  
-    // Function to clear the user's selections from the server
-    async function clearSelections() {
-      try {
-        const response = await fetch(`${serverUrl}/clearSelections`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            // Add any necessary headers like authorization tokens here
-          },
-          // Send necessary data like userId if required
-          body: JSON.stringify({ /* userId or other required fields */ }),
-        });
-  
-        if (response.ok) {
-          console.log('Selections cleared');
-        } else {
-          throw new Error('Failed to clear selections');
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  
-    // Event listeners for buttons
-    addButton.addEventListener('click', function() {
-      // Logic to retrieve the current tab's URL and title
-      chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-        const currentTab = tabs[0];
-        addSelection(currentTab.url, currentTab.title);
       });
     });
+  }
+
+  async function addSelection(url, title) {
+    try {
+      const uuid = await getUUID();
+      console.log('UUID retrieved:', uuid); // Debug: Check the retrieved UUID
   
-    showButton.addEventListener('click', function() {
-      showSelections();
-    });
+      const response = await fetch(`${serverUrl}/addSelection`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${uuid}`
+        },
+        body: JSON.stringify({ url, title }),
+      });
   
-    clearButton.addEventListener('click', function() {
-      clearSelections();
-    });
+      if (response.ok) {
+        console.log('Selection added');
+      } else {
+        const errorData = await response.json();
+        // Use JSON.stringify to see the details of the errorData object
+        console.error('Error data:', JSON.stringify(errorData, null, 2)); // Debug: Inspect the error data
+        throw new Error(errorData.message || 'Failed to add selection');
+      }
+    } catch (error) {
+      // Include error details in the log
+      console.error('Error adding selection:', error, JSON.stringify(error, null, 2));
+    }
+  }
+  
+  
+
+  async function showSelections() {
+      try {
+          const response = await fetch(`${serverUrl}/selections`, {
+              method: 'GET',
+              headers: {
+                  'Content-Type': 'application/json',
+                  // Authorization header must be provided as per your application's authentication strategy
+              },
+          });
+
+          if (response.ok) {
+              const selections = await response.json();
+              console.log(selections);
+              // Here you would update your popup's DOM with the selection titles and URLs
+          } else {
+              const errorData = await response.json();
+              throw new Error(errorData.message || 'Failed to retrieve selections');
+          }
+      } catch (error) {
+          console.error('Error retrieving selections:', error);
+      }
+  }
+
+  addButton.addEventListener('click', function() {
+      chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+          const currentTab = tabs[0];
+          addSelection(currentTab.url, currentTab.title);
+      });
   });
-  
-  
+
+  showButton.addEventListener('click', function() {
+      showSelections();
+  });
+});
