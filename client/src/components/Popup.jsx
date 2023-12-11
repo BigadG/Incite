@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import '../styles/popup.css'; // Adjust the path to your CSS file if necessary
+import '../popup.css'; // Adjust the path to your CSS file if necessary
 
 const Popup = () => {
   const serverUrl = 'http://localhost:3001/api';
