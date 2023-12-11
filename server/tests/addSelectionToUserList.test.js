@@ -14,14 +14,17 @@ beforeAll(async () => {
   await client.connect();
   db = client.db('InciteDB'); // Directly use the database name, for example, 'test'
   app.locals.db = db;
-});
+}, 10000);
 
 
 afterAll(async () => {
+  if (db) {
+    await db.close();
+  }
   if (mongoServer) {
     await mongoServer.stop();
   }
-});
+}, 10000);
 
 describe('/api/addSelection endpoint', () => {
   it('should save the current webpage to the user’s list', async () => {
