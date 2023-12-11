@@ -9,6 +9,14 @@ cache:
     - client/node_modules/
     - server/node_modules/
 
+clear_cache:
+  stage: test
+  script:
+    - rm -rf client/node_modules/
+    - rm -rf server/node_modules/
+  only:
+    - main
+
 test_server: 
   stage: test
   script:
