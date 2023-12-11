@@ -11,7 +11,7 @@
       "http://localhost:3001/*"
     ],
     "action": {
-      "default_popup": "popup/popup.html",
+      "default_popup": "dist/popup.html",  
       "default_icon": {
         "16": "./icons/icon.png",
         "48": "./icons/icon.png",
