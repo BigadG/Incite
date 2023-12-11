@@ -6,14 +6,16 @@ const app = require('../server.js');
 let mongoServer;
 let db;
 
+// Correct usage of MongoMemoryServer
 beforeAll(async () => {
   mongoServer = await MongoMemoryServer.create();
   const uri = mongoServer.getUri();
   const client = new MongoClient(uri);
   await client.connect();
-  db = client.db(await mongoServer.getDbName());
+  db = client.db('InciteDB'); // Directly use the database name, for example, 'test'
   app.locals.db = db;
 });
+
 
 afterAll(async () => {
   if (mongoServer) {
