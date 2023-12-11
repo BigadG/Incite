@@ -1,0 +1,8 @@
+[init]
+	defaultBranch = none
+[fetch]
+	recurseSubmodules = false
+[transfer]
+	bundleURI = true
+[http "https://gitlab.com"]
+	sslCAInfo = /Users/bigadgaber/GitLabDocs/Incite/server/builds/YiMKSrSC/0/BigadG/incite.tmp/CI_SERVER_TLS_CA_FILE
