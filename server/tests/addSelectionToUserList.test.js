@@ -1,35 +1,37 @@
+require('dotenv').config();
 const request = require('supertest');
 const { MongoClient } = require('mongodb');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const app = require('../server.js');
 
 let mongoServer;
-let db;
+let client;
 
-// Correct usage of MongoMemoryServer
 beforeAll(async () => {
   mongoServer = await MongoMemoryServer.create();
   const uri = mongoServer.getUri();
-  const client = new MongoClient(uri);
+  client = new MongoClient(uri);
   await client.connect();
-  db = client.db('InciteDB'); // Directly use the database name, for example, 'test'
-  app.locals.db = db;
-}, 10000);
-
+  app.locals.db = client.db('InciteTestDB'); // Use the same DB name for consistency
+}, 20000); // Increased timeout to 20 seconds
 
 afterAll(async () => {
-  if (db) {
-    await db.close();
+  if (client) {
+    await client.close();
   }
   if (mongoServer) {
     await mongoServer.stop();
   }
-}, 10000);
+}, 20000);
 
 describe('/api/addSelection endpoint', () => {
   it('should save the current webpage to the user’s list', async () => {
     const mockUUID = 'mock-uuid-1234';
     const selectionData = { url: 'http://example.com', title: 'Example' };
+
+    // Seed the database with the mock user ID
+    const usersCollection = client.db('InciteTestDB').collection('Users');
+    await usersCollection.insertOne({ uuid: mockUUID, selections: [] });
 
     const response = await request(app)
       .post('/api/addSelection')
@@ -40,7 +42,8 @@ describe('/api/addSelection endpoint', () => {
     expect(response.body.message).toBe('Selection added');
 
     // Verify that the selection has been added to the database
-    const user = await db.collection('Users').findOne({ uuid: mockUUID });
+    const user = await usersCollection.findOne({ uuid: mockUUID });
+    expect(user).not.toBeNull();
     expect(user.selections).toEqual(expect.arrayContaining([expect.objectContaining(selectionData)]));
   });
 });
