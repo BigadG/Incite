@@ -44,22 +44,22 @@ jest.mock('../database', () => {
   };
 });
 
-let mongoServer;
-let db;
-let authToken = 'mock-uuid-1234'; // Use a mock UUID
+let mongoClient; // Renamed to avoid confusion with the db variable
+let authToken = 'mock-uuid-1234';
 
 beforeAll(async () => {
   const { MongoMemoryServer } = require('mongodb-memory-server');
-  mongoServer = await MongoMemoryServer.create();
+  const mongoServer = await MongoMemoryServer.create();
   const uri = mongoServer.getUri();
-  db = new MongoClient(uri);
-  await db.connect();
-  await db.db("InciteTestDB").command({ ping: 1 });
+  mongoClient = new MongoClient(uri);
+  await mongoClient.connect();
+  const db = mongoClient.db("InciteTestDB");
+  await db.command({ ping: 1 });
 });
 
 afterAll(async () => {
-  if (db) {
-    await db.close();
+  if (MongoClient) {
+    await MongoClient.close(); // Close the client instead of db
   }
   if (mongoServer) {
     await mongoServer.stop();
@@ -91,9 +91,9 @@ describe('User Selections', () => {
       .post('/api/addSelection')
       .set('Authorization', `Bearer ${authToken}`)
       .send({ userId: authToken, title: 'Test Title', url: 'http://test.com' });
-
+  
     const response = await request(app)
-      .get(`/api/selections/${authToken}`)
+      .get('/api/selections') // Updated route
       .set('Authorization', `Bearer ${authToken}`);
     expect(response.status).toBe(200);
     expect(response.body).toEqual(expect.arrayContaining([expect.objectContaining({ title: 'Test Title', url: 'http://test.com' })]));
