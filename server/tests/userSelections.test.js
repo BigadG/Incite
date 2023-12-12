@@ -1,24 +1,25 @@
 require('dotenv').config();
 const request = require('supertest');
 const { MongoClient, ObjectId } = require('mongodb');
-const jwt = require('jsonwebtoken');
 const app = require('../server'); // Ensure this points to your Express app
 
 jest.mock('../authMiddleware', () => {
-  const jwt = require('jsonwebtoken'); // Import jwt within the mock factory
   return {
     authMiddleware: (req, res, next) => {
       try {
-        const token = req.headers.authorization.split(' ')[1];
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
-        next();
+        const uuid = req.headers.authorization.split(' ')[1];
+        if (uuid) {
+          req.userId = uuid; // Attach the UUID to the request object
+          next();
+        } else {
+          throw new Error('Authentication UUID is missing');
+        }
       } catch (error) {
-        return res.status(401).json({ message: 'Authentication failed' });
+        return res.status(401).json({ message: 'Authentication failed', error: error.message });
       }
     }
   };
-});  
+});
 
 jest.mock('../database', () => {
   let mongoServer;
@@ -28,8 +29,6 @@ jest.mock('../database', () => {
     connect: async () => {
       if (!mongoServer) {
         const { MongoMemoryServer } = require('mongodb-memory-server');
-        const { MongoClient } = require('mongodb');
-
         mongoServer = await MongoMemoryServer.create();
         const mongoUri = mongoServer.getUri();
         const client = new MongoClient(mongoUri);
@@ -51,7 +50,6 @@ let db;
 let authToken;
 
 beforeAll(async () => {
-  // Set up the in-memory MongoDB server
   const { MongoMemoryServer } = require('mongodb-memory-server');
   mongoServer = await MongoMemoryServer.create();
   const uri = mongoServer.getUri();
@@ -59,8 +57,8 @@ beforeAll(async () => {
   await db.connect();
   await db.db("InciteTestDB").command({ ping: 1 });
 
-  const testUser = { userId: 'testUser', email: 'test@example.com' };
-  authToken = jwt.sign(testUser, process.env.JWT_SECRET, { expiresIn: '1h' });
+  // Use a mock UUID
+  authToken = 'mock-uuid-1234';
 });
 
 afterAll(async () => {
@@ -78,7 +76,7 @@ describe('User Selections', () => {
   beforeEach(async () => {
     db = await require('../database').connect();
     await db.collection('Users').insertOne({
-      userId: 'testUser',
+      userId: authToken, // Use UUID here
       selections: []
     });
   });
@@ -91,7 +89,7 @@ describe('User Selections', () => {
     const response = await request(app)
       .post('/api/addSelection')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({ userId: 'testUser', title: 'Test Title', url: 'http://test.com' })
+      .send({ userId: authToken, title: 'Test Title', url: 'http://test.com' })
       .expect(200);
 
     expect(response.body.message).toBe('Selection added');
@@ -99,12 +97,12 @@ describe('User Selections', () => {
 
   test('It should retrieve selections', async () => {
     await db.collection('Users').updateOne(
-      { userId: 'testUser' },
+      { userId: authToken },
       { $push: { selections: { title: 'Test Title', url: 'http://test.com', pageId: new ObjectId(), timestamp: new Date() } } }
     );
 
     const response = await request(app)
-      .get('/api/selections/testUser')
+      .get(`/api/selections/${authToken}`)
       .set('Authorization', `Bearer ${authToken}`)
       .expect(200);
 
@@ -113,14 +111,14 @@ describe('User Selections', () => {
 
   test('It should clear selections', async () => {
     await db.collection('Users').updateOne(
-      { userId: 'testUser' },
+      { userId: authToken },
       { $set: { selections: [{ title: 'Test Title', url: 'http://test.com', pageId: new ObjectId(), timestamp: new Date() }] } }
     );
 
     const response = await request(app)
       .post('/api/clearSelections')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({ userId: 'testUser' })
+      .send({ userId: authToken })
       .expect(200);
 
     expect(response.body.message).toBe('Selections cleared');
@@ -129,7 +127,7 @@ describe('User Selections', () => {
   test('It should fail to add a selection without authentication', async () => {
     const response = await request(app)
       .post('/api/addSelection')
-      .send({ userId: 'testUser', title: 'Test Title', url: 'http://test.com' })
+      .send({ userId: authToken, title: 'Test Title', url: 'http://test.com' })
       .expect(401);
 
     expect(response.body.message).toBe('Authentication failed');
