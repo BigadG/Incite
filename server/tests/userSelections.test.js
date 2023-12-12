@@ -22,13 +22,14 @@ jest.mock('../authMiddleware', () => {
 });
 
 jest.mock('../database', () => {
+  const { MongoClient } = require('mongodb'); // Import MongoClient inside the mock
+  const { MongoMemoryServer } = require('mongodb-memory-server');
   let mongoServer;
   let db;
 
   return {
     connect: async () => {
       if (!mongoServer) {
-        const { MongoMemoryServer } = require('mongodb-memory-server');
         mongoServer = await MongoMemoryServer.create();
         const mongoUri = mongoServer.getUri();
         const client = new MongoClient(mongoUri);
