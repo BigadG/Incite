@@ -12,7 +12,7 @@ beforeAll(async () => {
   const uri = mongoServer.getUri();
   client = new MongoClient(uri);
   await client.connect();
-  app.locals.db = client.db('InciteTestDB'); // Use the same DB name for consistency
+  app.locals.db = client.db('InciteDB'); // Use the same DB name for consistency
 }, 20000); // Increased timeout to 20 seconds
 
 afterAll(async () => {
@@ -30,7 +30,7 @@ describe('/api/addSelection endpoint', () => {
     const selectionData = { url: 'http://example.com', title: 'Example' };
 
     // Seed the database with the mock user ID
-    const usersCollection = client.db('InciteTestDB').collection('Users');
+    const usersCollection = client.db('InciteDB').collection('Users');
     await usersCollection.insertOne({ uuid: mockUUID, selections: [] });
 
     const response = await request(app)
