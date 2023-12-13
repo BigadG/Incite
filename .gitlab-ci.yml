@@ -1,7 +1,6 @@
 stages:
   - test
   - build
-  - deploy
 
 cache:
   paths:
@@ -22,6 +21,7 @@ test_server:
     - npm test
   only:
     - main
+    - /^feature\/.*$/ # Enable tests for feature branches
 
 test_client:
   stage: test
@@ -31,6 +31,7 @@ test_client:
     - npm test
   only:
     - main
+    - /^feature\/.*$/ # Enable tests for feature branches
 
 eslint_job:
   stage: test
@@ -45,6 +46,7 @@ eslint_job:
     - npm run lint
   only:
     - main
+    - /^feature\/.*$/ # Enable linting for feature branches
 
 build_client:
   stage: build
@@ -55,27 +57,9 @@ build_client:
   artifacts:
     paths:
       - client/build/
-    expire_in: 1 week  # Artifacts will be automatically deleted after one week
-
+    expire_in: 1 week
   only:
     - main
+    - /^feature\/.*$/ # Enable build for feature branches
 
-deploy_server:
-  stage: deploy
-  script:
-    - cd server
-    - npm ci
-  only:
-    - main
-
-deploy_client:
-  stage: deploy
-  script:
-    - cd client
-  only:
-    - main
-  dependencies:
-    - build_client
-
-# Customize the following as needed:
-# - Deployment scripts depend on your hosting solution and should be added to deploy jobs
+# - Add deployment scripts when implementing cloud provider right before deployment
