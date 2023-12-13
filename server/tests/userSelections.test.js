@@ -3,21 +3,32 @@ const request = require('supertest');
 const { MongoClient } = require('mongodb');
 const app = require('../server'); // Ensure this points to your Express app
 
-jest.mock('../authMiddleware', () => ({
-  authMiddleware: (req, res, next) => {
+jest.mock('../authMiddleware', () => {
+  return async (req, res, next) => {
     try {
-      const uuid = req.headers.authorization.split(' ')[1];
-      if (uuid) {
-        req.userId = uuid; // Attach the UUID to the request object
-        next();
-      } else {
-        throw new Error('Authentication UUID is missing');
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+        throw new Error('Authorization header is missing');
       }
+
+      const uuid = authHeader.split(' ')[1];
+      if (!uuid) {
+        throw new Error('UUID is missing');
+      }
+
+      // Bypassing actual database check for simplicity in tests
+      // Just attach UUID to the request object
+      req.userId = uuid;
+
+      // Pass control to the next middleware
+      next();
     } catch (error) {
-      return res.status(401).json({ message: 'Authentication failed', error: error.message });
+      // Respond with an error if UUID is missing or invalid
+      res.status(401).json({ message: 'Authentication failed', error: error.message });
     }
-  }
-}));
+  };
+});
+
 
 jest.mock('../database', () => {
   const { MongoClient } = require('mongodb');
