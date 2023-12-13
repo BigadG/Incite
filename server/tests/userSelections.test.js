@@ -63,7 +63,7 @@ beforeAll(async () => {
   const uri = mongoServer.getUri();
   client = new MongoClient(uri);
   await client.connect();
-}, 20000); // Increase the timeout for beforeAll
+}, 5000); // Increase the timeout for beforeAll
 
 afterAll(async () => {
   if (client) {
@@ -72,7 +72,7 @@ afterAll(async () => {
   if (mongoServer) {
     await mongoServer.stop();
   }
-}, 20000); // Increase the timeout for afterAll
+}, 5000); // Increase the timeout for afterAll
 
 beforeEach(async () => {
   const db = await client.db("InciteTestDB");
