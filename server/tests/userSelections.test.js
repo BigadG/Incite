@@ -28,25 +28,15 @@ jest.mock('../authMiddleware', () => {
   };
 });
 
-
+ 
 let client;
 let mongoServer;
 let authToken = 'mock-uuid-1234'; // Use a mock UUID
-
-beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
-  const uri = mongoServer.getUri();
-  client = new MongoClient(uri);
-  await client.connect();
-}, 20000); // Increase the timeout for beforeAll
-
 
 // Mock database
 jest.mock('../database', () => {
   const { MongoClient } = require('mongodb');
   const { MongoMemoryServer } = require('mongodb-memory-server');
-  let mongoServer;
-  let db;
 
   return {
     connect: async () => {
@@ -72,6 +62,13 @@ jest.mock('../database', () => {
     }
   };
 });
+
+beforeAll(async () => {
+  mongoServer = await MongoMemoryServer.create();
+  const uri = mongoServer.getUri();
+  client = new MongoClient(uri);
+  await client.connect();
+}, 20000); // Increase the timeout for beforeAll
 
 afterAll(async () => {
   if (client) {
