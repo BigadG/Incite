@@ -6,56 +6,27 @@ const app = require('../server');
 
 // Mock authMiddleware
 jest.mock('../authMiddleware', () => {
-  return async (req, res, next) => {
-    try {
-      const authHeader = req.headers.authorization;
-      if (!authHeader) {
-        throw new Error('Authorization header is missing');
-      }
-
-      const uuid = authHeader.split(' ')[1];
-      if (!uuid) {
-        throw new Error('UUID is missing');
-      }
-
-      // Bypassing actual database check for simplicity in tests
-      req.userId = uuid;
-
-      next();
-    } catch (error) {
-      res.status(401).json({ message: 'Authentication failed', error: error.message });
+  return (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ message: 'Authorization header is missing' });
     }
+
+    const uuid = authHeader.split(' ')[1];
+    if (!uuid) {
+      return res.status(401).json({ message: 'UUID is missing' });
+    }
+
+    // Bypassing actual database check for simplicity in tests
+    req.userId = uuid;
+
+    next();
   };
 });
 
-// Mock database
-jest.mock('../database', () => {
-  const { MongoClient } = require('mongodb');
-  const { MongoMemoryServer } = require('mongodb-memory-server');
-  let mongoServer;
-  let db;
-
-  return {
-    connect: async () => {
-      if (!mongoServer) {
-        mongoServer = await MongoMemoryServer.create();
-        const mongoUri = mongoServer.getUri();
-        const client = new MongoClient(mongoUri);
-        await client.connect();
-        db = client.db('InciteTestDB');
-      }
-      return db;
-    },
-    close: async () => {
-      if (mongoServer) {
-        await mongoServer.stop();
-      }
-    }
-  };
-});
-
-let client;
+// Use MongoMemoryServer for the database mock
 let mongoServer;
+let client;
 let authToken = 'mock-uuid-1234'; // Use a mock UUID
 
 beforeAll(async () => {
@@ -63,6 +34,7 @@ beforeAll(async () => {
   const uri = mongoServer.getUri();
   client = new MongoClient(uri);
   await client.connect();
+  await client.db("InciteTestDB").command({ ping: 1 });
 }, 5000); // Increase the timeout for beforeAll
 
 afterAll(async () => {
@@ -75,7 +47,7 @@ afterAll(async () => {
 }, 5000); // Increase the timeout for afterAll
 
 beforeEach(async () => {
-  const db = await client.db("InciteTestDB");
+  const db = client.db("InciteTestDB");
   await db.collection('Users').deleteMany({});
   await db.collection('Users').insertOne({
     userId: authToken,
@@ -84,7 +56,7 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
-  const db = await client.db("InciteTestDB");
+  const db = client.db("InciteTestDB");
   await db.collection('Users').deleteMany({});
 });
 
