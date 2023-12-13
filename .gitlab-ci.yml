@@ -9,6 +9,12 @@ cache:
     - client/node_modules/
     - server/node_modules/
 
+variables:
+  MONGO_ATLAS_PASSWORD: $MONGO_ATLAS_PASSWORD
+  JWT_SECRET: $JWT_SECRET
+  PORT: 3001
+  DB_NAME: InciteDB
+
 test_server: 
   stage: test
   script:
