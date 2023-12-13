@@ -65,7 +65,7 @@ beforeAll(async () => {
   client = new MongoClient(uri);
   await client.connect();
   await client.db("InciteTestDB").command({ ping: 1 }); //Just added
-}, 5000); // Increase the timeout for beforeAll
+}, 20000); // Increase the timeout for beforeAll
 
 afterAll(async () => {
   if (client) {
@@ -74,7 +74,7 @@ afterAll(async () => {
   if (mongoServer) {
     await mongoServer.stop();
   }
-}, 5000); // Increase the timeout for afterAll
+}, 20000); // Increase the timeout for afterAll
 
 beforeEach(async () => {
   const db = await require('../database').connect(); //Just replaced

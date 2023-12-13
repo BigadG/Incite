@@ -103,7 +103,7 @@
     "vary": "^1.1.2"
   },
   "scripts": {
-    "test": "jest --detectOpenHandles",
+    "test": "jest",
     "start": "node server.js",
     "dev": "nodemon server.js",
     "lint": "eslint '**/*.js' --fix"
