@@ -1,7 +1,5 @@
 require('dotenv').config();
 const request = require('supertest');
-const { MongoClient } = require('mongodb');
-const { MongoMemoryServer } = require('mongodb-memory-server');
 const app = require('../server');
 
 // Mock authMiddleware
