@@ -30,6 +30,9 @@ jest.mock('../authMiddleware', () => {
 
 // Mock database
 jest.mock('../database', () => {
+  const { MongoClient } = require('mongodb');
+  const { MongoMemoryServer } = require('mongodb-memory-server');
+
   let mongoServer;
   let client;
 
@@ -40,7 +43,6 @@ jest.mock('../database', () => {
         const mongoUri = mongoServer.getUri();
         client = new MongoClient(mongoUri);
         await client.connect();
-        return client.db('InciteTestDB');
       }
       return client.db('InciteTestDB');
     },
@@ -56,6 +58,7 @@ jest.mock('../database', () => {
     },
   };
 });
+
 
 let db;
 let authToken = 'mock-uuid-1234';
