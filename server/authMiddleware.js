@@ -1,17 +1,37 @@
-// This middleware will now check for a UUID instead of a JWT token
-module.exports = function authMiddleware(req, res, next) {
+const { connect } = require('./database');
+
+async function authMiddleware(req, res, next) {
   try {
-    // This assumes the UUID is sent in the Authorization header as a Bearer token
-    const uuid = req.headers.authorization.split(' ')[1]; 
-    if (uuid) {
-      req.userId = uuid; // Attach the UUID to the request object
-      next();
-    } else {
-      throw new Error('Authentication UUID is missing');
+    // Extract UUID from the Authorization header
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      throw new Error('Authorization header is missing');
     }
+
+    const uuid = authHeader.split(' ')[1];
+    if (!uuid) {
+      throw new Error('UUID is missing');
+    }
+
+    // Validate UUID (optional: check if it exists in the database)
+    const db = await connect();
+    const user = await db.collection('Users').findOne({ uuid });
+    if (!user) {
+      throw new Error('Invalid UUID');
+    }
+
+    // Attach UUID to the request object
+    req.userId = uuid;
+
+    // Pass control to the next middleware
+    next();
   } catch (error) {
-    return res.status(401).json({ message: 'Authentication failed', error: error.message });
+    // Respond with an error if UUID is missing or invalid
+    res.status(401).json({ message: 'Authentication failed', error: error.message });
   }
-};
+}
+
+module.exports = authMiddleware;
+
 
 
