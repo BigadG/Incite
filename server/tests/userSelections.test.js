@@ -1,6 +1,6 @@
 require('dotenv').config();
 const request = require('supertest');
-const { MongoClient, ObjectId } = require('mongodb');
+const { MongoClient } = require('mongodb');
 const app = require('../server'); // Ensure this points to your Express app
 
 jest.mock('../authMiddleware', () => ({
@@ -20,7 +20,7 @@ jest.mock('../authMiddleware', () => ({
 }));
 
 jest.mock('../database', () => {
-  const { MongoClient } = require('mongodb'); // Import MongoClient inside the mock
+  const { MongoClient } = require('mongodb');
   const { MongoMemoryServer } = require('mongodb-memory-server');
   let mongoServer;
   let db;
@@ -44,22 +44,22 @@ jest.mock('../database', () => {
   };
 });
 
-let mongoClient; // Renamed to avoid confusion with the db variable
-let authToken = 'mock-uuid-1234';
+let client;
+let mongoServer;
+let authToken = 'mock-uuid-1234'; // Use a mock UUID
 
 beforeAll(async () => {
   const { MongoMemoryServer } = require('mongodb-memory-server');
-  const mongoServer = await MongoMemoryServer.create();
+  mongoServer = await MongoMemoryServer.create();
   const uri = mongoServer.getUri();
-  mongoClient = new MongoClient(uri);
-  await mongoClient.connect();
-  const db = mongoClient.db("InciteTestDB");
-  await db.command({ ping: 1 });
+  client = new MongoClient(uri);
+  await client.connect();
+  await client.db("InciteTestDB").command({ ping: 1 });
 });
 
 afterAll(async () => {
-  if (MongoClient) {
-    await MongoClient.close(); // Close the client instead of db
+  if (client) {
+    await client.close();
   }
   if (mongoServer) {
     await mongoServer.stop();
@@ -67,7 +67,7 @@ afterAll(async () => {
 });
 
 beforeEach(async () => {
-  db = await require('../database').connect();
+  const db = await require('../database').connect();
   await db.collection('Users').deleteMany({});
   await db.collection('Users').insertOne({
     userId: authToken,
@@ -91,7 +91,7 @@ describe('User Selections', () => {
       .post('/api/addSelection')
       .set('Authorization', `Bearer ${authToken}`)
       .send({ userId: authToken, title: 'Test Title', url: 'http://test.com' });
-  
+
     const response = await request(app)
       .get('/api/selections') // Updated route
       .set('Authorization', `Bearer ${authToken}`);
@@ -122,4 +122,5 @@ describe('User Selections', () => {
     expect(response.body.message).toBe('Authentication failed');
   });
 });
+
 
