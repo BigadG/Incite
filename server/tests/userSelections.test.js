@@ -1,8 +1,10 @@
 require('dotenv').config();
 const request = require('supertest');
 const { MongoClient } = require('mongodb');
-const app = require('../server'); // Ensure this points to your Express app
+const { MongoMemoryServer } = require('mongodb-memory-server');
+const app = require('../server');
 
+// Mock authMiddleware
 jest.mock('../authMiddleware', () => {
   return async (req, res, next) => {
     try {
@@ -17,19 +19,16 @@ jest.mock('../authMiddleware', () => {
       }
 
       // Bypassing actual database check for simplicity in tests
-      // Just attach UUID to the request object
       req.userId = uuid;
 
-      // Pass control to the next middleware
       next();
     } catch (error) {
-      // Respond with an error if UUID is missing or invalid
       res.status(401).json({ message: 'Authentication failed', error: error.message });
     }
   };
 });
 
-
+// Mock database
 jest.mock('../database', () => {
   const { MongoClient } = require('mongodb');
   const { MongoMemoryServer } = require('mongodb-memory-server');
@@ -60,13 +59,11 @@ let mongoServer;
 let authToken = 'mock-uuid-1234'; // Use a mock UUID
 
 beforeAll(async () => {
-  const { MongoMemoryServer } = require('mongodb-memory-server');
   mongoServer = await MongoMemoryServer.create();
   const uri = mongoServer.getUri();
   client = new MongoClient(uri);
   await client.connect();
-  await client.db("InciteTestDB").command({ ping: 1 });
-});
+}, 20000); // Increase the timeout for beforeAll
 
 afterAll(async () => {
   if (client) {
@@ -75,15 +72,20 @@ afterAll(async () => {
   if (mongoServer) {
     await mongoServer.stop();
   }
-});
+}, 20000); // Increase the timeout for afterAll
 
 beforeEach(async () => {
-  const db = await require('../database').connect();
+  const db = await client.db("InciteTestDB");
   await db.collection('Users').deleteMany({});
   await db.collection('Users').insertOne({
     userId: authToken,
     selections: []
   });
+});
+
+afterEach(async () => {
+  const db = await client.db("InciteTestDB");
+  await db.collection('Users').deleteMany({});
 });
 
 describe('User Selections', () => {
@@ -97,18 +99,18 @@ describe('User Selections', () => {
   });
 
   test('It should retrieve selections', async () => {
-    // Add a selection first
     await request(app)
       .post('/api/addSelection')
       .set('Authorization', `Bearer ${authToken}`)
       .send({ userId: authToken, title: 'Test Title', url: 'http://test.com' });
 
     const response = await request(app)
-      .get('/api/selections') // Updated route
+      .get('/api/selections')
       .set('Authorization', `Bearer ${authToken}`);
     expect(response.status).toBe(200);
     expect(response.body).toEqual(expect.arrayContaining([expect.objectContaining({ title: 'Test Title', url: 'http://test.com' })]));
   });
+
 
   test('It should clear selections', async () => {
     // Add a selection first
