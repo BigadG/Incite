@@ -28,15 +28,10 @@ jest.mock('../authMiddleware', () => {
   };
 });
 
- 
-let client;
-let mongoServer;
-let authToken = 'mock-uuid-1234'; // Use a mock UUID
-
 // Mock database
 jest.mock('../database', () => {
-  const { MongoClient } = require('mongodb');
-  const { MongoMemoryServer } = require('mongodb-memory-server');
+  let mongoServer;
+  let client;
 
   return {
     connect: async () => {
@@ -45,43 +40,39 @@ jest.mock('../database', () => {
         const mongoUri = mongoServer.getUri();
         client = new MongoClient(mongoUri);
         await client.connect();
-        const db = client.db('InciteTestDB');
-        return db;
+        return client.db('InciteTestDB');
       }
       return client.db('InciteTestDB');
     },
     close: async () => {
       if (client) {
         await client.close();
-        client = null; // Set to null to indicate it's closed
+        client = null;
       }
       if (mongoServer) {
         await mongoServer.stop();
-        mongoServer = null; // Set to null to indicate it's stopped
+        mongoServer = null;
       }
-    }
+    },
   };
 });
 
+let db;
+let authToken = 'mock-uuid-1234';
+
 beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
-  const uri = mongoServer.getUri();
-  client = new MongoClient(uri);
-  await client.connect();
-}, 20000); // Increase the timeout for beforeAll
+  // Connect to the mocked database
+  const database = require('../database');
+  db = await database.connect();
+}, 20000);
 
 afterAll(async () => {
-  if (client) {
-    await client.close();
-  }
-  if (mongoServer) {
-    await mongoServer.stop();
-  }
-  jest.restoreAllMocks();
-}, 20000); // Increase the timeout for afterAll
+  // Close the mocked database
+  const database = require('../database');
+  await database.close();
+}, 20000);
 
 beforeEach(async () => {
-  const db = await client.db("InciteTestDB");
   await db.collection('Users').deleteMany({});
   await db.collection('Users').insertOne({
     userId: authToken,
@@ -90,7 +81,6 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
-  const db = await client.db("InciteTestDB");
   await db.collection('Users').deleteMany({});
 });
 
@@ -117,9 +107,7 @@ describe('User Selections', () => {
     expect(response.body).toEqual(expect.arrayContaining([expect.objectContaining({ title: 'Test Title', url: 'http://test.com' })]));
   });
 
-
   test('It should clear selections', async () => {
-    // Add a selection first
     await request(app)
       .post('/api/addSelection')
       .set('Authorization', `Bearer ${authToken}`)
@@ -141,5 +129,6 @@ describe('User Selections', () => {
     expect(response.body.message).toBe('Authentication failed');
   });
 });
+
 
 
