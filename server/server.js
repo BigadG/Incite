@@ -6,9 +6,6 @@ const authMiddleware = require('./authMiddleware');
 const app = express();
 const port = process.env.PORT || 3001;
 
-console.log(typeof authMiddleware); // Should log 'function'
-console.log(typeof routes); // Should also log 'function'
-
 app.use(express.json());
 app.use('/api', authMiddleware);
 app.use('/api', routes);
