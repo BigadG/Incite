@@ -38,34 +38,33 @@ beforeAll(async () => {
   const uri = mongoServer.getUri();
   client = new MongoClient(uri);
   await client.connect();
+
+  // Mock database
+  jest.mock('../database', () => {
+    const { MongoClient } = require('mongodb');
+    const { MongoMemoryServer } = require('mongodb-memory-server');
+    let mongoServer;
+    let db;
+
+    return {
+      connect: async () => {
+        if (!mongoServer) {
+          mongoServer = await MongoMemoryServer.create();
+          const mongoUri = mongoServer.getUri();
+          const client = new MongoClient(mongoUri);
+          await client.connect();
+          db = client.db('InciteTestDB');
+        }
+        return db;
+      },
+      close: async () => {
+        if (mongoServer) {
+          await mongoServer.stop();
+        }
+      }
+    };
+  });
 }, 20000); // Increase the timeout for beforeAll
-
-
-// Mock database
-jest.mock('../database', () => {
-  const { MongoClient } = require('mongodb');
-  const { MongoMemoryServer } = require('mongodb-memory-server');
-  let mongoServer;
-  let db;
-
-  return {
-    connect: async () => {
-      if (!mongoServer) {
-        mongoServer = await MongoMemoryServer.create();
-        const mongoUri = mongoServer.getUri();
-        const client = new MongoClient(mongoUri);
-        await client.connect();
-        db = client.db('InciteTestDB');
-      }
-      return db;
-    },
-    close: async () => {
-      if (mongoServer) {
-        await mongoServer.stop();
-      }
-    }
-  };
-});
 
 afterAll(async () => {
   if (client) {
