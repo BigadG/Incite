@@ -1,27 +1,58 @@
-@import url('https://fonts.googleapis.com/css2?family=Dhurjati&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@900&family=Roboto:ital,wght@1,500&display=swap');
 
 body {
   display: flex;
-  width: 200px;
-  padding: 5px;
+  width: 250px;
+  padding: 2.5px;
   background-color: rgb(28, 28, 28);
 }
-  
+
 button {
-  width: 100%;
-  margin-right: 15px;
-  margin-bottom: 5px;
+  width: 237.5px;
+  padding-top: 6px;
+  padding-bottom: 6px;
   border-radius: 13px;
-  border-color: rgb(95, 95, 251);
-  border-style: solid;
-  font-size: 40px;
-  font-family: 'Dhurjati', sans-serif;
+  margin: 6.25px;
+  border-style: none;
+  font-size: 30px;
+  font-family: 'Roboto', sans-serif;
   font-weight: 900;
   background-color: rgb(28, 28, 28);
-  color: lightblue;
+  color: rgb(104, 236, 111);
+}
+
+#showButton {
+color: rgb(255, 255, 255);
 }
 
 button:hover {
   background-color: rgb(52, 51, 51);
 }
+
+.hidden {
+  display: none;
+}
+
+#dropdown,
+#button-dropdown {
+  background-color: #ffffff; /* Change as needed */
+  border-radius: 13px;
+  text-align: center;
+}
+
+#dropdown h1 {
+  margin-bottom: 15px;
+  margin-top: 0px;
+  font-size: 40px;
+  font-family: 'Roboto Slab', serif;
+  font-weight: 900;
+}
+
+#listContainer {
+  /* Style for the container */
+  height: 150px; /* Adjust as needed */
+  overflow-y: auto; /* Enables scrolling if content is too long */
+  margin-bottom: 15px;
+}
+
 

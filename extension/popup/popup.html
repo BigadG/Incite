@@ -1,4 +1,3 @@
-<!-- extension/popup/popup.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,10 +7,19 @@
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <div id="popup-content">
-    <button id="addButton">ADD TO LIST</button>
+  <div id="button-dropdown">
     <button id="showButton">SHOW LIST</button>
+    <button id="addButton">ADD TO LIST</button>
+  </div>
+  <!-- New dropdown content starts hidden -->
+  <div id="dropdown" class="hidden">
+    <h1>INCITE</h1>
+    <div id="listContainer">
+      <!-- Titles and URLs will go here -->
+    </div>
+    <button id="createButton">CREATE</button>
   </div>
   <script src="popup.js"></script>
 </body>
 </html>
+

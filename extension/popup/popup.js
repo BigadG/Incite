@@ -3,6 +3,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const addButton = document.getElementById('addButton');
   const showButton = document.getElementById('showButton');
+  const dropdown = document.getElementById('dropdown');
+//  const createButton = document.getElementById('createButton')
 
   // Retrieve the UUID from storage and include it in the header of every request
   async function getUUID() {
@@ -77,7 +79,15 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   });
 
+  // Function to toggle dropdown visibility
+  function toggleDropdown() {
+    dropdown.classList.toggle('hidden');
+    addButton.classList.toggle('hidden');
+    showButton.classList.toggle('hidden');
+  }
+
   showButton.addEventListener('click', function() {
-      showSelections();
+    showSelections(); // You should define this function to update the list
+    toggleDropdown();
   });
 });
