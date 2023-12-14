@@ -50,27 +50,29 @@ document.addEventListener('DOMContentLoaded', function () {
   
 
   async function showSelections() {
-      try {
-          const response = await fetch(`${serverUrl}/selections`, {
-              method: 'GET',
-              headers: {
-                  'Content-Type': 'application/json',
-                  // Authorization header must be provided as per your application's authentication strategy
-              },
-          });
-
-          if (response.ok) {
-              const selections = await response.json();
-              console.log(selections);
-              // Here you would update your popup's DOM with the selection titles and URLs
-          } else {
-              const errorData = await response.json();
-              throw new Error(errorData.message || 'Failed to retrieve selections');
-          }
-      } catch (error) {
-          console.error('Error retrieving selections:', error);
+    try {
+      const uuid = await getUUID(); // Retrieve the UUID from storage
+      const response = await fetch(`${serverUrl}/selections`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${uuid}` // Include the UUID in the Authorization header
+        },
+      });
+  
+      if (response.ok) {
+        const selections = await response.json();
+        console.log(selections);
+        // Update popup's DOM with the selection titles and URLs here
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to retrieve selections');
       }
+    } catch (error) {
+      console.error('Error retrieving selections:', error);
+    }
   }
+  
 
   addButton.addEventListener('click', function() {
       chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
