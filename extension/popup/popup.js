@@ -95,7 +95,6 @@ document.addEventListener('DOMContentLoaded', function () {
   
 
   addButton.addEventListener('click', function() {
-    console.log('Add button clicked'); // This should log when the add button is clicked
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
       const currentTab = tabs[0];
       console.log('Current Tab:', currentTab); // Debug the current tab information
@@ -115,7 +114,6 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   showButton.addEventListener('click', function() {
-    console.log('Show button clicked'); // This should log when the show button is clicked
     showSelections();
     toggleDropdown();
   });
