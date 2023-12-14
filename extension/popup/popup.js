@@ -4,15 +4,19 @@ document.addEventListener('DOMContentLoaded', function () {
   const addButton = document.getElementById('addButton');
   const showButton = document.getElementById('showButton');
   const dropdown = document.getElementById('dropdown');
+  const listContainer = document.getElementById('listContainer');
 //  const createButton = document.getElementById('createButton')
 
   // Retrieve the UUID from storage and include it in the header of every request
   async function getUUID() {
     return new Promise((resolve, reject) => {
       chrome.storage.local.get(['userId'], function(result) {
+        console.log('Storage Result:', result); // debug
         if (result.userId) {
+          console.log('UUID from storage:', result.userId); // debug
           resolve(result.userId);
         } else {
+          console.error('No UUID found in storage.');
           reject('No UUID found');
         }
       });
@@ -35,19 +39,30 @@ document.addEventListener('DOMContentLoaded', function () {
   
       if (response.ok) {
         console.log('Selection added');
+        createListElement(title, url);
       } else {
         const errorData = await response.json();
-        // Use JSON.stringify to see the details of the errorData object
         console.error('Error data:', JSON.stringify(errorData, null, 2)); // Debug: Inspect the error data
         throw new Error(errorData.message || 'Failed to add selection');
       }
     } catch (error) {
-      // Include error details in the log
       console.error('Error adding selection:', error, JSON.stringify(error, null, 2));
     }
   }
   
-  
+  function createListElement(title, url) {
+    // Create the h2 element for the title
+    const titleElement = document.createElement('h2');
+    titleElement.textContent = title;
+    
+    // Create the p element for the url
+    const urlElement = document.createElement('p');
+    urlElement.textContent = url;
+
+    // Append to the listContainer
+    listContainer.appendChild(titleElement);
+    listContainer.appendChild(urlElement);
+  }
 
   async function showSelections() {
     try {
@@ -63,7 +78,12 @@ document.addEventListener('DOMContentLoaded', function () {
       if (response.ok) {
         const selections = await response.json();
         console.log(selections);
-        // Update popup's DOM with the selection titles and URLs here
+        // Clear the listContainer before showing the updated list
+        listContainer.innerHTML = '';
+        // Loop through each selection and create elements for them
+        selections.forEach(selection => {
+          createListElement(selection.title, selection.url);
+        });
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to retrieve selections');
@@ -75,10 +95,15 @@ document.addEventListener('DOMContentLoaded', function () {
   
 
   addButton.addEventListener('click', function() {
-      chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-          const currentTab = tabs[0];
-          addSelection(currentTab.url, currentTab.title);
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+      const currentTab = tabs[0];
+      console.log('Current Tab:', currentTab); // Debug the current tab information
+      addSelection(currentTab.url, currentTab.title).then(() => {
+        console.log('Add selection promise resolved');
+      }).catch((error) => {
+        console.error('Add selection promise rejected:', error);
       });
+    });
   });
 
   // Function to toggle dropdown visibility
@@ -89,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   showButton.addEventListener('click', function() {
-    showSelections(); // You should define this function to update the list
+    showSelections();
     toggleDropdown();
   });
 });
