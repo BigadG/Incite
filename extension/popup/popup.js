@@ -52,12 +52,14 @@ document.addEventListener('DOMContentLoaded', function () {
   
   function createListElement(title, url) {
     // Create the h2 element for the title
-    const titleElement = document.createElement('h2');
+    const titleElement = document.createElement('h3');
     titleElement.textContent = title;
+    titleElement.classList = 'titles';
     
     // Create the p element for the url
     const urlElement = document.createElement('p');
     urlElement.textContent = url;
+    urlElement.classList = 'url';
 
     // Append to the listContainer
     listContainer.appendChild(titleElement);
