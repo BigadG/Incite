@@ -13,15 +13,19 @@ function loadHTML() {
 
 // Mock the chrome API as per your existing setup
 global.chrome = {
-  // ... existing chrome mock setup ...
-  storage: {
-    local: {
-      // ... existing chrome.storage.local mocks ...
-      get: jest.fn((keys, callback) => {
-        callback({ userId: 'test-uuid' }); // Mocked UUID for testing
-      }),
+    tabs: {
+        query: jest.fn((queryInfo, callback) => {
+        callback([{ url: 'http://example.com', title: 'Example' }]);
+        }),
     },
-  },
+    storage: {
+        local: {
+            set: jest.fn(),
+            get: jest.fn((keys, callback) => {
+                callback({ userId: 'test-uuid' }); // Mocked UUID for testing
+            }),
+        },
+    },
 };
 
 describe('Show selections', () => {
