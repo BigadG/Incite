@@ -62,9 +62,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Create the element for the url
     const urlElement = document.createElement('link'); // 'link' is not a valid element for this purpose, use 'a' instead
     urlElement.textContent = url;
-    // urlElement.href = url;
     urlElement.classList.add('url');
-    urlElement.target = "_blank"; // Open in new tab
 
     // Create the element for deleting a selection
     const selectionsX = document.createElement('button');
@@ -81,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function () {
     titleAndUrl.appendChild(urlElement);
     titleAndUrl.appendChild(selectionsX);
     listContainer.appendChild(titleAndUrl);
-}
+  }
 
 
   async function showSelections() {
