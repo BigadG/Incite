@@ -2,6 +2,10 @@ stages:
   - test
   - build
 
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+
 cache:
   paths:
     - client/node_modules/
