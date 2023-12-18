@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function () {
         throw new Error(errorData.message || 'Failed to retrieve selections');
       }
     } catch (error) {
-      console.error('Error retrieving selections:', error);
+      console.error('Error retrieving selections:', error, error.stack);
     }
   }
   
