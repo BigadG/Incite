@@ -20,7 +20,6 @@ global.chrome = {
     },
     storage: {
         local: {
-            set: jest.fn(),
             get: jest.fn((keys, callback) => {
                 callback({ userId: 'test-uuid' }); // Mocked UUID for testing
             }),
