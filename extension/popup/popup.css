@@ -33,6 +33,10 @@ button:hover {
   color: #ffffff;
 }
 
+#showButton:hover {
+  background-color: #463fc1;
+}
+
 #createButton {
   border: 1px solid #00d423;
   width: 80%;
@@ -83,7 +87,7 @@ button:hover {
 
 .selectionsX {
   background: none;
-  color: crimson;
+  color: black;
   border: none;
   font-size: 13px;
   width: 13px;
@@ -93,7 +97,7 @@ button:hover {
 
 .selectionsX:hover {
   background: none;
-  color: rgb(160, 15, 44);
+  color: crimson;
 }
 
 .title,
