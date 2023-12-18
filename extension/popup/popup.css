@@ -67,17 +67,33 @@ button:hover {
 
 .titleAndUrl {
   display: flex;
-  justify-content: center;
-  flex-direction: column;
+  justify-content: space-between;
   background-color: #E8E8E8;
   border-radius: 6px;
   margin: 3px;
   padding-left: 5px;
+  padding-right: 15px;
   text-align: start;
   overflow-x: scroll;
 }
+
 .titleAndUrl:hover {
   box-shadow: 0 1px 4px #000000;
+}
+
+.selectionsX {
+  background: none;
+  color: crimson;
+  border: none;
+  font-size: 13px;
+  width: 13px;
+  border-radius: 50px;
+  text-align: center;
+}
+
+.selectionsX:hover {
+  background: none;
+  color: rgb(160, 15, 44);
 }
 
 .title,

@@ -52,22 +52,37 @@ document.addEventListener('DOMContentLoaded', function () {
   
   function createListElement(title, url) {
     const titleAndUrl = document.createElement('div');
-    titleAndUrl.classList = 'titleAndUrl';
-    // Create the h2 element for the title
+    titleAndUrl.classList.add('titleAndUrl');
+
+    // Create the element for the title
     const titleElement = document.createElement('h4');
     titleElement.textContent = title;
-    titleElement.classList = 'titles';
-    
-    // Create the p element for the url
-    const urlElement = document.createElement('link');
+    titleElement.classList.add('titles');
+
+    // Create the element for the url
+    const urlElement = document.createElement('link'); // 'link' is not a valid element for this purpose, use 'a' instead
     urlElement.textContent = url;
-    urlElement.classList = 'url';
+    // urlElement.href = url;
+    urlElement.classList.add('url');
+    urlElement.target = "_blank"; // Open in new tab
+
+    // Create the element for deleting a selection
+    const selectionsX = document.createElement('button');
+    selectionsX.textContent = 'X';
+    selectionsX.classList.add('selectionsX');
+
+    // Event listener for deleting the element
+    selectionsX.addEventListener('click', function() {
+        listContainer.removeChild(titleAndUrl);
+    });
 
     // Append to the listContainer
     titleAndUrl.appendChild(titleElement);
     titleAndUrl.appendChild(urlElement);
+    titleAndUrl.appendChild(selectionsX);
     listContainer.appendChild(titleAndUrl);
-  }
+}
+
 
   async function showSelections() {
     try {
