@@ -1,27 +1,108 @@
-@import url('https://fonts.googleapis.com/css2?family=Dhurjati&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@900&family=Roboto:wght@400;500&display=swap');
 
 body {
   display: flex;
-  width: 200px;
-  padding: 5px;
-  background-color: rgb(28, 28, 28);
+  flex-direction: column;
+  align-items: center;
+  width: 300px;
+  background-color: #ffffff;
+  color: #333333;
 }
-  
+
 button {
-  width: 100%;
-  margin-right: 15px;
-  margin-bottom: 5px;
-  border-radius: 13px;
-  border-color: rgb(95, 95, 251);
-  border-style: solid;
-  font-size: 40px;
-  font-family: 'Dhurjati', sans-serif;
-  font-weight: 900;
-  background-color: rgb(28, 28, 28);
-  color: lightblue;
+  width: calc(100% - 12.5px);
+  padding: 10px;
+  border-radius: 8px;
+  margin: 6.25px;
+  border: 1px solid #d1d1d1;
+  font-size: 16px;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 500;
+  background-color: #ffffff;
+  color: #333333;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 button:hover {
-  background-color: rgb(52, 51, 51);
+  background-color: #e2e2e2;
 }
 
+#showButton {
+  background-color: #514ae2;
+  color: #ffffff;
+}
+
+#showButton:hover {
+  background-color: #463fc1;
+}
+
+#createButton {
+  border: 1px solid #00d423;
+  width: 80%;
+}
+
+.hidden {
+  display: none;
+}
+
+#dropdown {
+  width: calc(100% - 10px);
+  background-color: #ffffff;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 20px #000000;
+  padding: 6.25px;
+}
+
+#dropdown h1 {
+  font-size: 24px;
+  font-family: 'Roboto Slab', serif;
+  color: #333333;
+  margin-bottom: 20px;
+}
+
+#listContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.titleAndUrl {
+  display: flex;
+  justify-content: space-between;
+  background-color: #E8E8E8;
+  border-radius: 6px;
+  margin: 3px;
+  padding-left: 5px;
+  padding-right: 15px;
+  text-align: start;
+  overflow-x: scroll;
+}
+
+.titleAndUrl:hover {
+  box-shadow: 0 1px 4px #000000;
+}
+
+.selectionsX {
+  background: none;
+  color: black;
+  border: none;
+  font-size: 13px;
+  width: 13px;
+  border-radius: 50px;
+  text-align: center;
+}
+
+.selectionsX:hover {
+  background: none;
+  color: crimson;
+}
+
+.title,
+.url {
+  color: #202020;
+  margin: 0px;
+  padding: 0px;
+}

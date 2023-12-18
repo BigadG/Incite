@@ -2,6 +2,10 @@ stages:
   - test
   - build
 
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+
 cache:
   paths:
     - client/node_modules/
@@ -31,7 +35,7 @@ test_client:
     - npm test
   only:
     - main
-    - /^feature\/.*$/ # Enable tests for feature branches
+    - /^feature\/.*$/
 
 eslint_job:
   stage: test
@@ -46,7 +50,7 @@ eslint_job:
     - npm run lint
   only:
     - main
-    - /^feature\/.*$/ # Enable linting for feature branches
+    - /^feature\/.*$/
 
 build_client:
   stage: build
@@ -60,6 +64,6 @@ build_client:
     expire_in: 1 week
   only:
     - main
-    - /^feature\/.*$/ # Enable build for feature branches
+    - /^feature\/.*$/
 
 # - Add deployment scripts when implementing cloud provider right before deployment

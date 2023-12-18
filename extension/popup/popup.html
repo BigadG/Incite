@@ -1,4 +1,3 @@
-<!-- extension/popup/popup.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,12 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Incite Selections</title>
   <link rel="stylesheet" href="popup.css">
+  <script src="popup.js"></script>
 </head>
 <body>
-  <div id="popup-content">
-    <button id="addButton">ADD TO LIST</button>
+  <div id="button-dropdown">
     <button id="showButton">SHOW LIST</button>
+    <button id="addButton">ADD TO LIST</button>
   </div>
-  <script src="popup.js"></script>
+  <!-- New dropdown content starts hidden -->
+  <div id="dropdown" class="hidden">
+    <h1>INCITE</h1>
+    <div id="listContainer">
+      <!-- Titles and URLs go here -->
+    </div>
+    <button id="createButton">CREATE</button>
+  </div>
 </body>
 </html>
+
