@@ -1,68 +1,87 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@900&family=Roboto:ital,wght@1,500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@900&family=Roboto:wght@400;500&display=swap');
 
 body {
   display: flex;
-  width: 250px;
-  padding: 2.5px;
-  background-color: rgb(28, 28, 28);
+  flex-direction: column;
+  align-items: center;
+  width: 300px;
+  background-color: #f7f7f7; /* Light grey background for a neutral look */
+  color: #333333; /* Dark grey color for text for better readability */
 }
 
 button {
-  width: 237.5px;
-  padding-top: 6px;
-  padding-bottom: 6px;
-  border-radius: 13px;
+  width: calc(100% - 12.5px); /* Adjust width to account for margin */
+  padding: 10px;
+  border-radius: 8px; /* Softer radius for a modern look */
   margin: 6.25px;
-  border-style: none;
-  font-size: 30px;
+  border: 1px solid #d1d1d1; /* Subtle border */
+  font-size: 16px; /* Standard font size for readability */
   font-family: 'Roboto', sans-serif;
-  font-weight: 900;
-  background-color: rgb(28, 28, 28);
-  color: rgb(104, 236, 111);
-}
-
-#showButton {
-color: rgb(255, 255, 255);
+  font-weight: 500; /* Normal font weight is more professional */
+  background-color: #ffffff; /* White background for buttons */
+  color: #333333; /* Consistent text color */
+  cursor: pointer; /* Cursor to pointer to indicate it's clickable */
+  transition: background-color 0.3s ease; /* Smooth transition for hover effect */
 }
 
 button:hover {
-  background-color: rgb(52, 51, 51);
+  background-color: #e2e2e2; /* Slightly darker on hover for interaction feedback */
+}
+
+#showButton {
+  background-color: #514ae2;
+  color: #ffffff;
+}
+
+#createButton {
+  border: 1px solid #00d423;
 }
 
 .hidden {
   display: none;
 }
 
-#dropdown,
-#button-dropdown {
-  background-color: #ffffff; /* Change as needed */
-  border-radius: 13px;
+#dropdown {
+  width: calc(100% - 10px); /* Adjust width to account for padding */
+  background-color: #ffffff;
+  border-radius: 8px;
   text-align: center;
+  box-shadow: 0 4px 20px #000000; /* Subtle shadow for depth */
+  padding: 6.25px;
 }
 
 #dropdown h1 {
-  margin-bottom: 15px;
-  margin-top: 0px;
-  font-size: 40px;
+  font-size: 24px; /* Large size for the main title but not too large */
   font-family: 'Roboto Slab', serif;
-  font-weight: 900;
+  color: #333333;
+  margin-bottom: 20px;
 }
 
 #listContainer {
-  /* Style for the container */
-  height: 170px; /* Adjust as needed */
-  overflow-y: auto; /* Enables scrolling if content is too long */
+  display: flex;
+  flex-direction: column;
+  width: 100%; /* Match button width for alignment */
   margin-bottom: 15px;
-  text-align: start;
+}
+
+.titleAndUrl {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  background-color: #E8E8E8; /* Light grey for each item background */
+  border-radius: 6px;
+  margin: 3px;
   padding-left: 5px;
+  text-align: start;
+  overflow-x: scroll;
+}
+.titleAndUrl:hover {
+  box-shadow: 0 1px 4px #000000;
 }
 
-.title {
-  margin: 0px;
-  padding: 0px;
-}
-
+.title,
 .url {
+  color: #202020; /* Dark text for contrast */
   margin: 0px;
   padding: 0px;
 }

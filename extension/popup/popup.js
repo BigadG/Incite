@@ -51,19 +51,22 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   
   function createListElement(title, url) {
+    const titleAndUrl = document.createElement('div');
+    titleAndUrl.classList = 'titleAndUrl';
     // Create the h2 element for the title
-    const titleElement = document.createElement('h3');
+    const titleElement = document.createElement('h4');
     titleElement.textContent = title;
     titleElement.classList = 'titles';
     
     // Create the p element for the url
-    const urlElement = document.createElement('p');
+    const urlElement = document.createElement('link');
     urlElement.textContent = url;
     urlElement.classList = 'url';
 
     // Append to the listContainer
-    listContainer.appendChild(titleElement);
-    listContainer.appendChild(urlElement);
+    titleAndUrl.appendChild(titleElement);
+    titleAndUrl.appendChild(urlElement);
+    listContainer.appendChild(titleAndUrl);
   }
 
   async function showSelections() {
@@ -98,6 +101,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   addButton.addEventListener('click', function() {
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+      window.close(); // Close the extension popup
       const currentTab = tabs[0];
       console.log('Current Tab:', currentTab); // Debug the current tab information
       addSelection(currentTab.url, currentTab.title).then(() => {
