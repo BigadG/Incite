@@ -1,9 +1,3 @@
-// At the top of your server.js before any route or middleware
-app.use((req, res, next) => {
-  console.log(`Incoming request: ${req.method} ${req.path}`);
-  next();
-});
-
 require('dotenv').config();
 const express = require('express');
 const routes = require('./routes');
