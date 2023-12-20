@@ -85,6 +85,7 @@ document.addEventListener('DOMContentLoaded', function () {
   async function showSelections() {
     try {
       const uuid = await getUUID(); // Retrieve the UUID from storage
+      console.log(`Sending request with UUID: ${uuid}`);
       const response = await fetch(`${serverUrl}/selections`, {
         method: 'GET',
         headers: {
