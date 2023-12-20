@@ -17,5 +17,5 @@ chrome.runtime.onInstalled.addListener(() => {
   }
   const uuid = generateUUID();
   console.log(`Generated UUID: ${uuid}`);
-  chrome.storage.local.set({ userId: generateUUID(), selections: [] });
+  chrome.storage.local.set({ userId: uuid, selections: [] });
 });
