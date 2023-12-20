@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
   async function getUUID() {
     return new Promise((resolve, reject) => {
       chrome.storage.local.get(['userId'], function(result) {
-        console.log('Storage Result:', result); // debug
+        console.log(`Retrieved UUID from storage: ${result.userId}`);
         if (result.userId) {
           console.log('UUID from storage:', result.userId); // debug
           resolve(result.userId);
@@ -40,10 +40,10 @@ document.addEventListener('DOMContentLoaded', function () {
       if (response.ok) {
         console.log('Selection added');
         createListElement(title, url);
-      } else {
-        const errorData = await response.json();
-        console.error('Error data:', JSON.stringify(errorData, null, 2)); // Debug: Inspect the error data
-        throw new Error(errorData.message || 'Failed to add selection');
+    } else {
+        const textResponse = await response.text(); // Get the raw response text
+        console.error('Failed to add selection. Response:', textResponse); // Log the full response text
+        throw new Error('Failed to add selection');
       }
     } catch (error) {
       console.error('Error adding selection:', error, JSON.stringify(error, null, 2));
@@ -103,8 +103,9 @@ document.addEventListener('DOMContentLoaded', function () {
           createListElement(selection.title, selection.url);
         });
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to retrieve selections');
+        const textResponse = await response.text(); // Get the raw response text
+        console.error('Failed to retrieve selections. Response:', textResponse); // Log the full response text
+        throw new Error('Failed to retrieve selections');
       }
     } catch (error) {
       console.error('Error retrieving selections:', error, error.stack);
