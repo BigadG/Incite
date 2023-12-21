@@ -15,7 +15,7 @@ async function authMiddleware(req, res, next) {
 
     // Validate UUID (optional: check if it exists in the database)
     const db = await connect();
-    const user = await db.collection('Users').findOne({ uuid });
+    const user = await db.collection('Users2').findOne({ uuid });
     if (!user) {
       throw new Error('Invalid UUID');
     }
