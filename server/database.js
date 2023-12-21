@@ -14,7 +14,7 @@ async function connect() {
     const db = client.db(dbName);
 
     // Ensure the `Users` collection has an index on the `uuid` field
-    await db.collection('Users2').createIndex({ "uuid": 1 }, { unique: true });
+    await db.collection('Users').createIndex({ "uuid": 1 }, { unique: true });
 
     return db;
   } catch (e) {

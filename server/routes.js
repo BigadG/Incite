@@ -38,7 +38,7 @@ router.post('/clearSelections', async (req, res) => {
     const db = await connect();
     const uuid = req.userId; // Now using the UUID provided by the middleware
 
-    const result = await db.collection('Users2').updateOne(
+    const result = await db.collection('Users').updateOne(
       { uuid },
       { $set: { selections: [] } }
     );
