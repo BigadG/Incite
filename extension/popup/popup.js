@@ -53,7 +53,10 @@ document.addEventListener('DOMContentLoaded', function () {
   
   function createListElement(title, url) {
     const selectionBox = document.createElement('div');
-    selectionBox.classList.add('selectionBox'); 
+    selectionBox.classList.add('selectionBox');
+
+    const titleAndUrl = document.createElement('div');
+    titleAndUrl.classList.add('titleAndUrl');
 
     // Create the element for the title
     const titleElement = document.createElement('h4');
@@ -61,23 +64,29 @@ document.addEventListener('DOMContentLoaded', function () {
     titleElement.classList.add('titles');
 
     // Create the element for the url
-    const urlElement = document.createElement('link'); // 'link' is not a valid element for this purpose, use 'a' instead
+    const urlElement = document.createElement('a');
+    urlElement.href = url;
     urlElement.textContent = url;
     urlElement.classList.add('url');
+    urlElement.style.display = 'none'; // Initially hide the URL
 
-    // Create the element for deleting a selection
+    // Toggle visibility of URL on clicking the title
+    titleElement.addEventListener('click', function() {
+      urlElement.style.display = urlElement.style.display === 'none' ? 'block' : 'none';
+    });
+
     const selectionsX = document.createElement('button');
     selectionsX.textContent = 'X';
     selectionsX.classList.add('selectionsX');
 
-    // Event listener for deleting the element
     selectionsX.addEventListener('click', function() {
         listContainer.removeChild(selectionBox);
     });
 
-    // Append to the listContainer
-    selectionBox.appendChild(titleElement);
-    selectionBox.appendChild(urlElement);
+    // Append elements to their respective containers
+    titleAndUrl.appendChild(titleElement);
+    titleAndUrl.appendChild(urlElement);
+    selectionBox.appendChild(titleAndUrl);
     selectionBox.appendChild(selectionsX);
     listContainer.appendChild(selectionBox);
   }
