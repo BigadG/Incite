@@ -26,6 +26,7 @@ chrome.runtime.onInstalled.addListener(() => {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${uuid}`
     },
     body: JSON.stringify({ uuid }),
   })

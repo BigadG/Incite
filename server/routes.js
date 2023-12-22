@@ -1,9 +1,12 @@
 const { connect } = require('./database');
 const express = require('express');
 const { ObjectId } = require('mongodb');
+
+// Separate the router and register function for clarity
 const router = express.Router();
 
-router.post('/register', async (req, res) => {
+// This is the new registration endpoint function
+const register = async (req, res) => {
   try {
     const { uuid } = req.body;
     const db = await connect();
@@ -17,7 +20,7 @@ router.post('/register', async (req, res) => {
     console.error('Registration Error:', error);
     res.status(500).json({ message: 'Error during registration', error });
   }
-});
+};
 
 router.post('/addSelection', async (req, res) => {
   try {
@@ -25,7 +28,8 @@ router.post('/addSelection', async (req, res) => {
     const { title, url } = req.body;
     const uuid = req.userId; // Now using the UUID provided by the middleware
 
-    const result = await db.collection('Users2').updateOne(
+    // Ensure you are using the correct collection name
+    const result = await db.collection('Users').updateOne(
       { uuid },
       { $push: { selections: { title, url, pageId: new ObjectId(), timestamp: new Date() } } },
       { upsert: true }
@@ -42,7 +46,8 @@ router.get('/selections', async (req, res) => {
     const db = await connect();
     const uuid = req.userId; // Now using the UUID provided by the middleware
 
-    const user = await db.collection('Users2').findOne({ uuid });
+    // Again, ensure consistent use of the collection name
+    const user = await db.collection('Users').findOne({ uuid });
     res.status(200).json(user ? user.selections : []);
   } catch (error) {
     res.status(500).json({ message: 'Error retrieving selections', error });
@@ -54,6 +59,7 @@ router.post('/clearSelections', async (req, res) => {
     const db = await connect();
     const uuid = req.userId; // Now using the UUID provided by the middleware
 
+    // And once more, ensure you are targeting the correct collection
     const result = await db.collection('Users').updateOne(
       { uuid },
       { $set: { selections: [] } }
@@ -64,7 +70,9 @@ router.post('/clearSelections', async (req, res) => {
   }
 });
 
-module.exports = router;
+// Export both the router and the register function
+module.exports = { router, register };
+
 
 
 

@@ -7,14 +7,20 @@ const app = express();
 const port = process.env.PORT || 3001;
 
 app.use(express.json());
+
+// Register route that should not be protected by the authMiddleware
+app.post('/api/register', routes.register);
+
+// Apply authMiddleware to all routes except for /register
 app.use('/api', authMiddleware);
+
+// Other routes
 app.use('/api', routes);
 
 app.get('/', (req, res) => {
   res.send('Incite Server is running!');
 });
 
-// Start the server only if running this file directly (i.e., not in test mode)
 if (require.main === module) {
   app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
