@@ -52,8 +52,8 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   
   function createListElement(title, url) {
-    const titleAndUrl = document.createElement('div');
-    titleAndUrl.classList.add('titleAndUrl');
+    const selectionBox = document.createElement('div');
+    selectionBox.classList.add('selectionBox'); 
 
     // Create the element for the title
     const titleElement = document.createElement('h4');
@@ -72,14 +72,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Event listener for deleting the element
     selectionsX.addEventListener('click', function() {
-        listContainer.removeChild(titleAndUrl);
+        listContainer.removeChild(selectionBox);
     });
 
     // Append to the listContainer
-    titleAndUrl.appendChild(titleElement);
-    titleAndUrl.appendChild(urlElement);
-    titleAndUrl.appendChild(selectionsX);
-    listContainer.appendChild(titleAndUrl);
+    selectionBox.appendChild(titleElement);
+    selectionBox.appendChild(urlElement);
+    selectionBox.appendChild(selectionsX);
+    listContainer.appendChild(selectionBox);
   }
 
 
