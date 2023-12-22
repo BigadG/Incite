@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   async function addSelection(url, title) {
+    console.log('addSelection called'); // Add this line to confirm the function is called
     try {
       const uuid = await getUUID();
       console.log('UUID retrieved:', uuid); // Debug: Check the retrieved UUID
@@ -114,6 +115,7 @@ document.addEventListener('DOMContentLoaded', function () {
   
 
   addButton.addEventListener('click', function() {
+    console.log('Add button clicked'); // Add this line to confirm the event
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
       window.close(); // Close the extension popup
       const currentTab = tabs[0];

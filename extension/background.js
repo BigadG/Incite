@@ -18,4 +18,23 @@ chrome.runtime.onInstalled.addListener(() => {
   const uuid = generateUUID();
   console.log(`Generated UUID: ${uuid}`);
   chrome.storage.local.set({ userId: uuid, selections: [] });
+  
+  const serverUrl = 'http://localhost:3001/api';
+
+  // Call the new /register endpoint to register the UUID
+  fetch(`${serverUrl}/register`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ uuid }),
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.json();
+  })
+  .then(data => console.log('Registration successful', data))
+  .catch(error => console.error('Error registering UUID:', error));
 });

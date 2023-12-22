@@ -3,6 +3,22 @@ const express = require('express');
 const { ObjectId } = require('mongodb');
 const router = express.Router();
 
+router.post('/register', async (req, res) => {
+  try {
+    const { uuid } = req.body;
+    const db = await connect();
+    await db.collection('Users').updateOne(
+      { uuid },
+      { $setOnInsert: { uuid, selections: [] } },
+      { upsert: true }
+    );
+    res.status(200).json({ message: 'UUID registered' });
+  } catch (error) {
+    console.error('Registration Error:', error);
+    res.status(500).json({ message: 'Error during registration', error });
+  }
+});
+
 router.post('/addSelection', async (req, res) => {
   try {
     const db = await connect();
