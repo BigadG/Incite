@@ -81,11 +81,28 @@ document.addEventListener('DOMContentLoaded', function () {
     selectionsX.textContent = 'X';
     selectionsX.classList.add('selectionsX');
 
-    selectionsX.addEventListener('click', function() {
-        listContainer.removeChild(selectionBox);
+    selectionsX.addEventListener('click', async function() {
+      try {
+        const uuid = await getUUID();
+        const response = await fetch(`${serverUrl}/deleteSelection/${pageId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${uuid}`
+          }
+        });
+  
+        if (response.ok) {
+          console.log('Selection deleted');
+          listContainer.removeChild(selectionBox);
+        } else {
+          console.error('Failed to delete selection');
+        }
+      } catch (error) {
+        console.error('Error deleting selection:', error);
+      }
     });
 
-    // Append elements to their respective containers
     titleAndUrl.appendChild(titleElement);
     titleAndUrl.appendChild(urlElement);
     selectionBox.appendChild(titleAndUrl);
@@ -112,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
         listContainer.innerHTML = '';
         // Loop through each selection and create elements for them
         selections.forEach(selection => {
-          createListElement(selection.title, selection.url);
+          createListElement(selection.title, selection.url, selection.pageId);
         });
       } else {
         const textResponse = await response.text(); // Get the raw response text
