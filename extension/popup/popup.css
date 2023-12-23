@@ -70,7 +70,6 @@ button:hover {
 }
 
 .selectionBox {
-  height: 50px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -83,7 +82,7 @@ button:hover {
 }
 
 .selectionBox:hover {
-  box-shadow: 0 1px 4px #000000;
+  box-shadow: 0 2px 5px #000000;
 }
 
 .titleAndUrl {

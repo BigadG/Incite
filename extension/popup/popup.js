@@ -54,7 +54,10 @@ document.addEventListener('DOMContentLoaded', function () {
   function createListElement(title, url) {
     const selectionBox = document.createElement('div');
     selectionBox.classList.add('selectionBox');
-
+    selectionBox.addEventListener('click', function() {
+      urlElement.style.display = urlElement.style.display === 'none' ? 'block' : 'none';
+    });
+    
     const titleAndUrl = document.createElement('div');
     titleAndUrl.classList.add('titleAndUrl');
 
@@ -72,11 +75,6 @@ document.addEventListener('DOMContentLoaded', function () {
     urlElement.addEventListener('click', function(event) {
       event.preventDefault();
       chrome.tabs.create({ url: url });
-    });
-
-    // Toggle visibility of URL on clicking the title
-    titleElement.addEventListener('click', function() {
-      urlElement.style.display = urlElement.style.display === 'none' ? 'block' : 'none';
     });
 
     const selectionsX = document.createElement('button');
