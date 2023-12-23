@@ -1,9 +1,9 @@
 import React from 'react';
-import NewPage from './components/NewPage';
+import NewPage from './NewPage';
 
 function App() {
   return (
-    <div className="App">
+    <div>
       <NewPage />
     </div>
   );
