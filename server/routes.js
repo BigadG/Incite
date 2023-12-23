@@ -70,7 +70,28 @@ router.post('/clearSelections', async (req, res) => {
   }
 });
 
-// Export both the router and the register function
+router.delete('/deleteSelection/:pageId', async (req, res) => {
+  try {
+    const db = await connect();
+    const { pageId } = req.params;
+    const uuid = req.userId;
+
+    const result = await db.collection('Users').updateOne(
+      { uuid },
+      { $pull: { selections: { pageId: ObjectId(pageId) } } }
+    );
+
+    if (result.modifiedCount === 0) {
+      throw new Error('No selection found with the given ID');
+    }
+
+    res.status(200).json({ message: 'Selection deleted' });
+  } catch (error) {
+    console.error('Delete Selection Error:', error);
+    res.status(500).json({ message: 'Error deleting selection', error });
+  }
+});
+
 module.exports = { router, register };
 
 
