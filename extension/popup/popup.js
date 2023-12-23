@@ -169,4 +169,9 @@ document.addEventListener('DOMContentLoaded', function () {
     showSelections();
     toggleDropdown();
   });
+
+  createButton.addEventListener('click', function() {
+    const url = 'http://localhost:3000'; // The URL where your React app is served locally
+    chrome.tabs.create({ url });
+  });
 });
