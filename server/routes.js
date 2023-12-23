@@ -73,16 +73,16 @@ router.post('/clearSelections', async (req, res) => {
 router.delete('/deleteSelection/:pageId', async (req, res) => {
   try {
     const db = await connect();
-    const { pageId } = req.params;
+    const pageId = req.params.pageId;
     const uuid = req.userId;
 
     const result = await db.collection('Users').updateOne(
-      { uuid },
+      { uuid, 'selections.pageId': ObjectId(pageId) },
       { $pull: { selections: { pageId: ObjectId(pageId) } } }
     );
 
     if (result.modifiedCount === 0) {
-      throw new Error('No selection found with the given ID');
+      return res.status(404).json({ message: 'No selection found with the given ID' }); // Return 404 if nothing was modified
     }
 
     res.status(200).json({ message: 'Selection deleted' });
