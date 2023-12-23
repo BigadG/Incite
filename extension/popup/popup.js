@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
   
-  function createListElement(title, url) {
+  function createListElement(title, url, pageId) {
     const selectionBox = document.createElement('div');
     selectionBox.classList.add('selectionBox');
     selectionBox.addEventListener('click', function() {
@@ -96,7 +96,9 @@ document.addEventListener('DOMContentLoaded', function () {
           console.log('Selection deleted');
           listContainer.removeChild(selectionBox);
         } else {
-          console.error('Failed to delete selection');
+          const errorResponse = await response.text();
+          console.error('Failed to delete selection:', errorResponse);
+          throw new Error('Failed to delete selection');
         }
       } catch (error) {
         console.error('Error deleting selection:', error);
