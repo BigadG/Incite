@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
   async function getUUID() {
     return new Promise((resolve, reject) => {
       chrome.storage.local.get(['userId'], function(result) {
-        console.log('Storage Result:', result); // debug
+        console.log(`Retrieved UUID from storage: ${result.userId}`);
         if (result.userId) {
           console.log('UUID from storage:', result.userId); // debug
           resolve(result.userId);
@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   async function addSelection(url, title) {
+    console.log('addSelection called'); // Add this line to confirm the function is called
     try {
       const uuid = await getUUID();
       console.log('UUID retrieved:', uuid); // Debug: Check the retrieved UUID
@@ -40,17 +41,23 @@ document.addEventListener('DOMContentLoaded', function () {
       if (response.ok) {
         console.log('Selection added');
         createListElement(title, url);
-      } else {
-        const errorData = await response.json();
-        console.error('Error data:', JSON.stringify(errorData, null, 2)); // Debug: Inspect the error data
-        throw new Error(errorData.message || 'Failed to add selection');
+    } else {
+        const textResponse = await response.text(); // Get the raw response text
+        console.error('Failed to add selection. Response:', textResponse); // Log the full response text
+        throw new Error('Failed to add selection');
       }
     } catch (error) {
       console.error('Error adding selection:', error, JSON.stringify(error, null, 2));
     }
   }
   
-  function createListElement(title, url) {
+  function createListElement(title, url, pageId) {
+    const selectionBox = document.createElement('div');
+    selectionBox.classList.add('selectionBox');
+    selectionBox.addEventListener('click', function() {
+      urlElement.style.display = urlElement.style.display === 'none' ? 'block' : 'none';
+    });
+    
     const titleAndUrl = document.createElement('div');
     titleAndUrl.classList.add('titleAndUrl');
 
@@ -60,25 +67,49 @@ document.addEventListener('DOMContentLoaded', function () {
     titleElement.classList.add('titles');
 
     // Create the element for the url
-    const urlElement = document.createElement('link'); // 'link' is not a valid element for this purpose, use 'a' instead
+    const urlElement = document.createElement('a');
+    urlElement.href = url;
     urlElement.textContent = url;
     urlElement.classList.add('url');
+    urlElement.style.display = 'none';
+    urlElement.addEventListener('click', function(event) {
+      event.preventDefault();
+      chrome.tabs.create({ url: url });
+    });
 
-    // Create the element for deleting a selection
     const selectionsX = document.createElement('button');
     selectionsX.textContent = 'X';
     selectionsX.classList.add('selectionsX');
 
-    // Event listener for deleting the element
-    selectionsX.addEventListener('click', function() {
-        listContainer.removeChild(titleAndUrl);
+    selectionsX.addEventListener('click', async function() {
+      try {
+        const uuid = await getUUID();
+        const response = await fetch(`${serverUrl}/deleteSelection/${pageId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${uuid}`
+          }
+        });
+  
+        if (response.ok) {
+          console.log('Selection deleted');
+          listContainer.removeChild(selectionBox);
+        } else {
+          const errorResponse = await response.text();
+          console.error('Failed to delete selection:', errorResponse);
+          throw new Error('Failed to delete selection');
+        }
+      } catch (error) {
+        console.error('Error deleting selection:', error);
+      }
     });
 
-    // Append to the listContainer
     titleAndUrl.appendChild(titleElement);
     titleAndUrl.appendChild(urlElement);
-    titleAndUrl.appendChild(selectionsX);
-    listContainer.appendChild(titleAndUrl);
+    selectionBox.appendChild(titleAndUrl);
+    selectionBox.appendChild(selectionsX);
+    listContainer.appendChild(selectionBox);
   }
 
 
@@ -100,19 +131,21 @@ document.addEventListener('DOMContentLoaded', function () {
         listContainer.innerHTML = '';
         // Loop through each selection and create elements for them
         selections.forEach(selection => {
-          createListElement(selection.title, selection.url);
+          createListElement(selection.title, selection.url, selection.pageId);
         });
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to retrieve selections');
+        const textResponse = await response.text(); // Get the raw response text
+        console.error('Failed to retrieve selections. Response:', textResponse); // Log the full response text
+        throw new Error('Failed to retrieve selections');
       }
     } catch (error) {
-      console.error('Error retrieving selections:', error);
+      console.error('Error retrieving selections:', error, error.stack);
     }
   }
   
 
   addButton.addEventListener('click', function() {
+    console.log('Add button clicked'); // Add this line to confirm the event
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
       window.close(); // Close the extension popup
       const currentTab = tabs[0];
