@@ -73,8 +73,7 @@ router.post('/clearSelections', async (req, res) => {
 router.delete('/deleteSelection/:pageId', async (req, res) => {
   try {
     const db = await connect();
-    // Create a new ObjectId instance with 'new'
-    const pageId = new ObjectId(req.params.pageId); // Corrected usage
+    const pageId = new ObjectId(req.params.pageId);
     const uuid = req.userId;
 
     // The $pull operation should match the pageId correctly
