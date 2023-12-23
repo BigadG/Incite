@@ -68,7 +68,11 @@ document.addEventListener('DOMContentLoaded', function () {
     urlElement.href = url;
     urlElement.textContent = url;
     urlElement.classList.add('url');
-    urlElement.style.display = 'none'; // Initially hide the URL
+    urlElement.style.display = 'none';
+    urlElement.addEventListener('click', function(event) {
+      event.preventDefault();
+      chrome.tabs.create({ url: url });
+    });
 
     // Toggle visibility of URL on clicking the title
     titleElement.addEventListener('click', function() {
