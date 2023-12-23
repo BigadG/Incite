@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const showButton = document.getElementById('showButton');
   const dropdown = document.getElementById('dropdown');
   const listContainer = document.getElementById('listContainer');
-//  const createButton = document.getElementById('createButton')
+  const createButton = document.getElementById('createButton');
 
   // Retrieve the UUID from storage and include it in the header of every request
   async function getUUID() {
