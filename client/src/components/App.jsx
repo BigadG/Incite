@@ -1,14 +1,12 @@
 import React from 'react';
-import NewWebPage from './components/NewWebPage';
+import NewPage from './components/NewPage';
 
-const App = () => {
-  // You can use React Router or state management to handle component rendering
+function App() {
   return (
-    <div>
-      <NewWebPage />
+    <div className="App">
+      <NewPage />
     </div>
   );
-};
+}
 
 export default App;
-
