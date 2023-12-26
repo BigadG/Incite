@@ -19,22 +19,27 @@ function InciteForm() {
     }));
   };
 
-  // Function to handle form submission
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    // Call generateResult and update the result state
-    const generatedResult = generateResult();
-    setResult(generatedResult);
-  };
+// Modify this function to call server endpoint
+const generateResult = async () => {
+  try {
+    const response = await axios.post('/api/generateEssay', {
+      premises: inputs.premises,
+      data: inputs.data,
+      sources: inputs.sources,
+    });
+    return response.data.essay;
+  } catch (error) {
+    console.error('Error generating result:', error);
+    return 'Error generating result';
+  }
+};
 
-  // Mock function to generate a result based on the inputs
-  // You should replace this with your actual logic
-  const generateResult = () => {
-    return `Generated result based on: 
-      Premises: ${inputs.premises}, 
-      Data: ${inputs.data}, 
-      Sources: ${inputs.sources}`;
-  };
+// Update the handleSubmit function to handle async operation
+const handleSubmit = async (event) => {
+  event.preventDefault();
+  const generatedResult = await generateResult();
+  setResult(generatedResult);
+};
 
   return (
     <main>
