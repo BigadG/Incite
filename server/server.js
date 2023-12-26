@@ -19,7 +19,7 @@ app.use(express.json());
 app.post('/api/register', register);
 
 // Apply authMiddleware to all routes except for /register
-app.use('/api', authMiddleware);
+//app.use('/api', authMiddleware);
 
 // Other routes
 app.use('/api', router);

@@ -13,7 +13,7 @@ const callGPTAPI = async (prompt) => {
     max_tokens: 150, // Adjust as necessary
   }, {
     headers: {
-      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}` // Make sure to set your API key in the environment variables
+      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
     }
   });
   return response.data.choices[0].text;
@@ -32,9 +32,6 @@ router.post('/generateEssay', async (req, res) => {
   }
 });
 
-
-
-// This is the new registration endpoint function
 const register = async (req, res) => {
   try {
     const { uuid } = req.body;
@@ -57,7 +54,6 @@ router.post('/addSelection', async (req, res) => {
     const { title, url } = req.body;
     const uuid = req.userId; // Now using the UUID provided by the middleware
 
-    // Ensure you are using the correct collection name
     const result = await db.collection('Users').updateOne(
       { uuid },
       { $push: { selections: { title, url, pageId: new ObjectId(), timestamp: new Date() } } },
@@ -65,7 +61,7 @@ router.post('/addSelection', async (req, res) => {
     );
     res.status(200).json({ message: 'Selection added', result });
   } catch (error) {
-    console.error('Add Selection Error:', error); // This will log the error to the console
+    console.error('Add Selection Error:', error);
     res.status(500).json({ message: 'Error adding selection', error });
   }
 });
@@ -73,9 +69,8 @@ router.post('/addSelection', async (req, res) => {
 router.get('/selections', async (req, res) => {
   try {
     const db = await connect();
-    const uuid = req.userId; // Now using the UUID provided by the middleware
+    const uuid = req.userId;
 
-    // Again, ensure consistent use of the collection name
     const user = await db.collection('Users').findOne({ uuid });
     res.status(200).json(user ? user.selections : []);
   } catch (error) {
@@ -86,9 +81,8 @@ router.get('/selections', async (req, res) => {
 router.post('/clearSelections', async (req, res) => {
   try {
     const db = await connect();
-    const uuid = req.userId; // Now using the UUID provided by the middleware
+    const uuid = req.userId;
 
-    // And once more, ensure you are targeting the correct collection
     const result = await db.collection('Users').updateOne(
       { uuid },
       { $set: { selections: [] } }
@@ -105,9 +99,8 @@ router.delete('/deleteSelection/:pageId', async (req, res) => {
     const pageId = new ObjectId(req.params.pageId);
     const uuid = req.userId;
 
-    // The $pull operation should match the pageId correctly
     const result = await db.collection('Users').updateOne(
-      { uuid, 'selections.pageId': pageId }, // Use the new ObjectId instance
+      { uuid, 'selections.pageId': pageId },
       { $pull: { selections: { pageId: pageId } } }
     );
 
