@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const showButton = document.getElementById('showButton');
   const dropdown = document.getElementById('dropdown');
   const listContainer = document.getElementById('listContainer');
-//  const createButton = document.getElementById('createButton')
+  const createButton = document.getElementById('createButton');
 
   // Retrieve the UUID from storage and include it in the header of every request
   async function getUUID() {
@@ -168,5 +168,10 @@ document.addEventListener('DOMContentLoaded', function () {
   showButton.addEventListener('click', function() {
     showSelections();
     toggleDropdown();
+  });
+
+  createButton.addEventListener('click', function() {
+    const url = 'http://localhost:5173'; // The URL where your React app is served locally
+    chrome.tabs.create({ url });
   });
 });
