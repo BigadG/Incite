@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   createButton.addEventListener('click', function() {
-    const url = 'http://localhost:5173'; // The URL where your React app is served locally
+    const url = 'http://localhost:5173'; // The URL where the React app is served locally
     chrome.tabs.create({ url });
   });
 });
