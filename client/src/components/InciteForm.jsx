@@ -20,10 +20,8 @@ function InciteForm() {
     }));
   };
 
-// Modify this function to call server endpoint
 const generateResult = async () => {
   try {
-    // Replace with your server's full URL including the port
     const serverUrl = 'http://localhost:3001/api/generateEssay';
     
     const response = await axios.post(serverUrl, {
@@ -38,7 +36,6 @@ const generateResult = async () => {
   }
 };
 
-// Update the handleSubmit function to handle async operation
 const handleSubmit = async (event) => {
   event.preventDefault();
   const generatedResult = await generateResult();
