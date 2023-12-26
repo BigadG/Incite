@@ -2,8 +2,37 @@ const { connect } = require('./database');
 const express = require('express');
 const { ObjectId } = require('mongodb');
 
-// Separate the router and register function for clarity
 const router = express.Router();
+
+const axios = require('axios');
+
+// Calls the GPT API
+const callGPTAPI = async (prompt) => {
+  const response = await axios.post('https://api.openai.com/v1/engines/davinci/completions', {
+    prompt: prompt,
+    max_tokens: 150, // Adjust as necessary
+  }, {
+    headers: {
+      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}` // Make sure to set your API key in the environment variables
+    }
+  });
+  return response.data.choices[0].text;
+};
+
+// Handles the GPT API call
+router.post('/generateEssay', async (req, res) => {
+  try {
+    const { premises, data, sources } = req.body;
+    const prompt = `Summarize the following information:\nPremises: ${premises}\nData: ${data}\nSources: ${sources}`;
+    const essay = await callGPTAPI(prompt);
+    res.status(200).json({ essay });
+  } catch (error) {
+    console.error('GPT API Call Error:', error);
+    res.status(500).json({ message: 'Error calling GPT API', error });
+  }
+});
+
+
 
 // This is the new registration endpoint function
 const register = async (req, res) => {
