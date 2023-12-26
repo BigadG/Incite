@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import '../styles/inciteStyles.css';
+import axios from 'axios';
 
 function InciteForm() {
   // State to store the form inputs and result
@@ -22,7 +23,10 @@ function InciteForm() {
 // Modify this function to call server endpoint
 const generateResult = async () => {
   try {
-    const response = await axios.post('/api/generateEssay', {
+    // Replace with your server's full URL including the port
+    const serverUrl = 'http://localhost:3001/api/generateEssay';
+    
+    const response = await axios.post(serverUrl, {
       premises: inputs.premises,
       data: inputs.data,
       sources: inputs.sources,

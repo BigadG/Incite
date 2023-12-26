@@ -1,11 +1,18 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors'); // Import the cors package
 const { router, register } = require('./routes');
 const authMiddleware = require('./authMiddleware');
 
 const app = express();
 const port = process.env.PORT || 3001;
 
+const corsOptions = {
+  origin: 'http://localhost:5173',
+  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Register route that should not be protected by the authMiddleware
@@ -27,4 +34,5 @@ if (require.main === module) {
   });
 }
 
-module.exports = app; 
+module.exports = app;
+ 
