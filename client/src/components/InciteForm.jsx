@@ -21,7 +21,7 @@ class InciteForm extends React.Component {
           <input type="text" className="textbox" name="input1-Name" id="input1-Id" placeholder="Premises" />
           <input type="text" className="textbox" name="input2-Name" id="input2-Id" placeholder="Data" />
           <input type="text" className="textbox" name="input3-Name" id="input3-Id" placeholder="Sources" />
-          <textarea name="message" className="textbox" id="result" placeholder="Result"></textarea>
+          <textarea className="textbox" name="message" id="result" placeholder="Result"></textarea>
           <br />
           <button type="submit" className="submit">Sum It!</button>
         </form>
