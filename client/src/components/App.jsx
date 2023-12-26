@@ -1,10 +1,10 @@
 import React from 'react';
-import NewPage from './NewPage';
+import MainPage from './MainPage';
 
 function App() {
   return (
     <div>
-      <NewPage />
+      <MainPage />
     </div>
   );
 }
