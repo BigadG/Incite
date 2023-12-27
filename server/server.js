@@ -9,19 +9,20 @@ const port = process.env.PORT || 3001;
 
 const corsOptions = {
   origin: 'http://localhost:5173',
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200 
 };
 
-app.use(cors(corsOptions));
-app.use(express.json());
+app.use(cors(corsOptions)); 
+app.use(express.json()); 
 
-// Register route that should not be protected by the authMiddleware
+// Routes that don't require authentication
 app.post('/api/register', register);
+app.post('/api/generateEssay', generateEssay);
 
-app.post('/api/generateEssay', generateEssay); // Make sure to export this from routes.js
+// Apply authentication middleware to all the routes defined from this point onwards
+app.use('/api', authMiddleware);
 
-// Other routes
-app.use('/api', router); // No authMiddleware here
+app.use('/api', router);
 
 app.get('/', (req, res) => {
   res.send('Incite Server is running!');
@@ -34,5 +35,6 @@ if (require.main === module) {
 };
 
 module.exports = app;
+
 
  

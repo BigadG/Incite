@@ -2,15 +2,15 @@ const { connect } = require('./database');
 const express = require('express');
 const { ObjectId } = require('mongodb');
 const OpenAI = require('openai');
+const authMiddleware = require('./authMiddleware');
 
 const openai = new OpenAI(process.env.OPENAI_API_KEY);
 const router = express.Router();
 
-
-const generateEssay = router.post('/generateEssay', async (req, res) => {
+const generateEssay = async (req, res) => {
   try {
     const { prompt1, prompt2, prompt3 } = req.body;
-    console.log('Received prompts:', { prompt1, prompt2, prompt3 }); // Add this line to log received data
+    console.log('Received prompts:', { prompt1, prompt2, prompt3 });
 
     const messages = [
       {"role": "system", "content": "You are a helpful assistant."},
@@ -29,8 +29,7 @@ const generateEssay = router.post('/generateEssay', async (req, res) => {
     console.error('GPT API Call Error:', error);
     res.status(500).json({ message: 'Error calling GPT API', error });
   }
-});
-
+};
 
 const register = async (req, res) => {
   try {
@@ -47,6 +46,9 @@ const register = async (req, res) => {
     res.status(500).json({ message: 'Error during registration', error });
   }
 };
+
+
+router.use(authMiddleware);
 
 router.post('/addSelection', async (req, res) => {
   try {
