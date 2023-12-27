@@ -13,8 +13,10 @@ const generateEssay = async (req, res) => {
     console.log('Received prompts:', { prompt1, prompt2, prompt3 });
 
     const messages = [
-      {"role": "system", "content": "You are a helpful assistant."},
-      {"role": "user", "content": `Summarize the following information: ${prompt1}. ${prompt2}. ${prompt3}.`}
+      {"role": "system", "content": "You are a helpful assistant that generates college essays."},
+      {"role": "user", "content": `Each of the following premises describe what each paragraph of 
+      the essay should be about. They are presented to you in the order that they should be within
+       the essay: paragraph 1: ${prompt1}. paragraph 2: ${prompt2}. paragraph 3: ${prompt3}.`}
     ];
 
     const completion = await openai.chat.completions.create({
