@@ -38,18 +38,37 @@ form {
     border-width: 4px;
 }
 
-#result {
-    width: 75%;
-    height: 500px;
+.add-button, .submit {
+    font-family: Impact, Haettenschweiler, 'Arial Narrow', sans-serif;
+    color: lightblue;
+    background-color: black;
+    border-style: solid;
+    box-shadow: 0px 3px 10px;
+}
+
+.add-button {
+    width: 42px;
+    height: 42px;
+    font-size: 30px;
+    border-radius: 60px;
 }
 
 .submit {
     width: 120px;
     height: 40px;
     font-size: 20px;
-    font-family: Impact, Haettenschweiler, 'Arial Narrow', sans-serif;
-    color: lightblue;
-    background-color: black;
     border-radius: 10px;
-    box-shadow: 0px 3px 10px;
+}
+
+#result {
+    width: 75%;
+    height: 500px;
+}
+
+.add-button:hover, .submit:hover {
+    background-color: #222222;
+}
+
+.add-button:focus, .submit:focus {
+    box-shadow: 0px 3px 5px;
 }
