@@ -1,32 +1,27 @@
 const { connect } = require('./database');
 const express = require('express');
 const { ObjectId } = require('mongodb');
-const { Configuration, OpenAIApi } = require("openai");
+const OpenAI = require('openai');
 
+const openai = new OpenAI(process.env.OPENAI_API_KEY);
 const router = express.Router();
 
 
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-const openai = new OpenAIApi(configuration);
-
-// Handles the GPT API call
 router.post('/generateEssay', async (req, res) => {
   try {
     const { premises, data, sources } = req.body;
+
     const messages = [
       {"role": "system", "content": "You are a helpful assistant."},
       {"role": "user", "content": `Summarize the following information: ${premises}. ${data}. ${sources}.`}
     ];
 
-    const response = await openai.createChatCompletion({
+    const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: messages
     });
 
-    const essay = response.data.choices[0].message.content;
+    const essay = completion.choices[0].message.content;
     res.status(200).json({ essay });
 
   } catch (error) {
@@ -34,7 +29,6 @@ router.post('/generateEssay', async (req, res) => {
     res.status(500).json({ message: 'Error calling GPT API', error });
   }
 });
-
 
 
 const register = async (req, res) => {
