@@ -9,18 +9,16 @@ const router = express.Router();
 
 const generateEssay = async (req, res) => {
   try {
-    const { prompts } = req.body; // prompts is now an array of paragraphs
+    // Build the user content string with all provided prompts
+    const userContent = Object.keys(req.body)
+      .sort()
+      .filter(key => key.startsWith('prompt'))
+      .map((key, index) => `paragraph ${index + 1}: ${req.body[key]}`)
+      .join('. ');
 
-    let userContent = prompts.map((p, index) => `paragraph ${index + 1}: ${p}`).join(' ');
     const messages = [
-      {
-        "role": "system",
-        "content": "You are a helpful assistant that generates college essays."
-      },
-      {
-        "role": "user",
-        "content": `Each of the following premises describe what each paragraph of the essay should be about. They are presented to you in the order that they should be within the essay: ${userContent}`
-      }
+      {"role": "system", "content": "You are a helpful assistant that generates college essays."},
+      {"role": "user", "content": `Each of the following premises describe what each paragraph of the essay should be about. They are presented to you in the order that they should be within the essay: ${userContent}`}
     ];
 
     const completion = await openai.chat.completions.create({
@@ -36,6 +34,7 @@ const generateEssay = async (req, res) => {
     res.status(500).json({ message: 'Error calling GPT API', error });
   }
 };
+
 
 const register = async (req, res) => {
   try {
