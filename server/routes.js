@@ -9,14 +9,18 @@ const router = express.Router();
 
 const generateEssay = async (req, res) => {
   try {
-    const { prompt1, prompt2, prompt3 } = req.body;
-    console.log('Received prompts:', { prompt1, prompt2, prompt3 });
+    const { prompts } = req.body; // prompts is now an array of paragraphs
 
+    let userContent = prompts.map((p, index) => `paragraph ${index + 1}: ${p}`).join(' ');
     const messages = [
-      {"role": "system", "content": "You are a helpful assistant that generates college essays."},
-      {"role": "user", "content": `Each of the following premises describe what each paragraph of 
-      the essay should be about. They are presented to you in the order that they should be within
-       the essay: paragraph 1: ${prompt1}. paragraph 2: ${prompt2}. paragraph 3: ${prompt3}.`}
+      {
+        "role": "system",
+        "content": "You are a helpful assistant that generates college essays."
+      },
+      {
+        "role": "user",
+        "content": `Each of the following premises describe what each paragraph of the essay should be about. They are presented to you in the order that they should be within the essay: ${userContent}`
+      }
     ];
 
     const completion = await openai.chat.completions.create({
