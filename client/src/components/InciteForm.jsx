@@ -5,9 +5,9 @@ import axios from 'axios';
 function InciteForm() {
   // State to store the form inputs and result
   const [inputs, setInputs] = useState({
-    premises: '',
-    data: '',
-    sources: '',
+    prompt1: '',
+    prompt2: '',
+    prompt3: '',
   });
   const [result, setResult] = useState('');
 
@@ -25,9 +25,9 @@ const generateResult = async () => {
     const serverUrl = 'http://localhost:3001/api/generateEssay';
     
     const response = await axios.post(serverUrl, {
-      premises: inputs.premises,
-      data: inputs.data,
-      sources: inputs.sources,
+      prompt1: inputs.prompt1,
+      prompt2: inputs.prompt2,
+      prompt3: inputs.prompt3,
     });
     return response.data.essay;
   } catch (error) {
@@ -49,28 +49,28 @@ const handleSubmit = async (event) => {
         <input 
           type="text" 
           className="textbox" 
-          name="premises" 
+          name="prompt1" 
           id="input1-Id" 
-          placeholder="Premises" 
-          value={inputs.premises}
+          placeholder="prompt1" 
+          value={inputs.prompt1}
           onChange={handleChange}
         />
         <input 
           type="text" 
           className="textbox" 
-          name="data" 
+          name="prompt2" 
           id="input2-Id" 
-          placeholder="Data" 
-          value={inputs.data}
+          placeholder="prompt2" 
+          value={inputs.prompt2}
           onChange={handleChange}
         />
         <input 
           type="text" 
           className="textbox" 
-          name="sources" 
+          name="prompt3" 
           id="input3-Id" 
-          placeholder="Sources" 
-          value={inputs.sources}
+          placeholder="prompt3" 
+          value={inputs.prompt3}
           onChange={handleChange}
         />
         <textarea 
