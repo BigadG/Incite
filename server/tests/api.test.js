@@ -12,9 +12,9 @@ describe('API Endpoints', () => {
     const res = await request(app)
       .post('/api/generateEssay')
       .send({
-        premises: 'test premises',
-        data: 'test data',
-        sources: 'test sources'
+        premise1: 'test premise1',
+        premise2: 'test premise2',
+        premise3: 'test premise3'
       });
 
     expect(res.statusCode).toEqual(200);

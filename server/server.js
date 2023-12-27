@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { router, register } = require('./routes');
+const { router, register, generateEssay } = require('./routes');
 const authMiddleware = require('./authMiddleware');
 
 const app = express();
@@ -17,6 +17,8 @@ app.use(express.json());
 
 // Register route that should not be protected by the authMiddleware
 app.post('/api/register', register);
+
+app.post('/api/generateEssay', generateEssay); // Make sure to export this from routes.js
 
 // Other routes
 app.use('/api', router); // No authMiddleware here
