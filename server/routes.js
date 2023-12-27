@@ -7,13 +7,14 @@ const openai = new OpenAI(process.env.OPENAI_API_KEY);
 const router = express.Router();
 
 
-router.post('/generateEssay', async (req, res) => {
+const generateEssay = router.post('/generateEssay', async (req, res) => {
   try {
-    const { premises, data, sources } = req.body;
+    const { prompt1, prompt2, prompt3 } = req.body;
+    console.log('Received prompts:', { prompt1, prompt2, prompt3 }); // Add this line to log received data
 
     const messages = [
       {"role": "system", "content": "You are a helpful assistant."},
-      {"role": "user", "content": `Summarize the following information: ${premises}. ${data}. ${sources}.`}
+      {"role": "user", "content": `Summarize the following information: ${prompt1}. ${prompt2}. ${prompt3}.`}
     ];
 
     const completion = await openai.chat.completions.create({
@@ -115,7 +116,7 @@ router.delete('/deleteSelection/:pageId', async (req, res) => {
 });
 
 
-module.exports = { router, register };
+module.exports = { router, register, generateEssay };
 
 
 

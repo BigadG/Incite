@@ -23,7 +23,6 @@ function InciteForm() {
 const generateResult = async () => {
   try {
     const serverUrl = 'http://localhost:3001/api/generateEssay';
-    
     const response = await axios.post(serverUrl, {
       prompt1: inputs.prompt1,
       prompt2: inputs.prompt2,
