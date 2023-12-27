@@ -3,79 +3,61 @@ import '../styles/inciteStyles.css';
 import axios from 'axios';
 
 function InciteForm() {
-  // State to store the form inputs and result
-  const [inputs, setInputs] = useState({
-    prompt1: '',
-    prompt2: '',
-    prompt3: '',
-  });
-  const [result, setResult] = useState('');
+  const [inputList, setInputList] = useState(['']);
 
-  // Function to handle form input changes
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setInputs(prevInputs => ({
-      ...prevInputs,
-      [name]: value,
-    }));
+  const handleInputChange = (e, index) => {
+    const list = [...inputList];
+    list[index] = e.target.value;
+    setInputList(list);
   };
 
-const generateResult = async () => {
-  try {
-    const serverUrl = 'http://localhost:3001/api/generateEssay';
-    const response = await axios.post(serverUrl, {
-      prompt1: inputs.prompt1,
-      prompt2: inputs.prompt2,
-      prompt3: inputs.prompt3,
-    });
-    return response.data.essay;
-  } catch (error) {
-    console.error('Error generating result:', error);
-    return 'Error generating result';
-  }
-};
+  const handleAddClick = () => {
+    setInputList([...inputList, '']);
+  };
 
-const handleSubmit = async (event) => {
-  event.preventDefault();
-  const generatedResult = await generateResult();
-  setResult(generatedResult);
-};
+  const generateResult = async () => {
+    try {
+      const serverUrl = 'http://localhost:3001/api/generateEssay';
+      const response = await axios.post(serverUrl, {
+        prompts: inputList,
+      });
+      return response.data.essay;
+    } catch (error) {
+      console.error('Error generating result:', error);
+      return 'Error generating result';
+    }
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const generatedResult = await generateResult();
+    setResult(generatedResult);
+  };
 
   return (
     <main>
       <h1>INCITE™</h1>
       <form onSubmit={handleSubmit}>
-        <input 
-          type="text" 
-          className="textbox" 
-          name="prompt1" 
-          id="input1-Id" 
-          placeholder="prompt1" 
-          value={inputs.prompt1}
-          onChange={handleChange}
-        />
-        <input 
-          type="text" 
-          className="textbox" 
-          name="prompt2" 
-          id="input2-Id" 
-          placeholder="prompt2" 
-          value={inputs.prompt2}
-          onChange={handleChange}
-        />
-        <input 
-          type="text" 
-          className="textbox" 
-          name="prompt3" 
-          id="input3-Id" 
-          placeholder="prompt3" 
-          value={inputs.prompt3}
-          onChange={handleChange}
-        />
-        <textarea 
-          name="result" 
-          className="textbox" 
-          id="result" 
+        {inputList.map((prompt, index) => (
+          <input
+            type="text"
+            className="textbox"
+            name={`prompt${index}`}
+            placeholder={`Paragraph ${index + 1}`}
+            value={prompt}
+            onChange={(e) => handleInputChange(e, index)}
+            key={index}
+          />
+        ))}
+        {inputList.length < 10 && (
+          <button type="button" onClick={handleAddClick} className="add-btn">
+            +
+          </button>
+        )}
+        <textarea
+          name="result"
+          className="textbox"
+          id="result"
           placeholder="Result"
           value={result}
           readOnly
@@ -91,4 +73,5 @@ const handleSubmit = async (event) => {
 }
 
 export default InciteForm;
+
 
