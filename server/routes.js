@@ -1,36 +1,41 @@
 const { connect } = require('./database');
 const express = require('express');
 const { ObjectId } = require('mongodb');
+const { Configuration, OpenAIApi } = require("openai");
 
 const router = express.Router();
 
-const axios = require('axios');
 
-// Calls the GPT API
-const callGPTAPI = async (prompt) => {
-  const response = await axios.post('https://api.openai.com/v1/engines/davinci/completions', {
-    prompt: prompt,
-    max_tokens: 150, // Adjust as necessary
-  }, {
-    headers: {
-      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-    }
-  });
-  return response.data.choices[0].text;
-};
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+const openai = new OpenAIApi(configuration);
 
 // Handles the GPT API call
 router.post('/generateEssay', async (req, res) => {
   try {
     const { premises, data, sources } = req.body;
-    const prompt = `Summarize the following information:\nPremises: ${premises}\nData: ${data}\nSources: ${sources}`;
-    const essay = await callGPTAPI(prompt);
+    const messages = [
+      {"role": "system", "content": "You are a helpful assistant."},
+      {"role": "user", "content": `Summarize the following information: ${premises}. ${data}. ${sources}.`}
+    ];
+
+    const response = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo",
+      messages: messages
+    });
+
+    const essay = response.data.choices[0].message.content;
     res.status(200).json({ essay });
+
   } catch (error) {
     console.error('GPT API Call Error:', error);
     res.status(500).json({ message: 'Error calling GPT API', error });
   }
 });
+
+
 
 const register = async (req, res) => {
   try {
