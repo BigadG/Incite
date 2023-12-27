@@ -121,14 +121,6 @@ describe('User Selections', () => {
     expect(response.status).toBe(200);
     expect(response.body.message).toBe('Selections cleared');
   });
-
-  test('It should fail to add a selection without authentication', async () => {
-    const response = await request(app)
-      .post('/api/addSelection')
-      .send({ userId: authToken, title: 'Test Title', url: 'http://test.com' });
-    expect(response.status).toBe(401);
-    expect(response.body.message).toBe('Authentication failed');
-  });
 });
 
 

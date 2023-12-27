@@ -1,6 +1,6 @@
 const request = require('supertest');
 const express = require('express');
-const { router } = require('../server/routes'); // Adjust the path to match your project structure
+const { router } = require('../routes'); // Adjust the path to match your project structure
 
 const app = express();
 app.use(express.json());
