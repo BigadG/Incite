@@ -2,42 +2,21 @@ const { connect } = require('./database');
 const express = require('express');
 const { ObjectId } = require('mongodb');
 const OpenAI = require('openai');
+const { generateEssayContent } = require('./openaiService');
 const authMiddleware = require('./authMiddleware');
 
 const openai = new OpenAI(process.env.OPENAI_API_KEY);
 const router = express.Router();
 
 const generateEssay = async (req, res) => {
-  console.log('Full request body:', req.body); 
   try {
-    // Build the user content string with all provided prompts
-    const userContent = Object.keys(req.body)
-      .sort()
-      .filter(key => key.startsWith('prompt'))
-      .map((key, index) => `paragraph ${index + 1}: ${req.body[key]}`)
-      .join('. ');
-
-    const messages = [
-      {"role": "system", "content": "You are a helpful assistant that generates college essays."},
-      {"role": "user", "content": `Each of the following premises describe what each paragraph 
-      of the essay should be about. They are presented to you in the order that they should be 
-      within the essay. Make sure every single prompt has its own paragraph: ${userContent}`}
-    ];
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: messages
-    });
-
-    const essay = completion.choices[0].message.content;
+    const essay = await generateEssayContent(req.body);
     res.status(200).json({ essay });
-
   } catch (error) {
     console.error('GPT API Call Error:', error);
     res.status(500).json({ message: 'Error calling GPT API', error });
   }
 };
-
 
 const register = async (req, res) => {
   try {
