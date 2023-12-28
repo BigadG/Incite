@@ -174,4 +174,29 @@ document.addEventListener('DOMContentLoaded', function () {
     const url = 'http://localhost:5173'; // The URL where the React app is served locally
     chrome.tabs.create({ url });
   });
+
+  createButton.addEventListener('click', async function() {
+    // Retrieve the URLs from the saved selections
+    const selections = await getSelections();
+    const premises = getUserInputPremises(); // I might need to implement a way to get this from the user
+    const urls = selections.map(selection => selection.url);
+  
+    // Send the premises and URLs to the new endpoint
+    fetch(`${serverUrl}/generateEssayWithSelections`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${await getUUID()}`
+      },
+      body: JSON.stringify({ premises, urls }),
+    })
+    .then(response => response.json())
+    .then(data => {
+      // Handle the generated essay data
+    })
+    .catch(error => {
+      console.error('Error generating essay with selections:', error);
+    });
+  });
+  
 });
