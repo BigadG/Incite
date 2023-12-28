@@ -102,7 +102,7 @@ router.delete('/deleteSelection/:pageId', async (req, res) => {
   }
 });
 
-router.post('/generateEssayWithSelections', async (req, res) => {
+router.post('/generateEssayWithSelections', async (req, res) => { //Add mechanism to fetch content from URLs (webscraping or API (probably SerpAPI))
   try {
     const { premises, urls } = req.body;
     const contentFromPages = await getContentFromURLs(urls); // Implement this function to fetch content from URLs
