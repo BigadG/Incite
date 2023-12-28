@@ -1,10 +1,10 @@
 const request = require('supertest');
 const express = require('express');
-const { generateEssay } = require('./routes'); // Adjust the path as needed
+const { generateEssay } = require('../routes');
 const bodyParser = require('body-parser');
-const { generateEssayContent } = require('./openaiService');
+const { generateEssayContent } = require('../openaiService');
 
-jest.mock('./openaiService', () => ({
+jest.mock('../openaiService', () => ({
   generateEssayContent: jest.fn().mockResolvedValue('Mocked essay content')
 }));
 
