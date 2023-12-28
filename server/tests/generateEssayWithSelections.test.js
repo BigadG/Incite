@@ -1,8 +1,11 @@
 const request = require('supertest');
 const app = require('../server');
 const { generateEssayContent } = require('../openaiService');
-jest.mock('../openaiService'); // Mock the openaiService
+const authMiddleware = require('../authMiddleware');
+const { closeDatabase } = require('../database'); // You might need to implement this function
 
+jest.mock('../openaiService'); // Mock the openaiService
+jest.mock('../authMiddleware'); // Mock the authMiddleware
 
 // Mock getContentFromURLs function
 const getContentFromURLs = jest.fn(async (urls) => {
@@ -15,15 +18,12 @@ generateEssayContent.mockImplementation(async (prompts, contentFromPages) => {
 });
 
 describe('generateEssayWithSelections endpoint', () => {
-  it('should generate essay with content from saved pages', async () => {
-    const premises = "User entered premises.";
-    const urls = ["http://example.com/page1", "http://example.com/page2"];
-
-    // Mock the authMiddleware to bypass actual authentication
-    jest.mock('../authMiddleware', () => (req, res, next) => {
-      req.userId = 'mock-uuid';
-      next();
-    });
+    it('should generate essay with content from saved pages', async () => {
+      // Mock implementation of authMiddleware to bypass actual authentication
+      authMiddleware.mockImplementation((req, res, next) => {
+        req.userId = 'mock-uuid';
+        next();
+      });
 
     const response = await request(app)
       .post('/api/generateEssayWithSelections')
@@ -36,3 +36,8 @@ describe('generateEssayWithSelections endpoint', () => {
     expect(generateEssayContent).toHaveBeenCalledWith(premises, "Mocked content from URLs");
   });
 });
+
+afterAll(async () => {
+    await closeDatabase(); // Ensure you close any open connections
+  });
+  
