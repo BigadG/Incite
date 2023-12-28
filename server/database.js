@@ -22,6 +22,11 @@ async function connect() {
   }
 }
 
-module.exports = { connect };
+async function closeDatabase() {
+  await client.close();
+  console.log('Disconnected from MongoDB Atlas');
+}
+
+module.exports = { connect, closeDatabase };
 
 
