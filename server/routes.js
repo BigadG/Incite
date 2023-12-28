@@ -1,11 +1,23 @@
 const { connect } = require('./database');
 const express = require('express');
 const { ObjectId } = require('mongodb');
+const OpenAI = require('openai');
+const { generateEssayContent } = require('./openaiService');
+const authMiddleware = require('./authMiddleware');
 
-// Separate the router and register function for clarity
+const openai = new OpenAI(process.env.OPENAI_API_KEY);
 const router = express.Router();
 
-// This is the new registration endpoint function
+const generateEssay = async (req, res) => {
+  try {
+    const essay = await generateEssayContent(req.body);
+    res.status(200).json({ essay });
+  } catch (error) {
+    console.error('GPT API Call Error:', error);
+    res.status(500).json({ message: 'Error calling GPT API', error });
+  }
+};
+
 const register = async (req, res) => {
   try {
     const { uuid } = req.body;
@@ -22,13 +34,15 @@ const register = async (req, res) => {
   }
 };
 
+
+router.use(authMiddleware);
+
 router.post('/addSelection', async (req, res) => {
   try {
     const db = await connect();
     const { title, url } = req.body;
     const uuid = req.userId; // Now using the UUID provided by the middleware
 
-    // Ensure you are using the correct collection name
     const result = await db.collection('Users').updateOne(
       { uuid },
       { $push: { selections: { title, url, pageId: new ObjectId(), timestamp: new Date() } } },
@@ -36,7 +50,7 @@ router.post('/addSelection', async (req, res) => {
     );
     res.status(200).json({ message: 'Selection added', result });
   } catch (error) {
-    console.error('Add Selection Error:', error); // This will log the error to the console
+    console.error('Add Selection Error:', error);
     res.status(500).json({ message: 'Error adding selection', error });
   }
 });
@@ -44,9 +58,8 @@ router.post('/addSelection', async (req, res) => {
 router.get('/selections', async (req, res) => {
   try {
     const db = await connect();
-    const uuid = req.userId; // Now using the UUID provided by the middleware
+    const uuid = req.userId;
 
-    // Again, ensure consistent use of the collection name
     const user = await db.collection('Users').findOne({ uuid });
     res.status(200).json(user ? user.selections : []);
   } catch (error) {
@@ -57,9 +70,8 @@ router.get('/selections', async (req, res) => {
 router.post('/clearSelections', async (req, res) => {
   try {
     const db = await connect();
-    const uuid = req.userId; // Now using the UUID provided by the middleware
+    const uuid = req.userId;
 
-    // And once more, ensure you are targeting the correct collection
     const result = await db.collection('Users').updateOne(
       { uuid },
       { $set: { selections: [] } }
@@ -76,9 +88,8 @@ router.delete('/deleteSelection/:pageId', async (req, res) => {
     const pageId = new ObjectId(req.params.pageId);
     const uuid = req.userId;
 
-    // The $pull operation should match the pageId correctly
     const result = await db.collection('Users').updateOne(
-      { uuid, 'selections.pageId': pageId }, // Use the new ObjectId instance
+      { uuid, 'selections.pageId': pageId },
       { $pull: { selections: { pageId: pageId } } }
     );
 
@@ -94,7 +105,7 @@ router.delete('/deleteSelection/:pageId', async (req, res) => {
 });
 
 
-module.exports = { router, register };
+module.exports = { router, register, generateEssay };
 
 
 

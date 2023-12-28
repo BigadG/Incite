@@ -1,20 +1,27 @@
 require('dotenv').config();
 const express = require('express');
-const { router, register } = require('./routes');
+const cors = require('cors');
+const { router, register, generateEssay } = require('./routes');
 const authMiddleware = require('./authMiddleware');
 
 const app = express();
 const port = process.env.PORT || 3001;
 
-app.use(express.json());
+const corsOptions = {
+  origin: 'http://localhost:5173',
+  optionsSuccessStatus: 200 
+};
 
-// Register route that should not be protected by the authMiddleware
+app.use(cors(corsOptions)); 
+app.use(express.json()); 
+
+// Routes that don't require authentication
 app.post('/api/register', register);
+app.post('/api/generateEssay', generateEssay);
 
-// Apply authMiddleware to all routes except for /register
+// Apply authentication middleware to all the routes defined from this point onwards
 app.use('/api', authMiddleware);
 
-// Other routes
 app.use('/api', router);
 
 app.get('/', (req, res) => {
@@ -25,6 +32,9 @@ if (require.main === module) {
   app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
   });
-}
+};
 
-module.exports = app; 
+module.exports = app;
+
+
+ 

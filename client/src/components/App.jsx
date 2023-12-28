@@ -1,8 +1,8 @@
 import React from 'react';
-import MainPage from './MainPage';
+import InciteForm from './InciteForm';
 
 function App() {
-  return <MainPage />;
+  return <InciteForm />;
 }
 
 export default App;
