@@ -1,26 +1,15 @@
 const request = require('supertest');
 const express = require('express');
-const { generateEssay } = require('../routes');
+const { generateEssay } = require('./routes'); // Adjust the path as needed
 const bodyParser = require('body-parser');
+const { generateEssayContent } = require('./openaiService');
+
+jest.mock('./openaiService', () => ({
+  generateEssayContent: jest.fn().mockResolvedValue('Mocked essay content')
+}));
 
 const app = express();
 app.use(bodyParser.json());
-
-jest.mock('openai', () => {
-  return {
-    OpenAI: jest.fn().mockImplementation(() => {
-      return {
-        chat: {
-          completions: {
-            create: jest.fn().mockResolvedValue({
-              choices: [{ message: { content: 'Mocked essay content' } }]
-            })
-          }
-        }
-      };
-    })
-  };
-});
 
 app.post('/api/generateEssay', generateEssay);
 
@@ -34,8 +23,8 @@ describe('GPT API Integration', () => {
     expect(response.body).toHaveProperty('essay');
     expect(response.body.essay).toBe('Mocked essay content');
   });
-
 });
+
 
 
 
