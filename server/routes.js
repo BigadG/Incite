@@ -1,11 +1,9 @@
 const { connect } = require('./database');
 const express = require('express');
 const { ObjectId } = require('mongodb');
-const OpenAI = require('openai');
 const { generateEssayContent } = require('./openaiService');
 const authMiddleware = require('./authMiddleware');
 
-const openai = new OpenAI(process.env.OPENAI_API_KEY);
 const router = express.Router();
 
 const generateEssay = async (req, res) => {
