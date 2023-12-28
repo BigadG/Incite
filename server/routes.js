@@ -102,6 +102,17 @@ router.delete('/deleteSelection/:pageId', async (req, res) => {
   }
 });
 
+router.post('/generateEssayWithSelections', async (req, res) => {
+  try {
+    const { premises, urls } = req.body;
+    const contentFromPages = await getContentFromURLs(urls); // Implement this function to fetch content from URLs
+    const essay = await generateEssayContent(premises, contentFromPages);
+    res.status(200).json({ essay });
+  } catch (error) {
+    console.error('Error generating essay with selections:', error);
+    res.status(500).json({ message: 'Error generating essay with selections', error });
+  }
+});
 
 module.exports = { router, register, generateEssay };
 
