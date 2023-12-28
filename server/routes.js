@@ -8,6 +8,7 @@ const openai = new OpenAI(process.env.OPENAI_API_KEY);
 const router = express.Router();
 
 const generateEssay = async (req, res) => {
+  console.log('Full request body:', req.body); 
   try {
     // Build the user content string with all provided prompts
     const userContent = Object.keys(req.body)
@@ -18,7 +19,9 @@ const generateEssay = async (req, res) => {
 
     const messages = [
       {"role": "system", "content": "You are a helpful assistant that generates college essays."},
-      {"role": "user", "content": `Each of the following premises describe what each paragraph of the essay should be about. They are presented to you in the order that they should be within the essay: ${userContent}`}
+      {"role": "user", "content": `Each of the following premises describe what each paragraph 
+      of the essay should be about. They are presented to you in the order that they should be 
+      within the essay. Make sure every single prompt has its own paragraph: ${userContent}`}
     ];
 
     const completion = await openai.chat.completions.create({

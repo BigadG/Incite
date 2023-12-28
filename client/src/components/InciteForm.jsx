@@ -5,7 +5,7 @@ import axios from 'axios';
 function InciteForm() {
   // State to store the form inputs and result
   const [inputs, setInputs] = useState(['', '', '']);
-  const [result, setResult] = useState(''); // Ensure this line is correctly included
+  const [result, setResult] = useState('');
 
   // Function to handle form input changes
   const handleChange = (index) => (event) => {
