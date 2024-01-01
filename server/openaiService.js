@@ -10,14 +10,14 @@ const generateEssayContent = async (prompts) => {
     .join('. ');
 
   const messages = [
-    {"role": "system", "content": "You are a helpful assistant that generates college essays."},
+    {"role": "system", "content": "You are a helpful assistant that generates full length college essays."},
     {"role": "user", "content": `Each of the following premises describe what each paragraph 
     of the essay should be about. They are presented to you in the order that they should be within 
     the essay. Make sure every single prompt has its own paragraph: ${userContent}`}
   ];
 
   const completion = await openai.chat.completions.create({
-    model: "gpt-3.5-turbo",
+    model: "gpt-4",
     messages: messages
   });
 
