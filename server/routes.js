@@ -3,9 +3,27 @@ const express = require('express');
 const { ObjectId } = require('mongodb');
 const { generateEssayContent } = require('./openaiService');
 const authMiddleware = require('./authMiddleware');
+const fetch = require('node-fetch');
+const { JSDOM } = require('jsdom');
+const { Readability } = require('@mozilla/readability');
 
 const router = express.Router();
 
+// Add the fetchAndProcessPage function
+async function fetchAndProcessPage(url) {
+  try {
+    const response = await fetch(url);
+    const html = await response.text();
+    const doc = new JSDOM(html, { url });
+    const reader = new Readability(doc.window.document);
+    const article = reader.parse();
+
+    return article.textContent; // or `article.content` for HTML content
+  } catch (error) {
+    console.error('Error fetching or processing page:', error);
+    return null;
+  }
+}
 const generateEssay = async (req, res) => {
   try {
     const essay = await generateEssayContent(req.body);
@@ -102,11 +120,11 @@ router.delete('/deleteSelection/:pageId', async (req, res) => {
   }
 });
 
-router.post('/generateEssayWithSelections', async (req, res) => { //Add mechanism to fetch content from URLs (webscraping or API (probably SerpAPI))
+router.post('/generateEssayWithSelections', async (req, res) => {
   try {
     const { premises, urls } = req.body;
-    const contentFromPages = await getContentFromURLs(urls); // Implement this function to fetch content from URLs
-    const essay = await generateEssayContent(premises, contentFromPages);
+    const contentFromPages = await Promise.all(urls.map(url => fetchAndProcessPage(url)));
+    const essay = await generateEssayContent(premises, contentFromPages.join("\n\n"));
     res.status(200).json({ essay });
   } catch (error) {
     console.error('Error generating essay with selections:', error);

@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function () {
   
 
   addButton.addEventListener('click', function() {
-    console.log('Add button clicked'); // Add this line to confirm the event
+    console.log('Add button clicked'); // Confirms the event
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
       window.close(); // Close the extension popup
       const currentTab = tabs[0];
@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   createButton.addEventListener('click', function() {
-    const url = 'http://localhost:5173'; // The URL where the React app is served locally
+    const url = 'http://localhost:5173';
     chrome.tabs.create({ url });
   });
 
