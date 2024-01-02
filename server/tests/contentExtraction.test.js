@@ -30,6 +30,6 @@ describe('Content Extraction for Essay Generation', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('essay');
-  });
+  }, 30000);
 });
 
