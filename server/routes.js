@@ -13,19 +13,21 @@ const router = express.Router();
 async function fetchAndProcessPage(url) {
   try {
     const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch page at ${url}, status: ${response.status}`);
-    }
     const html = await response.text();
+    console.log(`Fetched HTML for ${url}:`, html); // Log the HTML content
+
     const doc = new JSDOM(html, { url });
     const reader = new Readability(doc.window.document);
     const article = reader.parse();
-    return article.textContent || article.content;
+
+    console.log(`Extracted text for ${url}:`, article.textContent); // Log the text content
+    return article.textContent;
   } catch (error) {
     console.error('Error fetching or processing page:', error);
-    throw new Error(`fetchAndProcessPage failed: ${error.message}`);
+    return null;
   }
 }
+
 
 const generateEssay = async (req, res) => {
   try {
@@ -124,6 +126,7 @@ router.delete('/deleteSelection/:pageId', async (req, res) => {
 });
 
 router.post('/generateEssayWithSelections', async (req, res) => {
+  console.log('Request to /generateEssayWithSelections:', req.body);
   try {
     const { premises, urls } = req.body;
     
