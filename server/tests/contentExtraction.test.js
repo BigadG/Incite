@@ -1,8 +1,7 @@
-require('dotenv').config();
 const request = require('supertest');
 const app = require('../server');
 
-// Mock node-fetch to simulate fetching webpage content without making actual HTTP requests
+// Mock node-fetch
 jest.mock('node-fetch', () => {
   return jest.fn(() =>
     Promise.resolve({
@@ -11,13 +10,18 @@ jest.mock('node-fetch', () => {
   );
 });
 
-// Mock authMiddleware to bypass actual authentication for testing
+// Mock authMiddleware
 jest.mock('../authMiddleware', () => {
   return jest.fn((req, res, next) => {
     req.userId = 'mock-uuid'; // Assign a mock userId for the test cases
     next();
   });
 });
+
+// Mock openaiService
+jest.mock('../openaiService', () => ({
+  generateEssayContent: jest.fn().mockResolvedValue('Mocked essay content')
+}));
 
 describe('Content Extraction for Essay Generation', () => {
   test('should generate an essay with provided URLs', async () => {
@@ -30,6 +34,8 @@ describe('Content Extraction for Essay Generation', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('essay');
+    expect(response.body.essay).toBe('Mocked essay content');
   }, 30000);
 });
+
 
