@@ -13,17 +13,20 @@ const router = express.Router();
 async function fetchAndProcessPage(url) {
   try {
     const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch page at ${url}, status: ${response.status}`);
+    }
     const html = await response.text();
     const doc = new JSDOM(html, { url });
     const reader = new Readability(doc.window.document);
     const article = reader.parse();
-
-    return article.textContent; // or `article.content` for HTML content
+    return article.textContent || article.content;
   } catch (error) {
     console.error('Error fetching or processing page:', error);
-    return null;
+    throw new Error(`fetchAndProcessPage failed: ${error.message}`);
   }
 }
+
 const generateEssay = async (req, res) => {
   try {
     const essay = await generateEssayContent(req.body);
@@ -123,14 +126,18 @@ router.delete('/deleteSelection/:pageId', async (req, res) => {
 router.post('/generateEssayWithSelections', async (req, res) => {
   try {
     const { premises, urls } = req.body;
-    const contentFromPages = await Promise.all(urls.map(url => fetchAndProcessPage(url)));
+    const contentFromPages = await Promise.all(urls.map(url => fetchAndProcessPage(url).catch(e => e.message)));
+    if (contentFromPages.some(entry => typeof entry !== 'string')) {
+      throw new Error('Failed to fetch all pages.');
+    }
     const essay = await generateEssayContent(premises, contentFromPages.join("\n\n"));
     res.status(200).json({ essay });
   } catch (error) {
     console.error('Error generating essay with selections:', error);
-    res.status(500).json({ message: 'Error generating essay with selections', error });
+    res.status(500).json({ message: 'Error generating essay with selections', error: error.message });
   }
 });
+
 
 module.exports = { router, register, generateEssay };
 
