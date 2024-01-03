@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { router, register, generateEssay } = require('./routes');
+const { router, register, generateEssay, generateEssayWithSelections } = require('./routes');
 const authMiddleware = require('./authMiddleware');
 
 const app = express();
@@ -18,6 +18,13 @@ app.use(express.json());
 // Routes that don't require authentication
 app.post('/api/register', register);
 app.post('/api/generateEssay', generateEssay);
+app.post('/api/generateEssayWithSelections', generateEssayWithSelections);
+
+// Apply authentication middleware to all the routes defined from this point onwards
+app.use('/api', authMiddleware);
+
+app.use('/api', router);
+
 
 // Apply authentication middleware to all the routes defined from this point onwards
 app.use('/api', authMiddleware);
