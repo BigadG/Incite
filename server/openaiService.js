@@ -3,7 +3,7 @@ const OpenAI = require('openai');
 const openai = new OpenAI();
 
 const generateEssayContent = async (prompts, contentFromPages) => {
-  if (!contentFromPages || typeof contentFromPages !== 'string') {
+  if (typeof contentFromPages !== 'string' || !contentFromPages.trim()) {
     throw new Error('Invalid or missing content from pages');
   }
 
