@@ -13,9 +13,13 @@ async function fetchAndProcessPage(url) {
   try {
     const response = await fetch(url);
     const html = await response.text();
+    console.log(`Fetched HTML for ${url}:`, html); // Log the HTML content
+
     const doc = new JSDOM(html, { url });
     const reader = new Readability(doc.window.document);
     const article = reader.parse();
+    
+    console.log(`Extracted text for ${url}:`, article.textContent); // Log the text content
     return article.textContent;
   } catch (error) {
     console.error('Error fetching or processing page:', error);
@@ -34,6 +38,7 @@ const generateEssay = async (req, res) => {
 };
 
 const generateEssayWithSelections = async (req, res) => {
+  console.log('Request to /generateEssayWithSelections:', req.body);
   try {
     const { premises, urls } = req.body;
     const contentFromPages = await Promise.all(urls.map(url => fetchAndProcessPage(url)));
