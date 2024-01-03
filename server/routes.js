@@ -9,25 +9,19 @@ const { Readability } = require('@mozilla/readability');
 
 const router = express.Router();
 
-// Add the fetchAndProcessPage function
 async function fetchAndProcessPage(url) {
   try {
     const response = await fetch(url);
     const html = await response.text();
-    console.log(`Fetched HTML for ${url}:`, html); // Log the HTML content
-
     const doc = new JSDOM(html, { url });
     const reader = new Readability(doc.window.document);
     const article = reader.parse();
-
-    console.log(`Extracted text for ${url}:`, article.textContent); // Log the text content
     return article.textContent;
   } catch (error) {
     console.error('Error fetching or processing page:', error);
     return null;
   }
 }
-
 
 const generateEssay = async (req, res) => {
   try {
@@ -36,6 +30,23 @@ const generateEssay = async (req, res) => {
   } catch (error) {
     console.error('GPT API Call Error:', error);
     res.status(500).json({ message: 'Error calling GPT API', error });
+  }
+};
+
+const generateEssayWithSelections = async (req, res) => {
+  try {
+    const { premises, urls } = req.body;
+    const contentFromPages = await Promise.all(urls.map(url => fetchAndProcessPage(url)));
+
+    if (contentFromPages.some(content => typeof content !== 'string' || !content.trim())) {
+      return res.status(400).json({ message: 'One or more pages could not be fetched properly' });
+    }
+
+    const essay = await generateEssayContent(premises, contentFromPages.join("\n\n"));
+    res.status(200).json({ essay });
+  } catch (error) {
+    console.error('Error generating essay with selections:', error);
+    res.status(500).json({ message: 'Error generating essay with selections', error });
   }
 };
 
@@ -125,29 +136,10 @@ router.delete('/deleteSelection/:pageId', async (req, res) => {
   }
 });
 
-router.post('/generateEssayWithSelections', async (req, res) => {
-  try {
-    const { premises, urls } = req.body;
-    const contentFromPages = await Promise.all(urls.map(url => fetchAndProcessPage(url)));
-    console.log('Content from pages:', contentFromPages); // Log the content
-
-    // Check if any of the content is invalid before proceeding
-    if (contentFromPages.some(content => typeof content !== 'string' || !content.trim())) {
-      return res.status(400).json({ message: 'One or more pages could not be fetched properly' });
-    }
-
-    const essay = await generateEssayContent(premises, contentFromPages.join("\n\n"));
-    res.status(200).json({ essay });
-  } catch (error) {
-    console.error('Error generating essay with selections:', error);
-    res.status(500).json({ message: 'Error generating essay with selections', error });
-  }
-});
-
-
-
+router.post('/generateEssayWithSelections', generateEssayWithSelections);
 
 module.exports = { router, register, generateEssay, generateEssayWithSelections };
+
 
 
 
