@@ -126,17 +126,28 @@ router.delete('/deleteSelection/:pageId', async (req, res) => {
 router.post('/generateEssayWithSelections', async (req, res) => {
   try {
     const { premises, urls } = req.body;
-    const contentFromPages = await Promise.all(urls.map(url => fetchAndProcessPage(url).catch(e => e.message)));
-    if (contentFromPages.some(entry => typeof entry !== 'string')) {
-      throw new Error('Failed to fetch all pages.');
+    
+    // Fetch and process each page.
+    const contentFromPages = await Promise.all(urls.map(url => fetchAndProcessPage(url)));
+    
+    // Check if any page content is missing or invalid.
+    if (contentFromPages.includes(null)) {
+      throw new Error('One or more pages could not be fetched or processed.');
     }
-    const essay = await generateEssayContent(premises, contentFromPages.join("\n\n"));
+    
+    // Join the page contents into a single string.
+    const pagesContentString = contentFromPages.join("\n\n");
+    
+    // Generate the essay.
+    const essay = await generateEssayContent(premises, pagesContentString);
+    
     res.status(200).json({ essay });
   } catch (error) {
     console.error('Error generating essay with selections:', error);
     res.status(500).json({ message: 'Error generating essay with selections', error: error.message });
   }
 });
+
 
 
 module.exports = { router, register, generateEssay };
