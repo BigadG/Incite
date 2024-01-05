@@ -48,15 +48,15 @@ async function fetchAndProcessPage(url) {
   }
 }
 
-
 const generateEssay = async (req, res) => {
   console.log('Received request body:', req.body);
+  if (!req.body || typeof req.body !== 'object' || !req.body.prompts) {
+    console.error('Invalid request body:', req.body);
+    return res.status(400).send('Invalid request body');
+  }
   try {
     const essay = await generateEssayContent(req.body);
     res.status(200).json({ essay });
-    if (!req.body || typeof req.body !== 'object' || !req.body.prompts) {
-      return res.status(400).send('Invalid request body');
-    }
   } catch (error) {
     console.error('GPT API Call Error:', error.message);
     res.status(500).json({ message: 'Error calling GPT API', error: error.message });
