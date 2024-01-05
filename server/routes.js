@@ -6,6 +6,8 @@ const authMiddleware = require('./authMiddleware');
 const fetch = require('node-fetch');
 const { JSDOM } = require('jsdom');
 const { Readability } = require('@mozilla/readability');
+const createDOMPurify = require('dompurify');
+
 
 const router = express.Router();
 
@@ -15,43 +17,46 @@ async function fetchAndProcessPage(url) {
     const status = response.status;
     const contentType = response.headers.get('content-type');
 
-    console.log(`Status Code: ${status} Content-Type: ${contentType}`); // Log the status and content type
+    console.log(`Status Code: ${status} Content-Type: ${contentType}`);
 
     if (status !== 200 || !contentType.includes('text/html')) {
       throw new Error(`Non-200 status code received or content is not HTML: ${status}`);
     }
 
     const html = await response.text();
-    console.log(`Fetched HTML for ${url}:`, html.substring(0, 500)); // Log the first 500 chars of the HTML content
+    console.log(`Fetched HTML for ${url}:`, html.substring(0, 500));
 
-    const doc = new JSDOM(html, { url });
+    // Sanitize the HTML with DOMPurify
+    const window = new JSDOM('').window;
+    const DOMPurify = createDOMPurify(window);
+    const cleanHtml = DOMPurify.sanitize(html);
+
+    // Now create a JSDOM instance with sanitized HTML
+    const doc = new JSDOM(cleanHtml, { url });
     const reader = new Readability(doc.window.document);
     const article = reader.parse();
-    
+
     if (!article || !article.textContent) {
       throw new Error('Readability was unable to parse the article from the page.');
     }
-    
-    if (contentFromPages.includes(null)) {
-      return res.status(500).json({ message: 'Failed to fetch content from one or more pages' });
-    }
-    
-    console.log(`Extracted text for ${url}:`, article.textContent.substring(0, 500)); // Log the first 500 chars of the text content
-    return article.textContent;
+
+    console.log(`Extracted text for ${url}:`, article.textContent.substring(0, 500));
+    return article.textContent.trim();  // Make sure to trim the text to remove any extra whitespace
   } catch (error) {
     console.error(`Error fetching or processing page at URL ${url}:`, error);
-    return null;
-  }  
+    return null;  // Return null to indicate failure
+  }
 }
 
 
 const generateEssay = async (req, res) => {
-  if (!req.body || typeof req.body !== 'object' || !req.body.prompts) {
-    return res.status(400).send('Invalid request body');
-  }
+  console.log('Received request body:', req.body);
   try {
     const essay = await generateEssayContent(req.body);
     res.status(200).json({ essay });
+    if (!req.body || typeof req.body !== 'object' || !req.body.prompts) {
+      return res.status(400).send('Invalid request body');
+    }
   } catch (error) {
     console.error('GPT API Call Error:', error.message);
     res.status(500).json({ message: 'Error calling GPT API', error: error.message });
@@ -166,7 +171,7 @@ router.delete('/deleteSelection/:pageId', async (req, res) => {
 
 router.post('/generateEssayWithSelections', generateEssayWithSelections);
 
-module.exports = { router, register, generateEssay, generateEssayWithSelections };
+module.exports = { router, register, generateEssay, fetchAndProcessPage, generateEssayWithSelections };
 
 
 
