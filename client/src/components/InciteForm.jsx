@@ -24,13 +24,14 @@ function InciteForm() {
     try {
       const serverUrl = 'http://localhost:3001/api/generateEssay';
       const prompts = inputs.reduce((acc, prompt, index) => ({ ...acc, [`prompt${index + 1}`]: prompt }), {});
+      console.log('Sending the following data to the server:', prompts); // Add this line
       const response = await axios.post(serverUrl, prompts);
       return response.data.essay;
     } catch (error) {
       console.error('Error generating result:', error);
       return 'Error generating result';
     }
-  };
+  };  
 
   const handleSubmit = async (event) => {
     event.preventDefault();

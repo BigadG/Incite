@@ -1,11 +1,13 @@
 const OpenAI = require('openai');
 
-// Assuming that the OpenAI class can be instantiated directly with the API key.
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const generateEssayContent = async (prompts, contentFromPages) => {
   if (typeof contentFromPages !== 'string' || !contentFromPages.trim()) {
     throw new Error('Invalid or missing content from pages');
+  }
+  if (typeof prompts !== 'object' || !prompts || Object.keys(prompts).length === 0) {
+    throw new Error('Invalid or missing premises');
   }
 
   const userPrompts = typeof prompts === 'object' ? JSON.stringify(prompts) : prompts;

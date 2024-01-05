@@ -12,20 +12,34 @@ const router = express.Router();
 async function fetchAndProcessPage(url) {
   try {
     const response = await fetch(url);
+    const status = response.status;
+    const contentType = response.headers.get('content-type');
+
+    console.log(`Status Code: ${status} Content-Type: ${contentType}`); // Log the status and content type
+
+    if (status !== 200 || !contentType.includes('text/html')) {
+      throw new Error(`Non-200 status code received or content is not HTML: ${status}`);
+    }
+
     const html = await response.text();
-    console.log(`Fetched HTML for ${url}:`, html); // Log the HTML content
+    console.log(`Fetched HTML for ${url}:`, html.substring(0, 500)); // Log the first 500 chars of the HTML content
 
     const doc = new JSDOM(html, { url });
     const reader = new Readability(doc.window.document);
     const article = reader.parse();
     
-    console.log(`Extracted text for ${url}:`, article.textContent); // Log the text content
+    if (!article || !article.textContent) {
+      throw new Error('Readability was unable to parse the article from the page.');
+    }
+
+    console.log(`Extracted text for ${url}:`, article.textContent.substring(0, 500)); // Log the first 500 chars of the text content
     return article.textContent;
   } catch (error) {
     console.error('Error fetching or processing page:', error);
     return null;
   }
 }
+
 
 const generateEssay = async (req, res) => {
   try {
@@ -43,8 +57,10 @@ const generateEssayWithSelections = async (req, res) => {
     const { premises, urls } = req.body;
     const contentFromPages = await Promise.all(urls.map(url => fetchAndProcessPage(url)));
 
+    console.log('Content from pages:', contentFromPages);
     if (contentFromPages.some(content => typeof content !== 'string' || !content.trim())) {
-      return res.status(400).json({ message: 'One or more pages could not be fetched properly' });
+      console.error('Invalid or empty content found in one or more pages');
+      return res.status(400).json({ message: 'Invalid or empty content found in one or more pages' });
     }
 
     const essay = await generateEssayContent(premises, contentFromPages.join("\n\n"));
