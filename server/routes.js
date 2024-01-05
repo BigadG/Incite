@@ -31,24 +31,31 @@ async function fetchAndProcessPage(url) {
     if (!article || !article.textContent) {
       throw new Error('Readability was unable to parse the article from the page.');
     }
-
+    
+    if (contentFromPages.includes(null)) {
+      return res.status(500).json({ message: 'Failed to fetch content from one or more pages' });
+    }
+    
     console.log(`Extracted text for ${url}:`, article.textContent.substring(0, 500)); // Log the first 500 chars of the text content
     return article.textContent;
   } catch (error) {
-    console.error('Error fetching or processing page:', error);
+    console.error(`Error fetching or processing page at URL ${url}:`, error);
     return null;
-  }
+  }  
 }
 
 
 const generateEssay = async (req, res) => {
+  if (!req.body || typeof req.body !== 'object' || !req.body.prompts) {
+    return res.status(400).send('Invalid request body');
+  }
   try {
     const essay = await generateEssayContent(req.body);
     res.status(200).json({ essay });
   } catch (error) {
-    console.error('GPT API Call Error:', error);
-    res.status(500).json({ message: 'Error calling GPT API', error });
-  }
+    console.error('GPT API Call Error:', error.message);
+    res.status(500).json({ message: 'Error calling GPT API', error: error.message });
+  }  
 };
 
 const generateEssayWithSelections = async (req, res) => {

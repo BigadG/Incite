@@ -13,8 +13,6 @@ const generateEssayContent = async (prompts, contentFromPages) => {
   const userPrompts = typeof prompts === 'object' ? JSON.stringify(prompts) : prompts;
 
   try {
-    // Make sure to use the correct method as per the OpenAI package documentation
-    // This is a placeholder and may need to be updated according to the actual package API
     const completion = await openai.createCompletion({
       model: "gpt-4", // Change to your desired model
       prompt: `Here is the content from the pages the user has saved: ${contentFromPages}\n\n` +
