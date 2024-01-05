@@ -8,43 +8,37 @@ const app = express();
 const port = process.env.PORT || 3001;
 
 const corsOptions = {
-  origin: 'http://localhost:5173',
-  optionsSuccessStatus: 200 
+    origin: 'http://localhost:5173',
+    optionsSuccessStatus: 200,
 };
 
-app.use(cors(corsOptions)); 
-app.use(express.json()); 
+app.use(cors(corsOptions));
+app.use(express.json());
 
 // Routes that don't require authentication
 app.post('/api/register', register);
 app.post('/api/generateEssay', generateEssay);
 app.post('/api/generateEssayWithSelections', generateEssayWithSelections);
 
-// Apply authentication middleware to all the routes defined from this point onwards
+// Apply authentication middleware to all other API routes
 app.use('/api', authMiddleware);
-
-app.use('/api', router);
-
-
-// Apply authentication middleware to all the routes defined from this point onwards
-app.use('/api', authMiddleware);
-
 app.use('/api', router);
 
 app.get('/', (req, res) => {
-  res.send('Incite Server is running!');
+    res.send('Incite Server is running!');
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+    console.error('Global error handler:', err);
+    res.status(err.status || 500).json({ error: err.message || 'Internal Server Error' });
 });
 
 if (require.main === module) {
-  app.listen(port, () => {
-    console.log(`Server listening at http://localhost:${port}`);
-  });
+    app.listen(port, () => {
+        console.log(`Server listening at http://localhost:${port}`);
+    });
 }
-
-app.use((err, req, res, next) => {
-  console.error('Global error handler:', err);
-  res.status(500).json({ error: 'Internal Server Error' });
-});
 
 module.exports = app;
 
