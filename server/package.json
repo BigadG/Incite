@@ -28,6 +28,7 @@
     "define-data-property": "^1.1.1",
     "depd": "^2.0.0",
     "destroy": "^1.2.0",
+    "dompurify": "^3.0.8",
     "dotenv": "^8.6.0",
     "ee-first": "^1.1.1",
     "encodeurl": "^1.0.2",
