@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../styles/inciteStyles.css';
 import axios from 'axios';
 
 function InciteForm() {
-  // State to store the form inputs, result, and the URLs collected by the extension
+  // State to store the form inputs, result, URLs, and premises collected by the extension
   const [inputs, setInputs] = useState(['', '', '']);
   const [result, setResult] = useState('');
-  const [urls, setUrls] = useState([]); // Add state for URLs
+  const [urls, setUrls] = useState([]); // State for URLs
+  const [premises, setPremises] = useState([]); // State for premises
 
   // Function to handle form input changes
   const handleChange = (index) => (event) => {
@@ -27,14 +28,11 @@ function InciteForm() {
     event.preventDefault();
     try {
       const serverUrl = 'http://localhost:3001/api/generateEssayWithSelections';
-      
-      // You need to await the premises from the getUserInputPremises function
-      const premises = await getUserInputPremises();
+      // Use the premises state directly
       const dataToSend = {
-        premises, // This should be awaited if it's a promise
-        urls // This should already be set in the state from chrome.storage
+        premises: inputs.filter(input => input.trim() !== ''), // Use the filtered inputs as premises
+        urls // Use the urls state
       };
-      
       const response = await axios.post(serverUrl, dataToSend);
       setResult(response.data.essay);
     } catch (error) {
@@ -42,20 +40,20 @@ function InciteForm() {
       setResult('Error generating essay with selections');
     }
   };
-  
 
-  // Add a useEffect hook to load URLs from chrome.storage.local when the component mounts
-  React.useEffect(() => {
-    // Only run this effect in a Chrome extension environment
+  // Function to load URLs and premises from chrome.storage.local
+  useEffect(() => {
     if (chrome.storage) {
-      chrome.storage.local.get(['selections'], function (result) {
+      chrome.storage.local.get(['selections', 'premises'], function (result) {
         if (result.selections) {
-          // Update the urls state with the URLs from the result
           setUrls(result.selections.map(selection => selection.url));
+        }
+        if (result.premises) {
+          setPremises(result.premises);
         }
       });
     }
-  }, []); // The empty array as a second argument ensures this effect only runs once when the component mounts
+  }, []); // The empty array ensures this effect only runs once when the component mounts
 
   return (
     <main>
