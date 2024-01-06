@@ -1,5 +1,8 @@
 const OpenAI = require('openai');
 
+console.log('Content from pages:', contentFromPages);
+console.log('Prompts:', prompts);
+
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const generateEssayContent = async (prompts, contentFromPages) => {
