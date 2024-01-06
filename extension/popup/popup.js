@@ -214,6 +214,4 @@ document.addEventListener('DOMContentLoaded', function () {
       console.error('Error generating essay with selections:', error);
     }
   });
-  
-  
 });

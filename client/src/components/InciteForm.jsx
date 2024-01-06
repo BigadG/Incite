@@ -33,13 +33,18 @@ function InciteForm() {
       return 'Error generating result';
     }
   };
-  
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const generatedResult = await generateResult();
-    setResult(generatedResult); // This is where the error was occurring
+    const premises = inputs.filter(input => input.trim() !== '');
+  
+    // Save premises to chrome.storage for access by popup.js
+    chrome.storage.local.set({ premises }, async () => {
+      const generatedResult = await generateResult();
+      setResult(generatedResult);
+    });
   };
+  
 
   return (
     <main>
