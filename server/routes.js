@@ -8,7 +8,6 @@ const { JSDOM } = require('jsdom');
 const { Readability } = require('@mozilla/readability');
 const createDOMPurify = require('dompurify');
 
-
 const router = express.Router();
 
 async function fetchAndProcessPage(url) {
@@ -75,8 +74,7 @@ const generateEssayWithSelections = async (req, res) => {
       return res.status(400).json({ message: 'URLs must be an array' });
     }
 
-    const contentFromPages = await Promise.all(urls.map(url => fetchAndProcessPage(url)));
-    console.log('Content from pages:', contentFromPages);
+    const contentFromPages = await Promise.all(urls.map(fetchAndProcessPage));
 
     // Check if any page's content is null after fetching
     if (contentFromPages.includes(null)) {
@@ -90,6 +88,7 @@ const generateEssayWithSelections = async (req, res) => {
       return res.status(400).json({ message: 'Invalid or empty content found in one or more pages' });
     }
 
+    // Now you can generate the essay content using the premises and the contentFromPages
     const essay = await generateEssayContent(premises, contentFromPages.join("\n\n"));
     res.status(200).json({ essay });
   } catch (error) {
@@ -97,7 +96,6 @@ const generateEssayWithSelections = async (req, res) => {
     res.status(500).json({ message: 'Error generating essay with selections', error });
   }
 };
-
 
 const register = async (req, res) => {
   try {

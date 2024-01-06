@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import '../styles/inciteStyles.css';
 import axios from 'axios';
 
 function InciteForm() {
-  // State to store the form inputs and result
+  // State to store the form inputs, result, and the URLs collected by the extension
   const [inputs, setInputs] = useState(['', '', '']);
   const [result, setResult] = useState('');
+  const [urls, setUrls] = useState([]); // Add state for URLs
 
   // Function to handle form input changes
   const handleChange = (index) => (event) => {
@@ -14,56 +15,41 @@ function InciteForm() {
     setInputs(newInputs);
   };
 
+  // Function to handle adding a new input field
   const addInput = () => {
     if (inputs.length < 10) {
       setInputs([...inputs, '']);
     }
   };
 
-  const generateResult = async () => {
-    try {
-      const serverUrl = 'http://localhost:3001/api/generateEssay';
-      // The server expects an object with a 'prompts' property
-      const dataToSend = { prompts: inputs.filter(input => input.trim() !== '') };
-      console.log('Sending the following data to the server:', dataToSend);
-      const response = await axios.post(serverUrl, dataToSend);
-      return response.data.essay;
-    } catch (error) {
-      console.error('Error generating result:', error);
-      return 'Error generating result';
-    }
-  };
-
-  // Add a check for the chrome object to avoid errors during development outside the Chrome environment
-  const isChromeEnv = typeof chrome !== "undefined" && chrome.storage && chrome.storage.local;
-
+  // Function to handle form submission
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const premises = inputs.filter(input => input.trim() !== '');
-    
-    if (isChromeEnv) {
-      // Save premises to chrome.storage for access by popup.js
-      chrome.storage.local.set({ premises }, async () => {
-        if (chrome.runtime.lastError) {
-          console.error('Error setting premises:', chrome.runtime.lastError);
-          setResult('Error accessing Chrome storage.');
-        } else {
-          const generatedResult = await generateResult();
-          setResult(generatedResult);
-        }
-      });
-    } else {
-      // Mock the behavior of chrome.storage.local.set for development purposes
-      console.warn('Mocking chrome.storage.local.set in a non-Chrome environment.');
-      // Mock async behavior
-      setTimeout(async () => {
-        // Here you can simulate the setting of data or just proceed to generate the result
-        const generatedResult = await generateResult();
-        setResult(generatedResult);
-      }, 100);
+    try {
+      const serverUrl = 'http://localhost:3001/api/generateEssayWithSelections';
+      // Retrieve premises and URLs from state
+      const premises = inputs.filter(input => input.trim() !== '');
+      // Send the premises and URLs to the server
+      const response = await axios.post(serverUrl, { premises, urls });
+      setResult(response.data.essay); // Update the result state with the essay returned from the server
+    } catch (error) {
+      console.error('Error generating essay with selections:', error);
+      setResult('Error generating essay with selections'); // Set the result state to an error message
     }
   };
-  
+
+  // Add a useEffect hook to load URLs from chrome.storage.local when the component mounts
+  React.useEffect(() => {
+    // Only run this effect in a Chrome extension environment
+    if (chrome.storage) {
+      chrome.storage.local.get(['selections'], function (result) {
+        if (result.selections) {
+          // Update the urls state with the URLs from the result
+          setUrls(result.selections.map(selection => selection.url));
+        }
+      });
+    }
+  }, []); // The empty array as a second argument ensures this effect only runs once when the component mounts
 
   return (
     <main>
