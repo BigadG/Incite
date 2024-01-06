@@ -40,10 +40,10 @@ async function fetchAndProcessPage(url) {
     }
 
     console.log(`Extracted text for ${url}:`, article.textContent.substring(0, 500));
-    return article.textContent.trim();  // Make sure to trim the text to remove any extra whitespace
+    return article.textContent.trim();
   } catch (error) {
     console.error(`Error fetching or processing page at URL ${url}:`, error);
-    return null;  // Return null to indicate failure
+    return ''; // Return empty string to indicate failure
   }
 }
 
@@ -62,8 +62,6 @@ const generateEssay = async (req, res) => {
     res.status(500).json({ message: 'Error calling GPT API', error: error.message });
   }
 };
-
-
 
 const generateEssayWithSelections = async (req, res) => {
   try {
@@ -87,9 +85,15 @@ const generateEssayWithSelections = async (req, res) => {
       console.error('Invalid or empty content found in one or more pages');
       return res.status(400).json({ message: 'Invalid or empty content found in one or more pages' });
     }
+    const validContentFromPages = contentFromPages.filter(content => content && content.trim());
 
-    // Now you can generate the essay content using the premises and the contentFromPages
-    const essay = await generateEssayContent(premises, contentFromPages.join("\n\n"));
+    // Proceed only if there's valid content
+    if (validContentFromPages.length === 0) {
+      return res.status(400).json({ message: 'No valid content could be fetched from the provided URLs' });
+    }
+  
+    // Use the valid content for essay generation
+    const essay = await generateEssayContent(premises, validContentFromPages.join("\n\n"));
     res.status(200).json({ essay });
   } catch (error) {
     console.error('Error generating essay with selections:', error);
