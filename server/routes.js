@@ -52,28 +52,32 @@ const generateEssay = async (req, res) => {
   console.log('Received request body:', req.body);
   if (!req.body || typeof req.body !== 'object' || !req.body.prompts) {
     console.error('Invalid request body:', req.body);
-    return res.status(400).send('Invalid request body');
+    return res.status(400).json({ message: 'Invalid request body' });
   }
   try {
-    const essay = await generateEssayContent(req.body);
+    // The `prompts` should be passed here, not the entire `req.body`
+    const essay = await generateEssayContent(req.body.prompts);
     res.status(200).json({ essay });
   } catch (error) {
     console.error('GPT API Call Error:', error.message);
     res.status(500).json({ message: 'Error calling GPT API', error: error.message });
-  }  
+  }
 };
 
-const generateEssayWithSelections = async (req, res) => {
-  console.log('Request to /generateEssayWithSelections:', req.body);
-  try {
-    const { premises, urls } = req.body;
-    const contentFromPages = await Promise.all(urls.map(url => fetchAndProcessPage(url)));
 
-    console.log('Content from pages:', contentFromPages);
+
+const generateEssayWithSelections = async (req, res) => {
+  try {
+    console.log('Request to /generateEssayWithSelections:', req.body);
     if (contentFromPages.some(content => typeof content !== 'string' || !content.trim())) {
       console.error('Invalid or empty content found in one or more pages');
       return res.status(400).json({ message: 'Invalid or empty content found in one or more pages' });
     }
+
+    const { premises, urls } = req.body;
+    const contentFromPages = await Promise.all(urls.map(url => fetchAndProcessPage(url)));
+
+    console.log('Content from pages:', contentFromPages);
 
     const essay = await generateEssayContent(premises, contentFromPages.join("\n\n"));
     res.status(200).json({ essay });
