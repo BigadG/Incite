@@ -176,27 +176,44 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   createButton.addEventListener('click', async function() {
-    // Retrieve the URLs from the saved selections
-    const selections = await getSelections();
-    const premises = getUserInputPremises(); // I might need to implement a way to get this from the user
+    const selections = await getSelections(); // Make sure this function returns what I expect
+    const premises = getUserInputPremises(); // Make sure this function returns what I expect
     const urls = selections.map(selection => selection.url);
   
+    // Ensure urls is an array of strings (URLs)
+    if (!Array.isArray(urls) || urls.some(url => typeof url !== 'string')) {
+      console.error('URLs are not in the correct format:', urls);
+      return; // Stop the function if URLs are not correct
+    }
+  
+    // Ensure premises is in the correct format
+    if (typeof premises !== 'object' || Array.isArray(premises) || !premises) {
+      console.error('Premises are not in the correct format:', premises);
+      return; // Stop the function if premises are not correct
+    }
+  
     // Send the premises and URLs to the new endpoint
-    fetch(`${serverUrl}/generateEssayWithSelections`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${await getUUID()}`
-      },
-      body: JSON.stringify({ premises, urls }),
-    })
-    .then(response => response.json())
-    .then(data => {
-      // Handle the generated essay data
-    })
-    .catch(error => {
+    try {
+      const response = await fetch(`${serverUrl}/generateEssayWithSelections`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await getUUID()}`
+        },
+        body: JSON.stringify({ premises, urls }),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+      console.log('Generated essay data:', data);
+      // Handle the generated essay data (e.g., display it to the user)
+    } catch (error) {
       console.error('Error generating essay with selections:', error);
-    });
+    }
   });
+  
   
 });
