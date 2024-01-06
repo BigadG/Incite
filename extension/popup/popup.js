@@ -165,6 +165,18 @@ document.addEventListener('DOMContentLoaded', function () {
     showButton.classList.toggle('hidden');
   }
 
+  async function getUserInputPremises() {
+    return new Promise((resolve, reject) => {
+      chrome.storage.local.get(['premises'], function(result) {
+        if (result.premises) {
+          resolve(result.premises);
+        } else {
+          reject('No premises found');
+        }
+      });
+    });
+  }  
+
   showButton.addEventListener('click', function() {
     showSelections();
     toggleDropdown();
