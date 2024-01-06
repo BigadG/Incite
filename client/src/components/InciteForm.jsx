@@ -34,17 +34,30 @@ function InciteForm() {
     }
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    const premises = inputs.filter(input => input.trim() !== '');
+  // Add a check for the chrome object to avoid errors during development outside the Chrome environment
+const isChromeEnv = typeof chrome !== "undefined" && chrome.storage && chrome.storage.local;
+
+const handleSubmit = async (event) => {
+  event.preventDefault();
+  const premises = inputs.filter(input => input.trim() !== '');
   
+  // Only proceed if we're in a Chrome environment
+  if (isChromeEnv) {
     // Save premises to chrome.storage for access by popup.js
     chrome.storage.local.set({ premises }, async () => {
-      const generatedResult = await generateResult();
-      setResult(generatedResult);
+      // Ensure this callback is only invoked if setting the premises was successful
+      if (chrome.runtime.lastError) {
+        console.error('Error setting premises:', chrome.runtime.lastError);
+        setResult('Error accessing Chrome storage.');
+      } else {
+        const generatedResult = await generateResult();
+        setResult(generatedResult);
+      }
     });
-  };
-  
+  } else {
+    console.warn('Not running in a Chrome Extension environment. Skipping chrome.storage.local.set.');
+  }
+};
 
   return (
     <main>
