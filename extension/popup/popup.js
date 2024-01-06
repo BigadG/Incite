@@ -188,29 +188,24 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   createButton.addEventListener('click', async function() {
-    const selections = await getSelections(); // Make sure this function returns what I expect
-    const premises = getUserInputPremises(); // Make sure this function returns what I expect
-    const urls = selections.map(selection => selection.url);
-  
-    // Ensure urls is an array of strings (URLs)
-    if (!Array.isArray(urls) || urls.some(url => typeof url !== 'string')) {
-      console.error('URLs are not in the correct format:', urls);
-      return; // Stop the function if URLs are not correct
-    }
-  
-    // Ensure premises is in the correct format
-    if (typeof premises !== 'object' || Array.isArray(premises) || !premises) {
-      console.error('Premises are not in the correct format:', premises);
-      return; // Stop the function if premises are not correct
-    }
-  
-    // Send the premises and URLs to the new endpoint
     try {
+      const uuid = await getUUID();
+      const premises = await getUserInputPremises(); // Ensure this is awaited
+      const selections = await getSelections(); // Ensure this is awaited and implemented
+      const urls = selections.map(selection => selection.url);
+      
+      // Perform validation or transformation if necessary
+      if (!Array.isArray(urls)) {
+        console.error('URLs are not in the correct format:', urls);
+        return; // Handle this error properly
+      }
+  
+      // Send the premises and URLs to the backend
       const response = await fetch(`${serverUrl}/generateEssayWithSelections`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${await getUUID()}`
+          'Authorization': `Bearer ${uuid}`
         },
         body: JSON.stringify({ premises, urls }),
       });
@@ -218,12 +213,9 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-  
-      const data = await response.json();
-      console.log('Generated essay data:', data);
-      // Handle the generated essay data (e.g., display it to the user)
     } catch (error) {
-      console.error('Error generating essay with selections:', error);
+      console.error('Error during essay generation:', error);
+      // Handle this error properly
     }
   });
 });
