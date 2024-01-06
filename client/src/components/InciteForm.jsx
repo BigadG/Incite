@@ -23,24 +23,6 @@ function InciteForm() {
     }
   };
 
-  // Function to handle form submission
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    try {
-      const serverUrl = 'http://localhost:3001/api/generateEssayWithSelections';
-      // Use the premises state directly
-      const dataToSend = {
-        premises: inputs.filter(input => input.trim() !== ''), // Use the filtered inputs as premises
-        urls // Use the urls state
-      };
-      const response = await axios.post(serverUrl, dataToSend);
-      setResult(response.data.essay);
-    } catch (error) {
-      console.error('Error generating essay with selections:', error);
-      setResult('Error generating essay with selections');
-    }
-  };
-
   // Function to load URLs and premises from chrome.storage.local
   useEffect(() => {
     if (chrome.storage) {
@@ -53,7 +35,32 @@ function InciteForm() {
         }
       });
     }
-  }, []); // The empty array ensures this effect only runs once when the component mounts
+  }, []);
+
+  // Function to handle form submission
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    try {
+      const serverUrl = 'http://localhost:3001/api/generateEssayWithSelections';
+      const dataToSend = {
+        premises: premises.length > 0 ? premises : inputs.filter(input => input.trim() !== ''), // Use the premises if available, else use inputs
+        urls: urls // Use the urls state
+      };
+
+      // Make sure there are URLs to send, otherwise it's pointless to make a request
+      if (dataToSend.urls.length === 0) {
+        console.error('No URLs to process. Make sure URLs are being stored correctly.');
+        setResult('No URLs to process.');
+        return;
+      }
+
+      const response = await axios.post(serverUrl, dataToSend);
+      setResult(response.data.essay);
+    } catch (error) {
+      console.error('Error generating essay with selections:', error);
+      setResult('Error generating essay with selections');
+    }
+  };
 
   return (
     <main>
@@ -64,9 +71,7 @@ function InciteForm() {
             key={`input-${index}`}
             type="text"
             className="textbox"
-            name={`prompt${index + 1}`}
-            id={`input${index + 1}-Id`}
-            placeholder={`prompt${index + 1}`}
+            placeholder={`Prompt ${index + 1}`}
             value={input}
             onChange={handleChange(index)}
           />
@@ -77,23 +82,18 @@ function InciteForm() {
           </button>
         )}
         <textarea
-          name="result"
           className="textbox"
-          id="result"
           placeholder="Result"
           value={result}
           readOnly
         />
-        <br />
-        <button type="submit" className="submit">Sum It!</button>
+        <button type="submit" className="submit">Generate Essay</button>
       </form>
-      <div id="chat-log">
-        {/* Chat log content would go here */}
-      </div>
     </main>
   );
 }
 
 export default InciteForm;
+
 
 
