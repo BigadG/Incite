@@ -1,11 +1,11 @@
 const OpenAI = require('openai');
 
-console.log('Content from pages:', contentFromPages);
-console.log('Prompts:', prompts);
-
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const generateEssayContent = async (prompts, contentFromPages) => {
+  console.log('Content from pages:', contentFromPages);
+  console.log('Prompts:', prompts);
+  
   if (typeof contentFromPages !== 'string' || !contentFromPages.trim()) {
     throw new Error('Invalid or missing content from pages');
   }

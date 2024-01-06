@@ -69,15 +69,26 @@ const generateEssay = async (req, res) => {
 const generateEssayWithSelections = async (req, res) => {
   try {
     console.log('Request to /generateEssayWithSelections:', req.body);
+    const { premises, urls } = req.body;
+
+    if (!Array.isArray(urls)) {
+      return res.status(400).json({ message: 'URLs must be an array' });
+    }
+
+    const contentFromPages = await Promise.all(urls.map(url => fetchAndProcessPage(url)));
+    console.log('Content from pages:', contentFromPages);
+
+    // Check if any page's content is null after fetching
+    if (contentFromPages.includes(null)) {
+      console.error('One or more pages returned null content');
+      return res.status(400).json({ message: 'One or more pages could not be processed' });
+    }
+
+    // All pages' content must be valid strings; if not, throw an error
     if (contentFromPages.some(content => typeof content !== 'string' || !content.trim())) {
       console.error('Invalid or empty content found in one or more pages');
       return res.status(400).json({ message: 'Invalid or empty content found in one or more pages' });
     }
-
-    const { premises, urls } = req.body;
-    const contentFromPages = await Promise.all(urls.map(url => fetchAndProcessPage(url)));
-
-    console.log('Content from pages:', contentFromPages);
 
     const essay = await generateEssayContent(premises, contentFromPages.join("\n\n"));
     res.status(200).json({ essay });
@@ -86,6 +97,7 @@ const generateEssayWithSelections = async (req, res) => {
     res.status(500).json({ message: 'Error generating essay with selections', error });
   }
 };
+
 
 const register = async (req, res) => {
   try {
