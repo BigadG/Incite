@@ -27,16 +27,22 @@ function InciteForm() {
     event.preventDefault();
     try {
       const serverUrl = 'http://localhost:3001/api/generateEssayWithSelections';
-      // Retrieve premises and URLs from state
-      const premises = inputs.filter(input => input.trim() !== '');
-      // Send the premises and URLs to the server
-      const response = await axios.post(serverUrl, { premises, urls });
-      setResult(response.data.essay); // Update the result state with the essay returned from the server
+      
+      // You need to await the premises from the getUserInputPremises function
+      const premises = await getUserInputPremises();
+      const dataToSend = {
+        premises, // This should be awaited if it's a promise
+        urls // This should already be set in the state from chrome.storage
+      };
+      
+      const response = await axios.post(serverUrl, dataToSend);
+      setResult(response.data.essay);
     } catch (error) {
       console.error('Error generating essay with selections:', error);
-      setResult('Error generating essay with selections'); // Set the result state to an error message
+      setResult('Error generating essay with selections');
     }
   };
+  
 
   // Add a useEffect hook to load URLs from chrome.storage.local when the component mounts
   React.useEffect(() => {
