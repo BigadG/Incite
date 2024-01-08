@@ -201,39 +201,15 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   createButton.addEventListener('click', async function() {
-    try {
-      const uuid = await getUUID();
-      const premises = await getUserInputPremises(); // Await the premises from storage
-      const selections = await getSelections(); // Await the selections from storage
-      console.log('Selections retrieved for processing:', selections); // Log the retrieved selections
-
-      // Map the selections to an array of URLs
-      const urls = selections.map(selection => selection.url);
-
-      // Check if there are URLs to process
-      if (!urls.length) {
-        console.error('No URLs to process. Make sure URLs are being stored correctly.');
-        return;
-      }
-
-      const response = await fetch(`${serverUrl}/generateEssayWithSelections`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${uuid}`
-        },
-        body: JSON.stringify({ premises, urls }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('Generated essay data:', data);
-    } catch (error) {
-      console.error('Error generating essay with selections:', error);
-    }
+    const premises = await getUserInputPremises(); // Await the premises from storage
+    const selections = await getSelections(); // Await the selections from storage
+    const uuid = await getUUID();
+    const selectionUrls = selections.map(selection => encodeURIComponent(selection.url)).join(',');
+    const premisesParam = encodeURIComponent(JSON.stringify(premises));
+    const inciteAppUrl = `http://localhost:5173/?uuid=${uuid}&selections=${selectionUrls}&premises=${premisesParam}`;
+  
+    chrome.tabs.create({ url: inciteAppUrl }); // Open the React app with the selections and premises as query parameters
   });
+  
 
 });
