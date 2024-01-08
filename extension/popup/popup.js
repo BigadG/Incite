@@ -50,10 +50,12 @@ document.addEventListener('DOMContentLoaded', function () {
           });
         });
       } else {
-        // Handle errors
+        console.error('Failed to add selection:', response.status, response.statusText);
+        const errorBody = await response.text();
+        console.error('Error details:', errorBody);
       }
     } catch (error) {
-      // Handle errors
+      console.error('Error in addSelection:', error);
     }
   }
   
@@ -214,7 +216,8 @@ document.addEventListener('DOMContentLoaded', function () {
       const selectionUrls = selections.map(selection => encodeURIComponent(selection.url)).join(',');
       const premisesParam = encodeURIComponent(JSON.stringify(premises));
       const inciteAppUrl = `http://localhost:5173/?uuid=${uuid}&selections=${selectionUrls}&premises=${premisesParam}`;
-  
+      
+      console.log(`Opening React app with URL: ${inciteAppUrl}`);
       chrome.tabs.create({ url: inciteAppUrl }); // Open the React app with the selections and premises as query parameters
     } catch (error) {
       console.error('Error creating essay:', error);

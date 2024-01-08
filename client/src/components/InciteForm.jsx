@@ -34,6 +34,8 @@ function InciteForm() {
       if (queryParams.premises) {
         setPremises(JSON.parse(decodeURIComponent(queryParams.premises)));
       }
+      console.log(`Received selections: ${urls}`);
+      console.log(`Received premises: ${premises}`);
     };
   
     parseQueryParams();
