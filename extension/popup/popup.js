@@ -40,7 +40,14 @@ document.addEventListener('DOMContentLoaded', function () {
         createListElement(title, url);
         chrome.storage.local.get(['selections'], function (result) {
           const currentSelections = result.selections || [];
-          chrome.storage.local.set({ selections: [...currentSelections, { title, url }] });
+          console.log('Current selections before adding new:', currentSelections); // Log current selections
+          chrome.storage.local.set({ selections: [...currentSelections, { title, url }] }, () => {
+            console.log('New selection added:', { title, url }); // Log the new selection
+            // Verify it by getting all selections again
+            chrome.storage.local.get(['selections'], function (result) {
+              console.log('Selections after adding:', result.selections); // Log all selections after adding
+            });
+          });
         });
       } else {
         // Handle errors
@@ -193,39 +200,40 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-createButton.addEventListener('click', async function() {
-  try {
-    const uuid = await getUUID();
-    const premises = await getUserInputPremises(); // Await the premises from storage
-    const selections = await getSelections(); // Await the selections from storage
+  createButton.addEventListener('click', async function() {
+    try {
+      const uuid = await getUUID();
+      const premises = await getUserInputPremises(); // Await the premises from storage
+      const selections = await getSelections(); // Await the selections from storage
+      console.log('Selections retrieved for processing:', selections); // Log the retrieved selections
 
-    // Map the selections to an array of URLs
-    const urls = selections.map(selection => selection.url);
+      // Map the selections to an array of URLs
+      const urls = selections.map(selection => selection.url);
 
-    // Check if there are URLs to process
-    if (!urls.length) {
-      console.error('No URLs to process. Make sure URLs are being stored correctly.');
-      return;
+      // Check if there are URLs to process
+      if (!urls.length) {
+        console.error('No URLs to process. Make sure URLs are being stored correctly.');
+        return;
+      }
+
+      const response = await fetch(`${serverUrl}/generateEssayWithSelections`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${uuid}`
+        },
+        body: JSON.stringify({ premises, urls }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Generated essay data:', data);
+    } catch (error) {
+      console.error('Error generating essay with selections:', error);
     }
-
-    const response = await fetch(`${serverUrl}/generateEssayWithSelections`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${uuid}`
-      },
-      body: JSON.stringify({ premises, urls }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('Generated essay data:', data);
-  } catch (error) {
-    console.error('Error generating essay with selections:', error);
-  }
-});
+  });
 
 });
