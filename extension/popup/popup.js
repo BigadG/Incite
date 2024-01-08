@@ -36,29 +36,24 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   
       if (response.ok) {
-        console.log('Selection added');
-        // After adding the selection to the server, also store it in chrome.storage.local
-        chrome.storage.local.get(['selections'], function (result) {
-          const currentSelections = result.selections || [];
-          const newSelections = [...currentSelections, { title, url }];
-          chrome.storage.local.set({ selections: newSelections }, () => {
-            console.log('New selection added to storage:', { title, url });
-            // Verify it by getting all selections again
-            chrome.storage.local.get(['selections'], function (result) {
-              console.log('Selections after adding:', result.selections); // Log all selections after adding
-            });
+        console.log('Selection added to server');
+        // Now add to local storage
+        chrome.storage.local.get({ selections: [] }, function (result) {
+          const currentSelections = result.selections;
+          currentSelections.push({ title, url });
+          chrome.storage.local.set({ selections: currentSelections }, function() {
+            console.log('Selection added to local storage:', { title, url });
           });
         });
       } else {
-        console.error('Failed to add selection to the server.');
         const errorResponse = await response.text();
-        console.error('Server response:', errorResponse);
+        console.error('Failed to add selection to the server:', errorResponse);
       }
     } catch (error) {
       console.error('Error in addSelection:', error);
     }
-  }
-  
+  }  
+
   
   function createListElement(title, url, pageId) {
     const selectionBox = document.createElement('div');
