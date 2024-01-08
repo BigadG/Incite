@@ -201,15 +201,24 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   createButton.addEventListener('click', async function() {
-    const premises = await getUserInputPremises(); // Await the premises from storage
-    const selections = await getSelections(); // Await the selections from storage
-    const uuid = await getUUID();
-    const selectionUrls = selections.map(selection => encodeURIComponent(selection.url)).join(',');
-    const premisesParam = encodeURIComponent(JSON.stringify(premises));
-    const inciteAppUrl = `http://localhost:5173/?uuid=${uuid}&selections=${selectionUrls}&premises=${premisesParam}`;
+    try {
+      const selections = await getSelections(); // Await the selections from storage
+      const uuid = await getUUID();
+      let premises;
+      try {
+        premises = await getUserInputPremises(); // Attempt to retrieve premises
+      } catch (error) {
+        console.error(error); // Handle the case where no premises are found
+        premises = []; // You can default to an empty array or decide on another appropriate default value
+      }
+      const selectionUrls = selections.map(selection => encodeURIComponent(selection.url)).join(',');
+      const premisesParam = encodeURIComponent(JSON.stringify(premises));
+      const inciteAppUrl = `http://localhost:5173/?uuid=${uuid}&selections=${selectionUrls}&premises=${premisesParam}`;
   
-    chrome.tabs.create({ url: inciteAppUrl }); // Open the React app with the selections and premises as query parameters
+      chrome.tabs.create({ url: inciteAppUrl }); // Open the React app with the selections and premises as query parameters
+    } catch (error) {
+      console.error('Error creating essay:', error);
+    }
   });
   
-
 });
