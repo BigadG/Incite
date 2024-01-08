@@ -43,17 +43,16 @@ function InciteForm() {
     try {
       const serverUrl = 'http://localhost:3001/api/generateEssayWithSelections';
       const dataToSend = {
-        premises: premises.length > 0 ? premises : inputs.filter(input => input.trim() !== ''), // Use the premises if available, else use inputs
-        urls: urls // Use the urls state
+        premises: premises.length > 0 ? premises : inputs.filter(input => input.trim() !== ''),
+        urls: urls
       };
-
-      // Make sure there are URLs to send, otherwise it's pointless to make a request
-      if (dataToSend.urls.length === 0) {
+  
+      if (!dataToSend.urls.length) {
         console.error('No URLs to process. Make sure URLs are being stored correctly.');
         setResult('No URLs to process.');
         return;
       }
-
+  
       const response = await axios.post(serverUrl, dataToSend);
       setResult(response.data.essay);
     } catch (error) {
@@ -71,7 +70,9 @@ function InciteForm() {
             key={`input-${index}`}
             type="text"
             className="textbox"
-            placeholder={`Prompt ${index + 1}`}
+            name={`prompt${index + 1}`}
+            id={`input${index + 1}-Id`}
+            placeholder={`prompt${index + 1}`}
             value={input}
             onChange={handleChange(index)}
           />
@@ -82,18 +83,23 @@ function InciteForm() {
           </button>
         )}
         <textarea
+          name="result"
           className="textbox"
+          id="result"
           placeholder="Result"
           value={result}
           readOnly
         />
-        <button type="submit" className="submit">Generate Essay</button>
+        <br />
+        <button type="submit" className="submit">Sum It!</button>
       </form>
+      <div id="chat-log">
+        {/* Chat log content would go here */}
+      </div>
     </main>
   );
 }
 
 export default InciteForm;
-
 
 

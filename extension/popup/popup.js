@@ -24,11 +24,8 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   async function addSelection(url, title) {
-    console.log('addSelection called'); // Add this line to confirm the function is called
     try {
       const uuid = await getUUID();
-      console.log('UUID retrieved:', uuid); // Debug: Check the retrieved UUID
-  
       const response = await fetch(`${serverUrl}/addSelection`, {
         method: 'POST',
         headers: {
@@ -41,13 +38,17 @@ document.addEventListener('DOMContentLoaded', function () {
       if (response.ok) {
         console.log('Selection added');
         createListElement(title, url);
-    } else {
-        const textResponse = await response.text(); // Get the raw response text
-        console.error('Failed to add selection. Response:', textResponse); // Log the full response text
-        throw new Error('Failed to add selection');
+        chrome.storage.local.get(['selections'], function (result) {
+          // If selections does not exist, initialize it as an empty array
+          const currentSelections = result.selections || [];
+          // Add the new selection
+          chrome.storage.local.set({ selections: [...currentSelections, { title, url }] });
+        });
+      } else {
+        // Handle errors
       }
     } catch (error) {
-      console.error('Error adding selection:', error, JSON.stringify(error, null, 2));
+      // Handle errors
     }
   }
   
@@ -182,35 +183,29 @@ document.addEventListener('DOMContentLoaded', function () {
     toggleDropdown();
   });
 
-  createButton.addEventListener('click', function() {
-    const url = 'http://localhost:5173';
-    chrome.tabs.create({ url });
-  });
-
   createButton.addEventListener('click', async function() {
-    const selections = await getSelections(); // Make sure this function returns what I expect
-    const premises = getUserInputPremises(); // Make sure this function returns what I expect
-    const urls = selections.map(selection => selection.url);
+    // Remove the previous 'createButton.addEventListener' for the new tab
   
-    // Ensure urls is an array of strings (URLs)
-    if (!Array.isArray(urls) || urls.some(url => typeof url !== 'string')) {
-      console.error('URLs are not in the correct format:', urls);
-      return; // Stop the function if URLs are not correct
-    }
-  
-    // Ensure premises is in the correct format
-    if (typeof premises !== 'object' || Array.isArray(premises) || !premises) {
-      console.error('Premises are not in the correct format:', premises);
-      return; // Stop the function if premises are not correct
-    }
-  
-    // Send the premises and URLs to the new endpoint
     try {
+      const uuid = await getUUID();
+      const premisesPromise = getUserInputPremises();
+      const selectionsPromise = getSelections();
+      
+      // Await on both promises
+      const [premises, selections] = await Promise.all([premisesPromise, selectionsPromise]);
+      const urls = selections.map(selection => selection.url);
+  
+      if (!urls.length) {
+        console.error('No URLs to process. Make sure URLs are being stored correctly.');
+        return;
+      }
+  
+      // Now we have the premises and URLs, send them to the server
       const response = await fetch(`${serverUrl}/generateEssayWithSelections`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${await getUUID()}`
+          'Authorization': `Bearer ${uuid}`
         },
         body: JSON.stringify({ premises, urls }),
       });
@@ -221,9 +216,8 @@ document.addEventListener('DOMContentLoaded', function () {
   
       const data = await response.json();
       console.log('Generated essay data:', data);
-      // Handle the generated essay data (e.g., display it to the user)
     } catch (error) {
       console.error('Error generating essay with selections:', error);
     }
-  });
+  });  
 });
