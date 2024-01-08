@@ -39,9 +39,7 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('Selection added');
         createListElement(title, url);
         chrome.storage.local.get(['selections'], function (result) {
-          // If selections does not exist, initialize it as an empty array
           const currentSelections = result.selections || [];
-          // Add the new selection
           chrome.storage.local.set({ selections: [...currentSelections, { title, url }] });
         });
       } else {
@@ -183,41 +181,51 @@ document.addEventListener('DOMContentLoaded', function () {
     toggleDropdown();
   });
 
-  createButton.addEventListener('click', async function() {
-    // Remove the previous 'createButton.addEventListener' for the new tab
-  
-    try {
-      const uuid = await getUUID();
-      const premisesPromise = getUserInputPremises();
-      const selectionsPromise = getSelections();
-      
-      // Await on both promises
-      const [premises, selections] = await Promise.all([premisesPromise, selectionsPromise]);
-      const urls = selections.map(selection => selection.url);
-  
-      if (!urls.length) {
-        console.error('No URLs to process. Make sure URLs are being stored correctly.');
-        return;
-      }
-  
-      // Now we have the premises and URLs, send them to the server
-      const response = await fetch(`${serverUrl}/generateEssayWithSelections`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${uuid}`
-        },
-        body: JSON.stringify({ premises, urls }),
+  async function getSelections() {
+    return new Promise((resolve, reject) => {
+      chrome.storage.local.get(['selections'], function(result) {
+        if (result.selections) {
+          resolve(result.selections);
+        } else {
+          reject('No selections found');
+        }
       });
-  
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-  
-      const data = await response.json();
-      console.log('Generated essay data:', data);
-    } catch (error) {
-      console.error('Error generating essay with selections:', error);
+    });
+  }
+
+createButton.addEventListener('click', async function() {
+  try {
+    const uuid = await getUUID();
+    const premises = await getUserInputPremises(); // Await the premises from storage
+    const selections = await getSelections(); // Await the selections from storage
+
+    // Map the selections to an array of URLs
+    const urls = selections.map(selection => selection.url);
+
+    // Check if there are URLs to process
+    if (!urls.length) {
+      console.error('No URLs to process. Make sure URLs are being stored correctly.');
+      return;
     }
-  });  
+
+    const response = await fetch(`${serverUrl}/generateEssayWithSelections`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${uuid}`
+      },
+      body: JSON.stringify({ premises, urls }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('Generated essay data:', data);
+  } catch (error) {
+    console.error('Error generating essay with selections:', error);
+  }
+});
+
 });
