@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/inciteStyles.css';
 import axios from 'axios';
+import queryString from 'query-string';
 
 function InciteForm() {
   // State to store the form inputs, result, URLs, and premises collected by the extension
@@ -25,64 +26,38 @@ function InciteForm() {
 
   // Function to load URLs and premises from chrome.storage.local
   useEffect(() => {
-    // This function will be executed when the component mounts
-    const loadStorageData = async () => {
-      // Check if the extension's background page is accessible
-      if (chrome.storage && chrome.storage.local) {
-        // Use a promise to await the storage result
-        const promise = new Promise((resolve, reject) => {
-          chrome.storage.local.get(['selections', 'premises'], function (result) {
-            if (chrome.runtime.lastError) {
-              reject(new Error('Error retrieving data from storage.'));
-            }
-            resolve(result);
-          });
-        });
-  
-        try {
-          const result = await promise;
-          if (result.selections) {
-            setUrls(result.selections.map(selection => selection.url));
-          }
-          if (result.premises) {
-            setPremises(result.premises);
-          }
-        } catch (error) {
-          console.error('Failed to load data from storage:', error);
-        }
+    const parseQueryParams = () => {
+      const queryParams = queryString.parse(location.search);
+      if (queryParams.selections) {
+        setUrls(queryParams.selections.split(',').map(url => decodeURIComponent(url)));
+      }
+      if (queryParams.premises) {
+        setPremises(JSON.parse(decodeURIComponent(queryParams.premises)));
       }
     };
   
-    loadStorageData();
+    parseQueryParams();
   }, []);
 
   // Function to handle form submission
   const handleSubmit = async (event) => {
     event.preventDefault();
+    console.log('Form submission triggered. URLs in state:', urls); // Log the URLs from state
     try {
       const serverUrl = 'http://localhost:3001/api/generateEssayWithSelections';
+      const dataToSend = {
+        premises: premises.length > 0 ? premises : inputs.filter(input => input.trim() !== ''),
+        urls: urls
+      };
   
-      // Retrieve URLs from storage right before submitting the form
-      chrome.storage.local.get(['selections'], async (result) => {
-        const storedUrls = result.selections ? result.selections.map(selection => selection.url) : [];
-        console.log('Retrieved URLs from storage:', storedUrls);
+      if (!dataToSend.urls.length) {
+        console.error('No URLs to process. Make sure URLs are being stored correctly.');
+        setResult('No URLs to process.');
+        return;
+      }
   
-        if (storedUrls.length === 0) {
-          console.error('No URLs to process. Make sure URLs are being stored correctly.');
-          setResult('No URLs to process.');
-          return;
-        }
-  
-        // Construct the data to send
-        const dataToSend = {
-          premises: premises.length > 0 ? premises : inputs.filter(input => input.trim() !== ''),
-          urls: storedUrls, // Use the retrieved URLs
-        };
-  
-        // Send the request to the server
-        const response = await axios.post(serverUrl, dataToSend);
-        setResult(response.data.essay);
-      });
+      const response = await axios.post(serverUrl, dataToSend);
+      setResult(response.data.essay);
     } catch (error) {
       console.error('Error generating essay with selections:', error);
       setResult('Error generating essay with selections');
