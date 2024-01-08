@@ -59,6 +59,7 @@ function InciteForm() {
   // Function to handle form submission
   const handleSubmit = async (event) => {
     event.preventDefault();
+    console.log('Form submission triggered. URLs in state:', urls); // Log the URLs from state
     try {
       const serverUrl = 'http://localhost:3001/api/generateEssayWithSelections';
       const dataToSend = {
