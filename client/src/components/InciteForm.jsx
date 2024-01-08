@@ -59,22 +59,30 @@ function InciteForm() {
   // Function to handle form submission
   const handleSubmit = async (event) => {
     event.preventDefault();
-    console.log('Form submission triggered. URLs in state:', urls); // Log the URLs from state
     try {
       const serverUrl = 'http://localhost:3001/api/generateEssayWithSelections';
-      const dataToSend = {
-        premises: premises.length > 0 ? premises : inputs.filter(input => input.trim() !== ''),
-        urls: urls
-      };
   
-      if (!dataToSend.urls.length) {
-        console.error('No URLs to process. Make sure URLs are being stored correctly.');
-        setResult('No URLs to process.');
-        return;
-      }
+      // Retrieve URLs from storage right before submitting the form
+      chrome.storage.local.get(['selections'], async (result) => {
+        const storedUrls = result.selections ? result.selections.map(selection => selection.url) : [];
+        console.log('Retrieved URLs from storage:', storedUrls);
   
-      const response = await axios.post(serverUrl, dataToSend);
-      setResult(response.data.essay);
+        if (storedUrls.length === 0) {
+          console.error('No URLs to process. Make sure URLs are being stored correctly.');
+          setResult('No URLs to process.');
+          return;
+        }
+  
+        // Construct the data to send
+        const dataToSend = {
+          premises: premises.length > 0 ? premises : inputs.filter(input => input.trim() !== ''),
+          urls: storedUrls, // Use the retrieved URLs
+        };
+  
+        // Send the request to the server
+        const response = await axios.post(serverUrl, dataToSend);
+        setResult(response.data.essay);
+      });
     } catch (error) {
       console.error('Error generating essay with selections:', error);
       setResult('Error generating essay with selections');
