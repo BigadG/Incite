@@ -37,12 +37,12 @@ document.addEventListener('DOMContentLoaded', function () {
   
       if (response.ok) {
         console.log('Selection added');
-        createListElement(title, url);
+        // After adding the selection to the server, also store it in chrome.storage.local
         chrome.storage.local.get(['selections'], function (result) {
           const currentSelections = result.selections || [];
-          console.log('Current selections before adding new:', currentSelections); // Log current selections
-          chrome.storage.local.set({ selections: [...currentSelections, { title, url }] }, () => {
-            console.log('New selection added:', { title, url }); // Log the new selection
+          const newSelections = [...currentSelections, { title, url }];
+          chrome.storage.local.set({ selections: newSelections }, () => {
+            console.log('New selection added to storage:', { title, url });
             // Verify it by getting all selections again
             chrome.storage.local.get(['selections'], function (result) {
               console.log('Selections after adding:', result.selections); // Log all selections after adding
@@ -50,14 +50,15 @@ document.addEventListener('DOMContentLoaded', function () {
           });
         });
       } else {
-        console.error('Failed to add selection:', response.status, response.statusText);
-        const errorBody = await response.text();
-        console.error('Error details:', errorBody);
+        console.error('Failed to add selection to the server.');
+        const errorResponse = await response.text();
+        console.error('Server response:', errorResponse);
       }
     } catch (error) {
       console.error('Error in addSelection:', error);
     }
   }
+  
   
   function createListElement(title, url, pageId) {
     const selectionBox = document.createElement('div');
