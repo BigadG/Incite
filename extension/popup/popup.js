@@ -37,23 +37,46 @@ document.addEventListener('DOMContentLoaded', function () {
   
       if (response.ok) {
         console.log('Selection added to server');
-        // Now add to local storage
-        chrome.storage.local.get({ selections: [] }, function (result) {
-          const currentSelections = result.selections;
-          currentSelections.push({ title, url });
-          chrome.storage.local.set({ selections: currentSelections }, function() {
-            console.log('Selection added to local storage:', { title, url });
-          });
-        });
+        // Retrieve the current selections from storage
+        const currentSelections = await getFromStorage('selections');
+        // Add the new selection to the array
+        const newSelections = [...currentSelections, { title, url }];
+        // Store the updated array back into storage
+        await setToStorage('selections', newSelections);
+        console.log('Selection added to local storage:', { title, url });
       } else {
-        const errorResponse = await response.text();
-        console.error('Failed to add selection to the server:', errorResponse);
+        console.error('Failed to add selection to the server. Status:', response.status);
       }
     } catch (error) {
       console.error('Error in addSelection:', error);
     }
-  }  
+  }
 
+  // Promisified function to get data from storage
+  function getFromStorage(key) {
+    return new Promise((resolve, reject) => {
+      chrome.storage.local.get([key], (result) => {
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError);
+        } else {
+          resolve(result[key] || []); // Default to an empty array if the key does not exist
+        }
+      });
+    });
+  }
+
+  // Promisified function to set data in storage
+  function setToStorage(key, value) {
+    return new Promise((resolve, reject) => {
+      chrome.storage.local.set({ [key]: value }, () => {
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError);
+        } else {
+          resolve();
+        }
+      });
+    });
+  }
   
   function createListElement(title, url, pageId) {
     const selectionBox = document.createElement('div');
@@ -187,16 +210,15 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   async function getSelections() {
-    return new Promise((resolve, reject) => {
-      chrome.storage.local.get(['selections'], function(result) {
-        if (result.selections) {
-          resolve(result.selections);
-        } else {
-          reject('No selections found');
-        }
-      });
-    });
+    try {
+      const selections = await getFromStorage('selections');
+      return selections;
+    } catch (error) {
+      console.error('Error retrieving selections:', error);
+      return []; // Default to an empty array in case of error
+    }
   }
+  
 
   createButton.addEventListener('click', async function() {
     try {
