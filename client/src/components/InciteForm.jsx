@@ -25,16 +25,35 @@ function InciteForm() {
 
   // Function to load URLs and premises from chrome.storage.local
   useEffect(() => {
-    if (chrome.storage) {
-      chrome.storage.local.get(['selections', 'premises'], function (result) {
-        if (result.selections) {
-          setUrls(result.selections.map(selection => selection.url));
+    // This function will be executed when the component mounts
+    const loadStorageData = async () => {
+      // Check if the extension's background page is accessible
+      if (chrome.storage && chrome.storage.local) {
+        // Use a promise to await the storage result
+        const promise = new Promise((resolve, reject) => {
+          chrome.storage.local.get(['selections', 'premises'], function (result) {
+            if (chrome.runtime.lastError) {
+              reject(new Error('Error retrieving data from storage.'));
+            }
+            resolve(result);
+          });
+        });
+  
+        try {
+          const result = await promise;
+          if (result.selections) {
+            setUrls(result.selections.map(selection => selection.url));
+          }
+          if (result.premises) {
+            setPremises(result.premises);
+          }
+        } catch (error) {
+          console.error('Failed to load data from storage:', error);
         }
-        if (result.premises) {
-          setPremises(result.premises);
-        }
-      });
-    }
+      }
+    };
+  
+    loadStorageData();
   }, []);
 
   // Function to handle form submission
