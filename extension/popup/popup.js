@@ -34,6 +34,10 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         body: JSON.stringify({ url, title }),
       });
+      
+      console.log('Response Status:', response.status); // Log the status code
+      const responseBody = await response.text(); // Attempt to get the response body
+      console.log('Response Body:', responseBody); // Log the response body      
   
       if (response.ok) {
         console.log('Selection added to server');
@@ -76,6 +80,16 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
     });
+  }
+
+  async function getSelections() {
+    try {
+      const selections = await getFromStorage('selections');
+      return selections;
+    } catch (error) {
+      console.error('Error retrieving selections:', error);
+      return []; // Default to an empty array in case of error
+    }
   }
   
   function createListElement(title, url, pageId) {
@@ -208,17 +222,6 @@ document.addEventListener('DOMContentLoaded', function () {
     showSelections();
     toggleDropdown();
   });
-
-  async function getSelections() {
-    try {
-      const selections = await getFromStorage('selections');
-      return selections;
-    } catch (error) {
-      console.error('Error retrieving selections:', error);
-      return []; // Default to an empty array in case of error
-    }
-  }
-  
 
   createButton.addEventListener('click', async function() {
     try {
