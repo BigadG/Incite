@@ -28,38 +28,26 @@ function InciteForm() {
   useEffect(() => {
     const queryParams = queryString.parse(window.location.search);
     if (queryParams.selections) {
-      // Ensure we decode the entire parameter before splitting
       const decodedUrls = decodeURIComponent(queryParams.selections).split(',').map(url => decodeURIComponent(url));
       setUrls(decodedUrls);
     }
-    if (queryParams.premises) {
-      setPremises(JSON.parse(decodeURIComponent(queryParams.premises)));
-    }
   }, []);
-  
-  
-  useEffect(() => {
-    console.log(`Received selections:`, urls);
-    console.log(`Received premises:`, premises);
-  }, [urls, premises]);
 
   // Function to handle form submission
   const handleSubmit = async (event) => {
     event.preventDefault();
-    console.log('Form submission triggered. URLs in state:', urls); // Log the URLs from state
+    console.log('Form submission triggered. URLs in state:', urls);
     try {
       const serverUrl = 'http://localhost:3001/api/generateEssayWithSelections';
       const dataToSend = {
-        premises: premises.length > 0 ? premises : inputs.filter(input => input.trim() !== ''),
+        premises: inputs.filter(input => input.trim() !== ''),
         urls: urls
       };
-  
       if (!dataToSend.urls.length) {
         console.error('No URLs to process. Make sure URLs are being stored correctly.');
         setResult('No URLs to process.');
         return;
       }
-  
       const response = await axios.post(serverUrl, dataToSend);
       setResult(response.data.essay);
     } catch (error) {

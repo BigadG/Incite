@@ -229,9 +229,8 @@ document.addEventListener('DOMContentLoaded', function () {
       const uuid = await getUUID();
   
       const selectionUrls = selections.map(selection => encodeURIComponent(selection.url)).join(',');
-      const encodedSelectionUrls = encodeURIComponent(selectionUrls); // Ensure the entire string is encoded
   
-      const inciteAppUrl = `http://localhost:5173/?uuid=${uuid}&selections=${encodedSelectionUrls}`;
+      const inciteAppUrl = `http://localhost:5173/?uuid=${uuid}&selections=${selectionUrls}`;
   
       console.log(`Opening React app with URL: ${inciteAppUrl}`);
       chrome.tabs.create({ url: inciteAppUrl });
@@ -241,5 +240,4 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   
   createButton.addEventListener('click', createInciteAppUrl);
-  
 });
