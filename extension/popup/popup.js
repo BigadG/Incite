@@ -23,6 +23,42 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // Promisified function to get data from storage
+  function getFromStorage(key) {
+    return new Promise((resolve, reject) => {
+      chrome.storage.local.get([key], (result) => {
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError);
+        } else {
+          resolve(result[key] || []); // Default to an empty array if the key does not exist
+        }
+      });
+    });
+  }
+    // Promisified function to set data in storage
+    function setToStorage(key, value) {
+      return new Promise((resolve, reject) => {
+        chrome.storage.local.set({ [key]: value }, () => {
+          if (chrome.runtime.lastError) {
+            console.error('Error setting to storage:', chrome.runtime.lastError);
+            reject(chrome.runtime.lastError);
+          } else {
+            resolve();
+          }
+        });
+      });
+    }
+    
+    async function getSelections() {
+      try {
+        const selections = await getFromStorage('selections');
+        return selections;
+      } catch (error) {
+        console.error('Error retrieving selections:', error);
+        return []; // Default to an empty array in case of error
+      }
+    }
+
   async function addSelection(url, title) {
     try {
       const uuid = await getUUID();
@@ -53,42 +89,6 @@ document.addEventListener('DOMContentLoaded', function () {
       }      
     } catch (error) {
       console.error('Error in addSelection:', error);
-    }
-  }
-
-  // Promisified function to get data from storage
-  function getFromStorage(key) {
-    return new Promise((resolve, reject) => {
-      chrome.storage.local.get([key], (result) => {
-        if (chrome.runtime.lastError) {
-          reject(chrome.runtime.lastError);
-        } else {
-          resolve(result[key] || []); // Default to an empty array if the key does not exist
-        }
-      });
-    });
-  }
-
-  // Test setting a value in storage
-  setToStorage('selections', [{ title: 'Test', url: 'http://example.com' }])
-    .then(() => {
-      console.log('Test selection added to storage');
-      return getFromStorage('selections');
-    })
-    .then(selections => {
-      console.log('Test selections retrieved:', selections);
-    })
-    .catch(error => {
-      console.error('Error with storage test:', error);
-    });
-
-  async function getSelections() {
-    try {
-      const selections = await getFromStorage('selections');
-      return selections;
-    } catch (error) {
-      console.error('Error retrieving selections:', error);
-      return []; // Default to an empty array in case of error
     }
   }
   
@@ -184,20 +184,21 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
   
-
-  addButton.addEventListener('click', function() {
-    console.log('Add button clicked'); // Confirms the event
-    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-      window.close(); // Close the extension popup
-      const currentTab = tabs[0];
-      console.log('Current Tab:', currentTab); // Debug the current tab information
-      addSelection(currentTab.url, currentTab.title).then(() => {
-        console.log('Add selection promise resolved');
-      }).catch((error) => {
-        console.error('Add selection promise rejected:', error);
-      });
-    });
-  });
+  async function createInciteAppUrl() {
+    try {
+      const selections = await getSelections();
+      const uuid = await getUUID();
+  
+      const selectionUrls = selections.map(selection => encodeURIComponent(selection.url)).join(',');
+  
+      const inciteAppUrl = `http://localhost:5173/?uuid=${uuid}&selections=${selectionUrls}`;
+  
+      console.log(`Opening React app with URL: ${inciteAppUrl}`);
+      chrome.tabs.create({ url: inciteAppUrl });
+    } catch (error) {
+      console.error('Error creating the URL for the React app:', error);
+    }
+  }
 
   // Function to toggle dropdown visibility
   function toggleDropdown() {
@@ -218,26 +219,24 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }  
 
+  addButton.addEventListener('click', function() {
+    console.log('Add button clicked'); // Confirms the event
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+      window.close(); // Close the extension popup
+      const currentTab = tabs[0];
+      console.log('Current Tab:', currentTab); // Debug the current tab information
+      addSelection(currentTab.url, currentTab.title).then(() => {
+        console.log('Add selection promise resolved');
+      }).catch((error) => {
+        console.error('Add selection promise rejected:', error);
+      });
+    });
+  });
+
   showButton.addEventListener('click', function() {
     showSelections();
     toggleDropdown();
   });
-
-  async function createInciteAppUrl() {
-    try {
-      const selections = await getSelections();
-      const uuid = await getUUID();
-  
-      const selectionUrls = selections.map(selection => encodeURIComponent(selection.url)).join(',');
-  
-      const inciteAppUrl = `http://localhost:5173/?uuid=${uuid}&selections=${selectionUrls}`;
-  
-      console.log(`Opening React app with URL: ${inciteAppUrl}`);
-      chrome.tabs.create({ url: inciteAppUrl });
-    } catch (error) {
-      console.error('Error creating the URL for the React app:', error);
-    }
-  }
   
   createButton.addEventListener('click', createInciteAppUrl);
 });
