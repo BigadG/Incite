@@ -240,6 +240,4 @@ document.addEventListener('DOMContentLoaded', function () {
       console.error('Error opening the React app:', error);
     }
   });
-  
-  
 });

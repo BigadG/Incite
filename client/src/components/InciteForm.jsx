@@ -26,20 +26,21 @@ function InciteForm() {
 
   // Function to load URLs and premises from chrome.storage.local
   useEffect(() => {
-    const parseQueryParams = () => {
-      const queryParams = queryString.parse(location.search);
-      if (queryParams.selections) {
-        setUrls(queryParams.selections.split(',').map(url => decodeURIComponent(url)));
-      }
-      if (queryParams.premises) {
-        setPremises(JSON.parse(decodeURIComponent(queryParams.premises)));
-      }
-      console.log(`Received selections: ${urls}`);
-      console.log(`Received premises: ${premises}`);
-    };
-  
-    parseQueryParams();
+    const queryParams = queryString.parse(window.location.search);
+    if (queryParams.selections) {
+      const decodedUrls = queryParams.selections.split(',').map(url => decodeURIComponent(url));
+      setUrls(decodedUrls);
+    }
+    if (queryParams.premises) {
+      const decodedPremises = JSON.parse(decodeURIComponent(queryParams.premises));
+      setPremises(decodedPremises);
+    }
   }, []);
+  
+  useEffect(() => {
+    console.log(`Received selections:`, urls);
+    console.log(`Received premises:`, premises);
+  }, [urls, premises]);
 
   // Function to handle form submission
   const handleSubmit = async (event) => {
