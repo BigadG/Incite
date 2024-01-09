@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', function () {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${uuid}` // Include the UUID in the Authorization header
+          'Authorization': `Bearer ${uuid}`
         },
       });
   
@@ -227,22 +227,19 @@ document.addEventListener('DOMContentLoaded', function () {
     try {
       const selections = await getSelections(); // Await the selections from storage
       const uuid = await getUUID();
-      let premises;
-      try {
-        premises = await getUserInputPremises(); // Attempt to retrieve premises
-      } catch (error) {
-        console.error(error); // Handle the case where no premises are found
-        premises = []; // You can default to an empty array or decide on another appropriate default value
-      }
+  
+      // Encode the selection URLs to be passed as a URL parameter
       const selectionUrls = selections.map(selection => encodeURIComponent(selection.url)).join(',');
-      const premisesParam = encodeURIComponent(JSON.stringify(premises));
-      const inciteAppUrl = `http://localhost:5173/?uuid=${uuid}&selections=${selectionUrls}&premises=${premisesParam}`;
+  
+      // Construct the URL for the React app without including premises
+      const inciteAppUrl = `http://localhost:5173/?uuid=${uuid}&selections=${selectionUrls}`;
       
       console.log(`Opening React app with URL: ${inciteAppUrl}`);
-      chrome.tabs.create({ url: inciteAppUrl }); // Open the React app with the selections and premises as query parameters
+      chrome.tabs.create({ url: inciteAppUrl }); // Open the React app with the selections as query parameters
     } catch (error) {
-      console.error('Error creating essay:', error);
+      console.error('Error opening the React app:', error);
     }
   });
+  
   
 });
