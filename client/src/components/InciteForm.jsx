@@ -28,14 +28,15 @@ function InciteForm() {
   useEffect(() => {
     const queryParams = queryString.parse(window.location.search);
     if (queryParams.selections) {
-      const decodedUrls = queryParams.selections.split(',').map(url => decodeURIComponent(url));
+      // Ensure we decode the entire parameter before splitting
+      const decodedUrls = decodeURIComponent(queryParams.selections).split(',').map(url => decodeURIComponent(url));
       setUrls(decodedUrls);
     }
     if (queryParams.premises) {
-      const decodedPremises = JSON.parse(decodeURIComponent(queryParams.premises));
-      setPremises(decodedPremises);
+      setPremises(JSON.parse(decodeURIComponent(queryParams.premises)));
     }
   }, []);
+  
   
   useEffect(() => {
     console.log(`Received selections:`, urls);
