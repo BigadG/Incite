@@ -223,21 +223,23 @@ document.addEventListener('DOMContentLoaded', function () {
     toggleDropdown();
   });
 
-  createButton.addEventListener('click', async function() {
+  async function createInciteAppUrl() {
     try {
-      const selections = await getSelections(); // Await the selections from storage
+      const selections = await getSelections();
       const uuid = await getUUID();
   
-      // Encode the selection URLs to be passed as a URL parameter
       const selectionUrls = selections.map(selection => encodeURIComponent(selection.url)).join(',');
+      const encodedSelectionUrls = encodeURIComponent(selectionUrls); // Ensure the entire string is encoded
   
-      // Construct the URL for the React app without including premises
-      const inciteAppUrl = `http://localhost:5173/?uuid=${uuid}&selections=${selectionUrls}`;
-      
+      const inciteAppUrl = `http://localhost:5173/?uuid=${uuid}&selections=${encodedSelectionUrls}`;
+  
       console.log(`Opening React app with URL: ${inciteAppUrl}`);
-      chrome.tabs.create({ url: inciteAppUrl }); // Open the React app with the selections as query parameters
+      chrome.tabs.create({ url: inciteAppUrl });
     } catch (error) {
-      console.error('Error opening the React app:', error);
+      console.error('Error creating the URL for the React app:', error);
     }
-  });
+  }
+  
+  createButton.addEventListener('click', createInciteAppUrl);
+  
 });
