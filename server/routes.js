@@ -69,37 +69,30 @@ const generateEssayWithSelections = async (req, res) => {
     const { premises, urls } = req.body;
 
     if (!Array.isArray(urls)) {
+      console.error('URLs provided are not an array:', urls);
       return res.status(400).json({ message: 'URLs must be an array' });
     }
 
     const contentFromPages = await Promise.all(urls.map(fetchAndProcessPage));
 
-    // Check if any page's content is null after fetching
-    if (contentFromPages.includes(null)) {
-      console.error('One or more pages returned null content');
+    // Additional check for null or undefined content
+    if (contentFromPages.some(content => content == null)) {
+      console.error('One or more pages returned null or undefined content:', contentFromPages);
       return res.status(400).json({ message: 'One or more pages could not be processed' });
     }
 
-    // All pages' content must be valid strings; if not, throw an error
-    if (contentFromPages.some(content => typeof content !== 'string' || !content.trim())) {
-      console.error('Invalid or empty content found in one or more pages');
-      return res.status(400).json({ message: 'Invalid or empty content found in one or more pages' });
-    }
-    const validContentFromPages = contentFromPages.filter(content => content && content.trim());
+    // Additional logging for contentFromPages
+    console.log('Content from pages:', contentFromPages);
 
-    // Proceed only if there's valid content
-    if (validContentFromPages.length === 0) {
-      return res.status(400).json({ message: 'No valid content could be fetched from the provided URLs' });
-    }
-  
     // Use the valid content for essay generation
-    const essay = await generateEssayContent(premises, validContentFromPages.join("\n\n"));
+    const essay = await generateEssayContent(premises, contentFromPages.join("\n\n"));
     res.status(200).json({ essay });
   } catch (error) {
     console.error('Error generating essay with selections:', error);
-    res.status(500).json({ message: 'Error generating essay with selections', error });
+    res.status(500).json({ message: 'Error generating essay with selections', error: error.toString() });
   }
 };
+
 
 const register = async (req, res) => {
   try {
