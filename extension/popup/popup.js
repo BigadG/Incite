@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('Selection added to local storage:', { title, url });
       } else {
         console.error('Failed to add selection to the server. Status:', response.status);
-      }
+      }      
     } catch (error) {
       console.error('Error in addSelection:', error);
     }
@@ -74,6 +74,7 @@ document.addEventListener('DOMContentLoaded', function () {
     return new Promise((resolve, reject) => {
       chrome.storage.local.set({ [key]: value }, () => {
         if (chrome.runtime.lastError) {
+          console.error('Error setting to storage:', chrome.runtime.lastError);
           reject(chrome.runtime.lastError);
         } else {
           resolve();
@@ -81,6 +82,7 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     });
   }
+  
 
   async function getSelections() {
     try {
