@@ -69,20 +69,18 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Promisified function to set data in storage
-  function setToStorage(key, value) {
-    return new Promise((resolve, reject) => {
-      chrome.storage.local.set({ [key]: value }, () => {
-        if (chrome.runtime.lastError) {
-          console.error('Error setting to storage:', chrome.runtime.lastError);
-          reject(chrome.runtime.lastError);
-        } else {
-          resolve();
-        }
-      });
+  // Test setting a value in storage
+  setToStorage('selections', [{ title: 'Test', url: 'http://example.com' }])
+    .then(() => {
+      console.log('Test selection added to storage');
+      return getFromStorage('selections');
+    })
+    .then(selections => {
+      console.log('Test selections retrieved:', selections);
+    })
+    .catch(error => {
+      console.error('Error with storage test:', error);
     });
-  }
-  
 
   async function getSelections() {
     try {
