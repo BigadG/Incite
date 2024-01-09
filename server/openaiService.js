@@ -5,29 +5,28 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const generateEssayContent = async (prompts, contentFromPages) => {
   console.log('Content from pages:', contentFromPages);
   console.log('Prompts:', prompts);
-  
-  if (typeof contentFromPages !== 'string' || !contentFromPages.trim()) {
+
+  if (typeof contentFromPages !== 'string' || contentFromPages.match(/^\s*$/)) {
     throw new Error('Invalid or missing content from pages');
   }
-  if (typeof prompts !== 'object' || !prompts || Object.keys(prompts).length === 0) {
+  if (!Array.isArray(prompts) || prompts.length === 0) {
     throw new Error('Invalid or missing premises');
   }
-
-  const userPrompts = typeof prompts === 'object' ? JSON.stringify(prompts) : prompts;
 
   try {
     const completion = await openai.createCompletion({
       model: "gpt-4", // Change to your desired model
       prompt: `Here is the content from the pages the user has saved: ${contentFromPages}\n\n` +
-              `The following premises describe what each paragraph of the essay should be about:\n${userPrompts}`,
+              `The following premises describe what each paragraph of the essay should be about: ${prompts.join('\n')}`,
       max_tokens: 2048,
     });
 
-    if (!completion || !completion.choices || !completion.choices[0]) {
+    if (!completion || !completion.choices || !completion.choices[0] || !completion.choices[0].text) {
       throw new Error('Unexpected response structure from OpenAI API');
     }
 
-    return completion.choices[0].text.trim();
+    // Removed trim() as per the requirement
+    return completion.choices[0].text;
   } catch (error) {
     console.error('Error in generateEssayContent:', error);
     throw error;
@@ -35,6 +34,7 @@ const generateEssayContent = async (prompts, contentFromPages) => {
 };
 
 module.exports = { generateEssayContent };
+
 
 
 
