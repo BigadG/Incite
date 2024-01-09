@@ -7,57 +7,55 @@ document.addEventListener('DOMContentLoaded', function () {
   const listContainer = document.getElementById('listContainer');
   const createButton = document.getElementById('createButton');
 
-  // Retrieve the UUID from storage and include it in the header of every request
   async function getUUID() {
     return new Promise((resolve, reject) => {
       chrome.storage.local.get(['userId'], function(result) {
-        console.log(`Retrieved UUID from storage: ${result.userId}`);
         if (result.userId) {
-          console.log('UUID from storage:', result.userId); // debug
           resolve(result.userId);
         } else {
-          console.error('No UUID found in storage.');
-          reject('No UUID found');
+          const error = 'No UUID found in storage.';
+          console.error(error);
+          reject(error);
         }
       });
     });
   }
 
-  // Promisified function to get data from storage
   function getFromStorage(key) {
     return new Promise((resolve, reject) => {
       chrome.storage.local.get([key], (result) => {
         if (chrome.runtime.lastError) {
+          console.error('Error getting from storage:', chrome.runtime.lastError);
           reject(chrome.runtime.lastError);
         } else {
-          resolve(result[key] || []); // Default to an empty array if the key does not exist
+          resolve(result[key] || []);
         }
       });
     });
   }
-    // Promisified function to set data in storage
-    function setToStorage(key, value) {
-      return new Promise((resolve, reject) => {
-        chrome.storage.local.set({ [key]: value }, () => {
-          if (chrome.runtime.lastError) {
-            console.error('Error setting to storage:', chrome.runtime.lastError);
-            reject(chrome.runtime.lastError);
-          } else {
-            resolve();
-          }
-        });
+
+  function setToStorage(key, value) {
+    return new Promise((resolve, reject) => {
+      chrome.storage.local.set({ [key]: value }, () => {
+        if (chrome.runtime.lastError) {
+          console.error('Error setting to storage:', chrome.runtime.lastError);
+          reject(chrome.runtime.lastError);
+        } else {
+          console.log(`${key} set to storage:`, value);
+          resolve();
+        }
       });
+    });
+  }
+
+  async function getSelections() {
+    try {
+      return await getFromStorage('selections');
+    } catch (error) {
+      console.error('Error retrieving selections:', error);
+      return [];
     }
-    
-    async function getSelections() {
-      try {
-        const selections = await getFromStorage('selections');
-        return selections;
-      } catch (error) {
-        console.error('Error retrieving selections:', error);
-        return []; // Default to an empty array in case of error
-      }
-    }
+  }
 
   async function addSelection(url, title) {
     try {
@@ -70,23 +68,14 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         body: JSON.stringify({ url, title }),
       });
-      
-      console.log('Response Status:', response.status); // Log the status code
-      const responseBody = await response.text(); // Attempt to get the response body
-      console.log('Response Body:', responseBody); // Log the response body      
-  
+
       if (response.ok) {
-        console.log('Selection added to server');
-        // Retrieve the current selections from storage
         const currentSelections = await getFromStorage('selections');
-        // Add the new selection to the array
         const newSelections = [...currentSelections, { title, url }];
-        // Store the updated array back into storage
         await setToStorage('selections', newSelections);
-        console.log('Selection added to local storage:', { title, url });
       } else {
-        console.error('Failed to add selection to the server. Status:', response.status);
-      }      
+        console.error('Failed to add selection to server. Status:', response.status);
+      }
     } catch (error) {
       console.error('Error in addSelection:', error);
     }
@@ -220,16 +209,10 @@ document.addEventListener('DOMContentLoaded', function () {
   }  
 
   addButton.addEventListener('click', function() {
-    console.log('Add button clicked'); // Confirms the event
-    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-      window.close(); // Close the extension popup
+    chrome.tabs.query({active: true, currentWindow: true}, async function(tabs) {
       const currentTab = tabs[0];
-      console.log('Current Tab:', currentTab); // Debug the current tab information
-      addSelection(currentTab.url, currentTab.title).then(() => {
-        console.log('Add selection promise resolved');
-      }).catch((error) => {
-        console.error('Add selection promise rejected:', error);
-      });
+      await addSelection(currentTab.url, currentTab.title);
+      window.close();
     });
   });
 
@@ -238,5 +221,11 @@ document.addEventListener('DOMContentLoaded', function () {
     toggleDropdown();
   });
   
-  createButton.addEventListener('click', createInciteAppUrl);
+  createButton.addEventListener('click', async function() {
+    const selections = await getSelections();
+    const uuid = await getUUID();
+    const selectionUrls = selections.map(selection => encodeURIComponent(selection.url)).join(',');
+    const inciteAppUrl = `http://localhost:5173/?uuid=${uuid}&selections=${selectionUrls}`;
+    chrome.tabs.create({ url: inciteAppUrl });
+  });
 });
