@@ -36,25 +36,40 @@ function InciteForm() {
   // Function to handle form submission
   const handleSubmit = async (event) => {
     event.preventDefault();
-    console.log('Form submission triggered. URLs in state:', urls);
     try {
-      const serverUrl = 'http://localhost:3001/api/generateEssayWithSelections';
-      const dataToSend = {
-        premises: inputs.filter(input => input.trim() !== ''),
-        urls: urls
-      };
-      if (!dataToSend.urls.length) {
-        console.error('No URLs to process. Make sure URLs are being stored correctly.');
-        setResult('No URLs to process.');
-        return;
-      }
-      const response = await axios.post(serverUrl, dataToSend);
-      setResult(response.data.essay);
+        // Fetch the latest selections from the server
+        const uuid = await getUUID(); // Assuming getUUID is a function to retrieve the user's UUID
+        const response = await fetch(`http://localhost:3001/api/selections`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${uuid}`
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch latest selections');
+        }
+
+        const latestSelections = await response.json();
+        // Update URLs in state with the latest selections
+        const updatedUrls = latestSelections.map(sel => sel.url);
+        setUrls(updatedUrls);
+
+        // Now proceed with essay generation using updated URLs
+        const serverUrl = 'http://localhost:3001/api/generateEssayWithSelections';
+        const dataToSend = {
+            premises: inputs.filter(input => input.trim() !== ''),
+            urls: updatedUrls
+        };
+        const essayResponse = await axios.post(serverUrl, dataToSend);
+        setResult(essayResponse.data.essay);
     } catch (error) {
-      console.error('Error generating essay with selections:', error);
-      setResult('Error generating essay with selections');
+        console.error('Error generating essay:', error);
+        setResult('Error generating essay with latest selections');
     }
-  };
+};
+
 
   return (
     <main>
