@@ -8,7 +8,7 @@ function InciteForm() {
   const [inputs, setInputs] = useState(['', '', '']);
   const [result, setResult] = useState('');
   const [urls, setUrls] = useState([]); // State for URLs
-  const [premises, setPremises] = useState([]); // State for premises
+  const [uuid, setUUID] = useState('');
 
   // Function to handle form input changes
   const handleChange = (index) => (event) => {
@@ -31,45 +31,43 @@ function InciteForm() {
       const decodedUrls = decodeURIComponent(queryParams.selections).split(',').map(url => decodeURIComponent(url));
       setUrls(decodedUrls);
     }
+    if (queryParams.uuid) {
+      setUUID(queryParams.uuid); // Set UUID from query params
+    }
   }, []);
 
   // Function to handle form submission
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-        // Fetch the latest selections from the server
-        const uuid = await getUUID(); // Assuming getUUID is a function to retrieve the user's UUID
-        const response = await fetch(`http://localhost:3001/api/selections`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${uuid}`
-            },
-        });
+      const response = await axios.get(`http://localhost:3001/api/selections`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${uuid}` // Use the retrieved UUID here
+        },
+      });
 
-        if (!response.ok) {
-            throw new Error('Failed to fetch latest selections');
-        }
+      if (response.status !== 200) {
+        throw new Error('Failed to fetch latest selections');
+      }
 
-        const latestSelections = await response.json();
-        // Update URLs in state with the latest selections
-        const updatedUrls = latestSelections.map(sel => sel.url);
-        setUrls(updatedUrls);
+      const latestSelections = response.data.map(sel => sel.url);
+      setUrls(latestSelections); // Update URLs with the latest selections
 
-        // Now proceed with essay generation using updated URLs
-        const serverUrl = 'http://localhost:3001/api/generateEssayWithSelections';
-        const dataToSend = {
-            premises: inputs.filter(input => input.trim() !== ''),
-            urls: updatedUrls
-        };
-        const essayResponse = await axios.post(serverUrl, dataToSend);
-        setResult(essayResponse.data.essay);
+      // Continue with the essay generation
+      const serverUrl = 'http://localhost:3001/api/generateEssayWithSelections';
+      const dataToSend = {
+        premises: inputs.filter(input => input.trim() !== ''),
+        urls: latestSelections
+      };
+
+      const essayResponse = await axios.post(serverUrl, dataToSend);
+      setResult(essayResponse.data.essay);
     } catch (error) {
-        console.error('Error generating essay:', error);
-        setResult('Error generating essay with latest selections');
+      console.error('Error generating essay:', error);
+      setResult('Error generating essay with latest selections');
     }
-};
-
+  };
 
   return (
     <main>
