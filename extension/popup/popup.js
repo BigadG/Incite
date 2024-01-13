@@ -121,17 +121,22 @@ document.addEventListener('DOMContentLoaded', function () {
             'Authorization': `Bearer ${uuid}`
           }
         });
-  
+    
         if (response.ok) {
           console.log('Selection deleted');
           listContainer.removeChild(selectionBox);
+          
+          // Update local storage
+          const currentSelections = await getFromStorage('selections');
+          const updatedSelections = currentSelections.filter(selection => selection.url !== url);
+          await setToStorage('selections', updatedSelections);
         } else {
           const errorResponse = await response.text();
           console.error('Failed to delete selection:', errorResponse);
           throw new Error('Failed to delete selection');
         }
       } catch (error) {
-        console.error('Error deleting selection:', error);
+        console.error('Error deleting selection:', error)
       }
     });
 
