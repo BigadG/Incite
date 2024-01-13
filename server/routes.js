@@ -75,24 +75,25 @@ const generateEssayWithSelections = async (req, res) => {
 
     const contentFromPages = await Promise.all(urls.map(fetchAndProcessPage));
 
-    // Additional check for null or undefined content
     if (contentFromPages.some(content => content == null)) {
       console.error('One or more pages returned null or undefined content:', contentFromPages);
       return res.status(400).json({ message: 'One or more pages could not be processed' });
     }
 
-    // Additional logging for contentFromPages
     console.log('Content from pages:', contentFromPages);
 
-    // Use the valid content for essay generation
-    const essay = await generateEssayContent(premises, contentFromPages.join("\n\n"));
+    const prompts = {};
+    premises.forEach((premise, index) => {
+      prompts[`prompt${index + 1}`] = premise;
+    });
+
+    const essay = await generateEssayContent(prompts, contentFromPages.join("\n\n"));
     res.status(200).json({ essay });
   } catch (error) {
     console.error('Error generating essay with selections:', error);
     res.status(500).json({ message: 'Error generating essay with selections', error: error.toString() });
   }
 };
-
 
 const register = async (req, res) => {
   try {
