@@ -32,42 +32,43 @@ function InciteForm() {
       setUrls(decodedUrls);
     }
     if (queryParams.uuid) {
-      setUUID(queryParams.uuid); // Set UUID from query params
+      setUUID(queryParams.uuid); // Corrected function name
     }
-  }, []);
+  }, []);  
 
   // Function to handle form submission
   const handleSubmit = async (event) => {
     event.preventDefault();
+    console.log('Form submission triggered. URLs in state:', urls);
     try {
+      // Fetch the latest selections from the server using the UUID
       const response = await axios.get(`http://localhost:3001/api/selections`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${uuid}` // Use the retrieved UUID here
-        },
+          headers: {
+              'Authorization': `Bearer ${uuid}`
+          }
       });
 
       if (response.status !== 200) {
-        throw new Error('Failed to fetch latest selections');
+          throw new Error('Failed to fetch latest selections');
       }
 
-      const latestSelections = response.data.map(sel => sel.url);
-      setUrls(latestSelections); // Update URLs with the latest selections
+      const latestSelections = response.data;
+      const updatedUrls = latestSelections.map(sel => sel.url);
+      setUrls(updatedUrls); // Update URLs with the latest selections
 
-      // Continue with the essay generation
+      // Now proceed with essay generation using updated URLs
       const serverUrl = 'http://localhost:3001/api/generateEssayWithSelections';
       const dataToSend = {
-        premises: inputs.filter(input => input.trim() !== ''),
-        urls: latestSelections
+          premises: inputs.filter(input => input.trim() !== ''),
+          urls: updatedUrls
       };
-
       const essayResponse = await axios.post(serverUrl, dataToSend);
       setResult(essayResponse.data.essay);
-    } catch (error) {
+  } catch (error) {
       console.error('Error generating essay:', error);
       setResult('Error generating essay with latest selections');
-    }
-  };
+  }
+};
 
   return (
     <main>
