@@ -39,7 +39,6 @@ async function fetchAndProcessPage(url) {
       throw new Error('Readability was unable to parse the article from the page.');
     }
 
-    console.log(`Extracted text for ${url}:`, article.textContent.substring(0, 500));
     return article.textContent.trim();
   } catch (error) {
     console.error(`Error fetching or processing page at URL ${url}:`, error);
@@ -48,7 +47,6 @@ async function fetchAndProcessPage(url) {
 }
 
 const generateEssay = async (req, res) => {
-  console.log('Received request body:', req.body);
   if (!req.body || typeof req.body !== 'object' || !req.body.prompts) {
     console.error('Invalid request body:', req.body);
     return res.status(400).json({ message: 'Invalid request body' });
@@ -65,7 +63,6 @@ const generateEssay = async (req, res) => {
 
 const generateEssayWithSelections = async (req, res) => {
   try {
-    console.log('Request to /generateEssayWithSelections:', req.body);
     const { premises, urls } = req.body;
 
     if (!Array.isArray(urls)) {
@@ -79,8 +76,6 @@ const generateEssayWithSelections = async (req, res) => {
       console.error('One or more pages returned null or undefined content:', contentFromPages);
       return res.status(400).json({ message: 'One or more pages could not be processed' });
     }
-
-    console.log('Content from pages:', contentFromPages);
 
     const prompts = {};
     premises.forEach((premise, index) => {
