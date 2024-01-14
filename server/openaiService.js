@@ -12,7 +12,7 @@ const generateEssayContent = async (prompts, contentFromPages) => {
     const messages = [
       {
         role: "system",
-        content: "Write a college essay in standard format based on provided content and premises."
+        content: "Write a 700 or more word college essay in standard format based on provided content and premises."
       },
       {
         role: "user",
