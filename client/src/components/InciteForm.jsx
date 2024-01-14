@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import '../styles/inciteStyles.css';
 import axios from 'axios';
 import queryString from 'query-string';
+import '../styles/inciteStyles.css';
 
 function InciteForm() {
-  // State to store the form inputs, result, URLs, and premises collected by the extension
   const [inputs, setInputs] = useState(['', '', '']);
   const [result, setResult] = useState('');
-  const [urls, setUrls] = useState([]); // State for URLs
+  const [urls, setUrls] = useState([]);
   const [uuid, setUUID] = useState('');
+  const [isPageVisible, setIsPageVisible] = useState(true);
 
   // Function to handle form input changes
   const handleChange = (index) => (event) => {
@@ -17,24 +17,76 @@ function InciteForm() {
     setInputs(newInputs);
   };
 
-  // Function to handle adding a new input field
+  // Function to add a new input field
   const addInput = () => {
     if (inputs.length < 10) {
       setInputs([...inputs, '']);
     }
   };
 
-  // Function to load URLs and premises from chrome.storage.local
+  // Function to fetch selections
+  const fetchSelections = async () => {
+    try {
+      const queryParams = queryString.parse(window.location.search);
+      if (queryParams.uuid) {
+        setUUID(queryParams.uuid);
+        const response = await axios.get(`http://localhost:3001/api/selections`, {
+          headers: {
+            'Authorization': `Bearer ${queryParams.uuid}`
+          }
+        });
+        if (response.status === 200) {
+          setUrls(response.data.map(sel => sel.url));
+        } else {
+          throw new Error('Failed to fetch selections');
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching selections:', error);
+    }
+  };
+
+  // Polling function
   useEffect(() => {
-    const queryParams = queryString.parse(window.location.search);
-    if (queryParams.selections) {
-      const decodedUrls = decodeURIComponent(queryParams.selections).split(',').map(url => decodeURIComponent(url));
-      setUrls(decodedUrls);
+    let intervalId;
+
+    const startPolling = () => {
+      if (!intervalId) {
+        intervalId = setInterval(fetchSelections, 5000); // Poll every 5 seconds
+      }
+    };
+
+    const stopPolling = () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    };
+
+    // Handle the visibility change event
+    const handleVisibilityChange = () => {
+      const isVisible = document.visibilityState === 'visible';
+      setIsPageVisible(isVisible);
+      if (isVisible) {
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Start polling
+    if (isPageVisible) {
+      startPolling();
     }
-    if (queryParams.uuid) {
-      setUUID(queryParams.uuid); // Corrected function name
-    }
-  }, []);  
+
+    // Cleanup function
+    return () => {
+      stopPolling();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isPageVisible]); // Re-run effect when isPageVisible changes
 
   // Function to handle form submission
   const handleSubmit = async (event) => {
