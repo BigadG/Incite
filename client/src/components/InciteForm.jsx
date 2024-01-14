@@ -93,16 +93,17 @@ function InciteForm() {
     setIsLoading(true);
     try {
       const response = await axios.get(`http://localhost:3001/api/selections`, {
-          headers: {
-              'Authorization': `Bearer ${uuid}`
-          }
+        headers: {
+            'Authorization': `Bearer ${uuid}`
+        }
       });
   
       if (response.status !== 200) {
-          throw new Error('Failed to fetch latest selections');
+        throw new Error('Failed to fetch latest selections');
       }
   
       const latestSelections = response.data;
+      console.log('Saved selections:', latestSelections); // Add this line to log the selections
       const updatedUrls = latestSelections.map(sel => sel.url);
   
       const serverUrl = 'http://localhost:3001/api/generateEssayWithSelections';
@@ -114,11 +115,11 @@ function InciteForm() {
       setResult(essayResponse.data.essay);
       setIsLoading(false);
     } catch (error) {
-        console.error('Error generating essay:', error);
-        setResult('Error generating essay with latest selections');
-        setIsLoading(false);
+      console.error('Error generating essay:', error);
+      setResult('Error generating essay with latest selections');
+      setIsLoading(false);
     }
-  };
+  };  
 
   useEffect(() => {
     let loadingInterval;
