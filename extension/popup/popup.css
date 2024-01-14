@@ -5,7 +5,7 @@ body {
   flex-direction: column;
   align-items: center;
   width: 300px;
-  background-color: #ffffff;
+  background-color: #222222;
   color: #333333;
 }
 
@@ -29,17 +29,21 @@ button:hover {
 }
 
 #showButton {
-  background-color: #514ae2;
-  color: #ffffff;
+  background-color: #add8e6;
+  color: #222222;
 }
 
 #showButton:hover {
-  background-color: #463fc1;
+  background-color: #88cde4;
 }
 
 #createButton {
-  border: 1px solid #00d423;
+  background-color: lightblue;
   width: 80%;
+}
+
+#createButton:hover {
+  background-color: #88cde4;
 }
 
 .hidden {
@@ -48,7 +52,7 @@ button:hover {
 
 #dropdown {
   width: calc(100% - 10px);
-  background-color: #ffffff;
+  background-color: #222222;
   border-radius: 8px;
   text-align: center;
   box-shadow: 0 4px 20px #000000;
@@ -56,9 +60,9 @@ button:hover {
 }
 
 #dropdown h1 {
-  font-size: 24px;
-  font-family: 'Roboto Slab', serif;
-  color: #333333;
+  font-size: 36px;
+  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  color: lightblue;
   margin-bottom: 20px;
 }
 
