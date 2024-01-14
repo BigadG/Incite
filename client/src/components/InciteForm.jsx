@@ -8,23 +8,22 @@ function InciteForm() {
   const [result, setResult] = useState('');
   const [urls, setUrls] = useState([]);
   const [uuid, setUUID] = useState('');
-  const [isPageVisible, setIsPageVisible] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState('Loading');
 
-  // Function to handle form input changes
   const handleChange = (index) => (event) => {
     const newInputs = [...inputs];
     newInputs[index] = event.target.value;
     setInputs(newInputs);
   };
 
-  // Function to add a new input field
   const addInput = () => {
     if (inputs.length < 10) {
       setInputs([...inputs, '']);
     }
   };
 
-  // Function to fetch selections
+
   const fetchSelections = async () => {
     try {
       const queryParams = queryString.parse(window.location.search);
@@ -88,9 +87,9 @@ function InciteForm() {
     };
   }, [isPageVisible]); // Re-run effect when isPageVisible changes
 
-  // Function to handle form submission
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setIsLoading(true);
     console.log('Form submission triggered. URLs in state:', urls);
     try {
       const response = await axios.get(`http://localhost:3001/api/selections`, {
@@ -106,7 +105,6 @@ function InciteForm() {
       const latestSelections = response.data;
       const updatedUrls = latestSelections.map(sel => sel.url);
   
-      // Now proceed with essay generation using updated URLs
       const serverUrl = 'http://localhost:3001/api/generateEssayWithSelections';
       const dataToSend = {
         premises: inputs.filter(input => input.trim() !== ''),
@@ -114,11 +112,30 @@ function InciteForm() {
       };
       const essayResponse = await axios.post(serverUrl, dataToSend);
       setResult(essayResponse.data.essay);
-      } catch (error) {
+      setIsLoading(false);
+    } catch (error) {
         console.error('Error generating essay:', error);
         setResult('Error generating essay with latest selections');
-      }
+        setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let loadingInterval;
+    if (isLoading) {
+      loadingInterval = setInterval(() => {
+        setLoadingText(prev => {
+          const dotsCount = prev.length % 3;
+          return `Loading${'.'.repeat(dotsCount + 1)}`;
+        });
+      }, 500); // Update every 500ms
+    }
+
+    return () => {
+      clearInterval(loadingInterval);
+      setLoadingText('Loading'); // Reset text when effect is cleaned up
     };
+  }, [isLoading]); // Effect runs when isLoading changes
       
   return (
     <main>
@@ -145,8 +162,8 @@ function InciteForm() {
           name="result"
           className="textbox"
           id="result"
-          placeholder="Result"
-          value={result}
+          placeholder={isLoading ? '' : 'Result'}
+          value={isLoading ? loadingText : result}
           readOnly
         />
         <br />
@@ -158,7 +175,7 @@ function InciteForm() {
     </main>
   );
 }
-
+          
 export default InciteForm;
 
 
