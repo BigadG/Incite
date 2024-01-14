@@ -21,7 +21,7 @@ app.post('/api/generateEssay', generateEssay);
 app.post('/api/generateEssayWithSelections', generateEssayWithSelections);
 
 // Apply authentication middleware to all other API routes
-//app.use('/api', authMiddleware);
+app.use('/api', authMiddleware);
 app.use('/api', router);
 
 app.get('/', (req, res) => {
