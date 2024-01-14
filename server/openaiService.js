@@ -10,10 +10,14 @@ const generateEssayContent = async (prompts, contentFromPages) => {
     .join('. ');
 
     const messages = [
-      { role: "system", content: "You are a tool that generates full length continuous college essays using the information you're provided. Use standard essay format"},
-      {role: "user", content: `Here is the content from the pages the user has saved: ${contentFromPages}\n\n` +
-      `Reference only that content and use it to generate the essay using the following premises. Each premise describes 
-      what each paragraph of the essay should be about. Premises:\n${userContent}`}
+      {
+        role: "system",
+        content: "Write a college essay in standard format based on provided content and premises."
+      },
+      {
+        role: "user",
+        content: `Content: ${contentFromPages}\n\nPremises:\n${userContent}`
+      }      
     ];
 
     const completion = await openai.chat.completions.create({
