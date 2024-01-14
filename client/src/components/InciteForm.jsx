@@ -41,35 +41,33 @@ function InciteForm() {
     event.preventDefault();
     console.log('Form submission triggered. URLs in state:', urls);
     try {
-      // Fetch the latest selections from the server using the UUID
       const response = await axios.get(`http://localhost:3001/api/selections`, {
           headers: {
               'Authorization': `Bearer ${uuid}`
           }
       });
-
+  
       if (response.status !== 200) {
           throw new Error('Failed to fetch latest selections');
       }
-
+  
       const latestSelections = response.data;
       const updatedUrls = latestSelections.map(sel => sel.url);
-      setUrls(updatedUrls); // Update URLs with the latest selections
-
+  
       // Now proceed with essay generation using updated URLs
       const serverUrl = 'http://localhost:3001/api/generateEssayWithSelections';
       const dataToSend = {
-          premises: inputs.filter(input => input.trim() !== ''),
-          urls: updatedUrls
+        premises: inputs.filter(input => input.trim() !== ''),
+        urls: updatedUrls // Directly using the updated URLs
       };
       const essayResponse = await axios.post(serverUrl, dataToSend);
       setResult(essayResponse.data.essay);
-  } catch (error) {
-      console.error('Error generating essay:', error);
-      setResult('Error generating essay with latest selections');
-  }
-};
-
+      } catch (error) {
+        console.error('Error generating essay:', error);
+        setResult('Error generating essay with latest selections');
+      }
+    };
+      
   return (
     <main>
       <h1>INCITE™</h1>
