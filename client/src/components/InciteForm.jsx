@@ -10,6 +10,7 @@ function InciteForm() {
   const [uuid, setUUID] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [loadingText, setLoadingText] = useState('Loading');
+  const [isPageVisible, setIsPageVisible] = useState(true);
 
   const handleChange = (index) => (event) => {
     const newInputs = [...inputs];
