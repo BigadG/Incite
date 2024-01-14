@@ -91,7 +91,6 @@ function InciteForm() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setIsLoading(true);
-    console.log('Form submission triggered. URLs in state:', urls);
     try {
       const response = await axios.get(`http://localhost:3001/api/selections`, {
           headers: {
@@ -124,18 +123,16 @@ function InciteForm() {
   useEffect(() => {
     let loadingInterval;
     if (isLoading) {
+      let dotsCount = 1; // Initialize dot count
       loadingInterval = setInterval(() => {
-        setLoadingText(prev => {
-          const dotsCount = prev.length % 3;
-          return `Loading${'.'.repeat(dotsCount + 1)}`;
-        });
+        setLoadingText(`Loading${'.'.repeat(dotsCount)}`);
+        dotsCount = (dotsCount % 3) + 1; // Cycle through 1, 2, 3
       }, 500); // Update every 500ms
+    } else {
+      setLoadingText('Loading'); // Reset text when not loading
     }
-
-    return () => {
-      clearInterval(loadingInterval);
-      setLoadingText('Loading'); // Reset text when effect is cleaned up
-    };
+  
+    return () => clearInterval(loadingInterval); // Cleanup on effect unmount
   }, [isLoading]); // Effect runs when isLoading changes
       
   return (
