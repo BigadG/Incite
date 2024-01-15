@@ -143,9 +143,9 @@ function InciteForm() {
         {inputs.map((input, index) => (
           <div key={`input-wrapper-${index}`}>
             {index === 0 ? (
-              <label htmlFor="premise">Essay Premise</label>
+              <label htmlFor="premise">Essay Premise:</label>
             ) : index === 1 ? (
-              <label htmlFor={`prompt${index}`}>Body Premises</label>
+              <label htmlFor={`prompt${index}`}>Body Premises:</label>
             ) : null}
             <input
               type="text"
