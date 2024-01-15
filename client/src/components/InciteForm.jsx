@@ -138,7 +138,7 @@ function InciteForm() {
       
   return (
     <main>
-      <h1>INCITE™</h1>
+      <h1>INCITE</h1>
       <form onSubmit={handleSubmit}>
         {inputs.map((input, index) => (
           <div key={`input-wrapper-${index}`}>
