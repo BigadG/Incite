@@ -89,10 +89,13 @@ const generateEssayWithSelections = async (req, res) => {
     }
     
     // Construct the prompts object using the premises provided by the user
-    const prompts = {};
-    premises.forEach((premise, index) => {
-      prompts[`prompt${index + 1}`] = premise;
-    });
+    const prompts = {
+      premise: req.body.premises, // Assuming the first premise is sent as 'premises' in the body
+      ...req.body.urls.reduce((acc, url, index) => {
+        acc[`prompt${index + 1}`] = ''; // Use URL or some other identifier as needed
+        return acc;
+      }, {})
+    };
     
     // Generate the essay content using the prompts and the concatenated page contents
     const essay = await generateEssayContent(prompts, contentFromPages.join("\n\n"));
