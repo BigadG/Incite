@@ -3,21 +3,20 @@ const OpenAI = require('openai');
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const generateEssayContent = async (prompts, contentFromPages) => {
-  // Extract the first premise as the main thesis
+  // Construct a string of premises, with the first premise separated as the main thesis
   const thesis = prompts['premise'];
-
-  // Construct a string of body premises
   const bodyPremises = Object.keys(prompts)
     .sort()
     .filter(key => key.startsWith('prompt'))
-    .map(key => prompts[key])
-    .join('. ');  // Join premises with period to form a continuous text
-
+    .map((key, index) => prompts[key])
+    .slice(1)  // Skip the first premise since it's used as the thesis
+    .join('. ');
+    
   // Construct the message to be sent to the GPT API
   const messages = [
     {
       role: "system",
-      content: "Compose a 700-word essay with an introductory thesis, body paragraphs on given premises, and a conclusion. Format academically with 5-space indents and no paragraph titles or line breaks."
+      content: "Compose a 700-word essay with an introductory thesis, body paragraphs on given premises, and a conclusion, all of which should have indents at the start of each paragraph. Include no paragraph titles or line breaks."
     },
     {
       role: "user",
