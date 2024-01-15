@@ -10,7 +10,7 @@ const createDOMPurify = require('dompurify');
 
 const router = express.Router();
 
-const MAX_WORDS = 5000; // Maximum number of words I want to extract in total
+const MAX_WORDS = 5800; // Maximum number of words I want to extract in total
 
 async function fetchAndProcessPage(url, maxWordCount) {
   try {
