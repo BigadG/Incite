@@ -17,7 +17,7 @@ const generateEssayContent = async (prompts, contentFromPages) => {
   const messages = [
     {
       role: "system",
-      content: "Write a 700-word essay. Start with an introduction that includes the thesis statement. Follow with body paragraphs based on the given premises, and conclude with a summary. Format the essay in a standard academic style, without indents or line breaks between paragraphs."
+      content: "Write a 700-word essay. Start with an introduction that includes the thesis statement. Follow with body paragraphs based on the given premises, and conclude with a summary. Format the essay in a standard academic style, with 5 spaces at the start of each paragraph and without line breaks between paragraphs."
     },
     {
       role: "user",
