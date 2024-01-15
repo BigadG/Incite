@@ -141,16 +141,22 @@ function InciteForm() {
       <h1>INCITE™</h1>
       <form onSubmit={handleSubmit}>
         {inputs.map((input, index) => (
-          <input
-            key={`input-${index}`}
-            type="text"
-            className="textbox"
-            name={`prompt${index + 1}`}
-            id={`input${index + 1}-Id`}
-            placeholder={`prompt${index + 1}`}
-            value={input}
-            onChange={handleChange(index)}
-          />
+          <div key={`input-wrapper-${index}`}>
+            {index === 0 ? (
+              <label htmlFor="premise">Essay Premise</label>
+            ) : index === 1 ? (
+              <label htmlFor={`prompt${index}`}>Body Premises</label>
+            ) : null}
+            <input
+              type="text"
+              className="textbox"
+              name={index === 0 ? "premise" : `prompt${index}`}
+              id={index === 0 ? "premise" : `input${index}-Id`}
+              placeholder={index === 0 ? "Essay Premise" : ` Body ${index}`}
+              value={input}
+              onChange={handleChange(index)}
+            />
+          </div>
         ))}
         {inputs.length < 10 && (
           <button type="button" onClick={addInput} className="add-button">
@@ -168,9 +174,6 @@ function InciteForm() {
         <br />
         <button type="submit" className="submit">Sum It!</button>
       </form>
-      <div id="chat-log">
-        {/* Chat log content would go here */}
-      </div>
     </main>
   );
 }
