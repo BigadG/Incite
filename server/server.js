@@ -29,7 +29,7 @@ app.get('/', (req, res) => {
 });
 
 // Global error handler
-app.use((err, req, res, next) => {
+app.use((err, req, res ) => {
     console.error('Global error handler:', err);
     res.status(err.status || 500).json({ error: err.message || 'Internal Server Error' });
 });
