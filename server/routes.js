@@ -3,16 +3,106 @@ const express = require('express');
 const { ObjectId } = require('mongodb');
 const { generateEssayContent } = require('./openaiService');
 const authMiddleware = require('./authMiddleware');
+const fetch = require('node-fetch');
+const { JSDOM } = require('jsdom');
+const { Readability } = require('@mozilla/readability');
+const createDOMPurify = require('dompurify');
 
 const router = express.Router();
 
-const generateEssay = async (req, res) => {
+const MAX_WORDS = 5800; // Maximum number of words I want to extract in total
+
+async function fetchAndProcessPage(url, maxWordCount) {
   try {
-    const essay = await generateEssayContent(req.body);
+    const response = await fetch(url);
+    const status = response.status;
+    const contentType = response.headers.get('content-type');
+
+    console.log(`Status Code: ${status} Content-Type: ${contentType}`);
+
+    if (status !== 200 || !contentType.includes('text/html')) {
+      throw new Error(`Non-200 status code or content is not HTML: Status ${status}, Content-Type ${contentType}`);
+    }
+
+    const html = await response.text();
+    console.log(`Fetched HTML for ${url}:`, html.substring(0, 500));
+
+    // Sanitize the HTML with DOMPurify
+    const window = new JSDOM('').window;
+    const DOMPurify = createDOMPurify(window);
+    const cleanHtml = DOMPurify.sanitize(html);
+
+    // Now create a JSDOM instance with sanitized HTML
+    const doc = new JSDOM(cleanHtml, { url });
+    const reader = new Readability(doc.window.document);
+    const article = reader.parse();
+
+    if (!article || !article.textContent) {
+      throw new Error('Readability was unable to parse the article from the page.');
+    }
+
+    // Truncate the text to the maximum word count allowed per selection
+    const words = article.textContent.trim().split(/\s+/);
+    const truncatedText = words.length > maxWordCount ? words.slice(0, maxWordCount).join(' ') + '...' : article.textContent.trim();
+    
+    return truncatedText;
+  } catch (error) {
+    console.error(`Error fetching or processing page at URL ${url}:`, error);
+    return ''; // Return empty string to indicate failure
+  }
+}
+
+const generateEssay = async (req, res) => {
+  if (!req.body || typeof req.body !== 'object' || !req.body.prompts) {
+    console.error('Invalid request body:', req.body);
+    return res.status(400).json({ message: 'Invalid request body' });
+  }
+  try {
+    // The `prompts` should be passed here, not the entire `req.body`
+    const essay = await generateEssayContent(req.body.prompts);
     res.status(200).json({ essay });
   } catch (error) {
-    console.error('GPT API Call Error:', error);
-    res.status(500).json({ message: 'Error calling GPT API', error });
+    console.error('GPT API Call Error:', error.message);
+    res.status(500).json({ message: 'Error calling GPT API', error: error.message });
+  }
+};
+
+const generateEssayWithSelections = async (req, res) => {
+  try {
+    const { premises, urls } = req.body;
+
+    if (!Array.isArray(urls)) {
+      console.error('URLs provided are not an array:', urls);
+      return res.status(400).json({ message: 'URLs must be an array' });
+    }
+    
+    // Calculate the maximum word count per selection based on the total word limit and the number of URLs
+    const maxWordCountPerSelection = Math.floor(MAX_WORDS / urls.length);
+    
+    // Fetch the content for each URL with the calculated word limit per selection
+    const contentFromPages = await Promise.all(urls.map(url => fetchAndProcessPage(url, maxWordCountPerSelection)));
+    
+    // Check if any content fetching returned an empty string, which indicates failure
+    if (contentFromPages.some(content => content === '')) {
+      console.error('One or more pages returned no content:', contentFromPages);
+      return res.status(400).json({ message: 'One or more pages could not be processed' });
+    }
+    
+    // Construct the prompts object using the premises provided by the user
+    const prompts = {
+      premise: req.body.premises, // Assuming the first premise is sent as 'premises' in the body
+      ...req.body.urls.reduce((acc, url, index) => {
+        acc[`prompt${index + 1}`] = ''; // Use URL or some other identifier as needed
+        return acc;
+      }, {})
+    };
+    
+    // Generate the essay content using the prompts and the concatenated page contents
+    const essay = await generateEssayContent(prompts, contentFromPages.join("\n\n"));
+    res.status(200).json({ essay });
+  } catch (error) {
+    console.error('Error generating essay with selections:', error);
+    res.status(500).json({ message: 'Error generating essay with selections', error: error.toString() });
   }
 };
 
@@ -102,8 +192,10 @@ router.delete('/deleteSelection/:pageId', async (req, res) => {
   }
 });
 
+router.post('/generateEssayWithSelections', generateEssayWithSelections);
 
-module.exports = { router, register, generateEssay };
+module.exports = { router, register, generateEssay, fetchAndProcessPage, generateEssayWithSelections };
+
 
 
 

@@ -7,28 +7,59 @@ document.addEventListener('DOMContentLoaded', function () {
   const listContainer = document.getElementById('listContainer');
   const createButton = document.getElementById('createButton');
 
-  // Retrieve the UUID from storage and include it in the header of every request
   async function getUUID() {
     return new Promise((resolve, reject) => {
       chrome.storage.local.get(['userId'], function(result) {
-        console.log(`Retrieved UUID from storage: ${result.userId}`);
         if (result.userId) {
-          console.log('UUID from storage:', result.userId); // debug
           resolve(result.userId);
         } else {
-          console.error('No UUID found in storage.');
-          reject('No UUID found');
+          const error = 'No UUID found in storage.';
+          console.error(error);
+          reject(error);
+        }
+      }); 
+    });
+  }
+
+  function getFromStorage(key) {
+    return new Promise((resolve, reject) => {
+      chrome.storage.local.get([key], (result) => {
+        if (chrome.runtime.lastError) {
+          console.error('Error getting from storage:', chrome.runtime.lastError);
+          reject(chrome.runtime.lastError);
+        } else {
+          resolve(result[key] || []);
         }
       });
     });
   }
 
+  function setToStorage(key, value) {
+    return new Promise((resolve, reject) => {
+      chrome.storage.local.set({ [key]: value }, () => {
+        if (chrome.runtime.lastError) {
+          console.error('Error setting to storage:', chrome.runtime.lastError);
+          reject(chrome.runtime.lastError);
+        } else {
+          console.log(`${key} set to storage:`, value);
+          resolve();
+        }
+      });
+    });
+  }
+
+  async function getSelections() {
+    try {
+      return await getFromStorage('selections');
+    } catch (error) {
+      console.error('Error retrieving selections:', error);
+      return [];
+    }
+  }
+
   async function addSelection(url, title) {
-    console.log('addSelection called'); // Add this line to confirm the function is called
     try {
       const uuid = await getUUID();
-      console.log('UUID retrieved:', uuid); // Debug: Check the retrieved UUID
-  
       const response = await fetch(`${serverUrl}/addSelection`, {
         method: 'POST',
         headers: {
@@ -37,17 +68,16 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         body: JSON.stringify({ url, title }),
       });
-  
+
       if (response.ok) {
-        console.log('Selection added');
-        createListElement(title, url);
-    } else {
-        const textResponse = await response.text(); // Get the raw response text
-        console.error('Failed to add selection. Response:', textResponse); // Log the full response text
-        throw new Error('Failed to add selection');
+        const currentSelections = await getFromStorage('selections');
+        const newSelections = [...currentSelections, { title, url }];
+        await setToStorage('selections', newSelections);
+      } else {
+        console.error('Failed to add selection to server. Status:', response.status);
       }
     } catch (error) {
-      console.error('Error adding selection:', error, JSON.stringify(error, null, 2));
+      console.error('Error in addSelection:', error);
     }
   }
   
@@ -91,17 +121,22 @@ document.addEventListener('DOMContentLoaded', function () {
             'Authorization': `Bearer ${uuid}`
           }
         });
-  
+    
         if (response.ok) {
           console.log('Selection deleted');
-          listContainer.removeChild(selectionBox);
+          listContainer.removeChild(selectionBox); 
+          
+          // Update local storage
+          const currentSelections = await getFromStorage('selections');
+          const updatedSelections = currentSelections.filter(selection => selection.url !== url);
+          await setToStorage('selections', updatedSelections);
         } else {
           const errorResponse = await response.text();
           console.error('Failed to delete selection:', errorResponse);
           throw new Error('Failed to delete selection');
         }
       } catch (error) {
-        console.error('Error deleting selection:', error);
+        console.error('Error deleting selection:', error)
       }
     });
 
@@ -120,7 +155,7 @@ document.addEventListener('DOMContentLoaded', function () {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${uuid}` // Include the UUID in the Authorization header
+          'Authorization': `Bearer ${uuid}`
         },
       });
   
@@ -143,20 +178,21 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
   
-
-  addButton.addEventListener('click', function() {
-    console.log('Add button clicked'); // Add this line to confirm the event
-    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-      window.close(); // Close the extension popup
-      const currentTab = tabs[0];
-      console.log('Current Tab:', currentTab); // Debug the current tab information
-      addSelection(currentTab.url, currentTab.title).then(() => {
-        console.log('Add selection promise resolved');
-      }).catch((error) => {
-        console.error('Add selection promise rejected:', error);
-      });
-    });
-  });
+  async function createInciteAppUrl() {
+    try {
+      const selections = await getSelections();
+      const uuid = await getUUID();
+  
+      const selectionUrls = selections.map(selection => encodeURIComponent(selection.url)).join(',');
+  
+      const inciteAppUrl = `http://localhost:5173/?uuid=${uuid}&selections=${selectionUrls}`;
+  
+      console.log(`Opening React app with URL: ${inciteAppUrl}`);
+      chrome.tabs.create({ url: inciteAppUrl });
+    } catch (error) {
+      console.error('Error creating the URL for the React app:', error);
+    }
+  }
 
   // Function to toggle dropdown visibility
   function toggleDropdown() {
@@ -165,13 +201,36 @@ document.addEventListener('DOMContentLoaded', function () {
     showButton.classList.toggle('hidden');
   }
 
+  async function getUserInputPremises() {
+    return new Promise((resolve, reject) => {
+      chrome.storage.local.get(['premises'], function(result) {
+        if (result.premises) {
+          resolve(result.premises);
+        } else {
+          reject('No premises found');
+        }
+      });
+    });
+  }  
+
+  addButton.addEventListener('click', function() {
+    chrome.tabs.query({active: true, currentWindow: true}, async function(tabs) {
+      const currentTab = tabs[0];
+      await addSelection(currentTab.url, currentTab.title);
+      window.close();
+    });
+  });
+
   showButton.addEventListener('click', function() {
     showSelections();
     toggleDropdown();
   });
-
-  createButton.addEventListener('click', function() {
-    const url = 'http://localhost:5173'; // The URL where the React app is served locally
-    chrome.tabs.create({ url });
+  
+  createButton.addEventListener('click', async function() {
+    const selections = await getSelections();
+    const uuid = await getUUID();
+    const selectionUrls = selections.map(selection => encodeURIComponent(selection.url)).join(',');
+    const inciteAppUrl = `http://localhost:5173/?uuid=${uuid}&selections=${selectionUrls}`;
+    chrome.tabs.create({ url: inciteAppUrl });
   });
 });

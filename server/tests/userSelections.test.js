@@ -2,6 +2,12 @@ require('dotenv').config();
 const request = require('supertest');
 const app = require('../server');
 
+jest.mock('../openaiService', () => ({
+  generateEssayContent: jest.fn().mockImplementation((prompts, contentFromPages) => {
+    return Promise.resolve(`Generated essay based on prompts: ${prompts} and content: ${contentFromPages}`);
+  })
+}));
+
 // Mock authMiddleware
 jest.mock('../authMiddleware', () => {
   return async (req, res, next) => {
