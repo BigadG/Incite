@@ -8,7 +8,7 @@ const generateEssayContent = async (prompts, contentFromPages) => {
   const bodyPremises = Object.keys(prompts)
     .sort()
     .filter(key => key.startsWith('prompt'))
-    .map((key, index) => prompts[key])
+    .map((key) => prompts[key])
     .slice(1)  // Skip the first premise since it's used as the thesis
     .join('. ');
     
