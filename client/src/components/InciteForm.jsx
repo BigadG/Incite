@@ -145,14 +145,14 @@ function InciteForm() {
             {index === 0 ? (
               <label htmlFor="premise">Essay Premise:</label>
             ) : index === 1 ? (
-              <label htmlFor={`prompt${index}`}>Body Premises:</label>
+              <label htmlFor={`input${index}-Id`}>Body Premises:</label>
             ) : null}
             <input
               type="text"
               className="textbox"
               name={index === 0 ? "premise" : `prompt${index}`}
               id={index === 0 ? "premise" : `input${index}-Id`}
-              placeholder={index === 0 ? "Essay Premise" : ` Body ${index}`}
+              placeholder={index === 0 ? "Essay Premise" : `Body ${index}`}
               value={input}
               onChange={handleChange(index)}
             />
