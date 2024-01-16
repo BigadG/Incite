@@ -69,27 +69,32 @@ const generateEssay = async (req, res) => {
 
 const generateEssayWithSelections = async (req, res) => {
   try {
-    const { urls } = req.body; // Extract only urls from req.body
+    const { premises, urls } = req.body;
 
     if (!Array.isArray(urls)) {
       console.error('URLs provided are not an array:', urls);
       return res.status(400).json({ message: 'URLs must be an array' });
     }
     
+    // Calculate the maximum word count per selection based on the total word limit and the number of URLs
     const maxWordCountPerSelection = Math.floor(MAX_WORDS / urls.length);
+    
+    // Fetch the content for each URL with the calculated word limit per selection
     const contentFromPages = await Promise.all(urls.map(url => fetchAndProcessPage(url, maxWordCountPerSelection)));
     
+    // Check if any content fetching returned an empty string, which indicates failure
     if (contentFromPages.some(content => content === '')) {
       console.error('One or more pages returned no content:', contentFromPages);
       return res.status(400).json({ message: 'One or more pages could not be processed' });
     }
     
-    // Directly use req.body.premises in the forEach loop
+    // Construct the prompts object using the premises provided by the user
     const prompts = {};
-    req.body.premises.forEach((premise, index) => {
+    premises.forEach((premise, index) => {
       prompts[`prompt${index + 1}`] = premise;
     });
     
+    // Generate the essay content using the prompts and the concatenated page contents
     const essay = await generateEssayContent(prompts, contentFromPages.join("\n\n"));
     res.status(200).json({ essay });
   } catch (error) {
@@ -97,7 +102,6 @@ const generateEssayWithSelections = async (req, res) => {
     res.status(500).json({ message: 'Error generating essay with selections', error: error.toString() });
   }
 };
-
 
 const register = async (req, res) => {
   try {
