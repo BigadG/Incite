@@ -21,7 +21,7 @@ async function fetchAndProcessPage(url, maxWordCount) {
     console.log(`Status Code: ${status} Content-Type: ${contentType}`);
 
     if (status !== 200 || !contentType.includes('text/html')) {
-      throw new Error(`Non-200 status code received or content is not HTML: ${status}`);
+      throw new Error(`Non-200 status code or content is not HTML: Status ${status}, Content-Type ${contentType}`);
     }
 
     const html = await response.text();
@@ -89,10 +89,13 @@ const generateEssayWithSelections = async (req, res) => {
     }
     
     // Construct the prompts object using the premises provided by the user
-    const prompts = {};
-    premises.forEach((premise, index) => {
-      prompts[`prompt${index + 1}`] = premise;
-    });
+    const prompts = {
+      premise: req.body.premises, // Assuming the first premise is sent as 'premises' in the body
+      ...req.body.urls.reduce((acc, url, index) => {
+        acc[`prompt${index + 1}`] = ''; // Use URL or some other identifier as needed
+        return acc;
+      }, {})
+    };
     
     // Generate the essay content using the prompts and the concatenated page contents
     const essay = await generateEssayContent(prompts, contentFromPages.join("\n\n"));
