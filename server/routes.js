@@ -21,7 +21,7 @@ async function fetchAndProcessPage(url, maxWordCount) {
     console.log(`Status Code: ${status} Content-Type: ${contentType}`);
 
     if (status !== 200 || !contentType.includes('text/html')) {
-      throw new Error(`Non-200 status code received or content is not HTML: ${status}`);
+      throw new Error(`Non-200 status code or content is not HTML: Status ${status}, Content-Type ${contentType}`);
     }
 
     const html = await response.text();

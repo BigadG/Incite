@@ -1,13 +1,22 @@
 const request = require('supertest');
 const app = require('../server');
 
-// Mock node-fetch
+// Enhanced Mock for node-fetch
 jest.mock('node-fetch', () => {
-  return jest.fn(() =>
+  const fetchMock = jest.fn((url) =>
     Promise.resolve({
-      text: () => Promise.resolve('<html><body><p>Fake article content</p></body></html>'),
+      status: 200,
+      headers: {
+        get: jest.fn((header) => {
+          if (header === 'content-type') {
+            return 'text/html';
+          }
+        }),
+      },
+      text: () => Promise.resolve('<html><body><p>Fake article content for ' + url + '</p></body></html>'),
     })
   );
+  return fetchMock;
 });
 
 // Mock authMiddleware
@@ -37,5 +46,6 @@ describe('Content Extraction for Essay Generation', () => {
     expect(response.body.essay).toBe('Mocked essay content');
   }, 30000);
 });
+
 
 
