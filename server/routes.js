@@ -69,7 +69,7 @@ const generateEssay = async (req, res) => {
 
 const generateEssayWithSelections = async (req, res) => {
   try {
-    const { premises, urls } = req.body;
+    const { urls } = req.body;
 
     if (!Array.isArray(urls)) {
       console.error('URLs provided are not an array:', urls);
