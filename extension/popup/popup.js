@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
         if (response.ok) {
           console.log('Selection deleted');
-          listContainer.removeChild(selectionBox);
+          listContainer.removeChild(selectionBox); 
           
           // Update local storage
           const currentSelections = await getFromStorage('selections');
