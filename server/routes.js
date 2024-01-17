@@ -76,9 +76,11 @@ const generateEssayWithSelections = async (req, res) => {
       return res.status(400).json({ message: 'URLs must be an array' });
     }
     
-    const maxWordCountPerSelection = Math.floor(MAX_WORDS / urls.length);
-    const contentFromPages = await Promise.all(urls.map(url => fetchAndProcessPage(url, maxWordCountPerSelection)));
-    
+    const totalMaxWords = MAX_WORDS < 700 ? 700 : MAX_WORDS;
+    const maxWordCountPerSelection = Math.floor(totalMaxWords / urls.length);
+    const contentFromPages = await Promise.allSettled(urls.map(url => fetchAndProcessPage(url, maxWordCountPerSelection)))
+      .then(results => results.filter(result => result.status === 'fulfilled').map(result => result.value));
+
     if (contentFromPages.some(content => content === '')) {
       console.error('One or more pages returned no content:', contentFromPages);
       return res.status(400).json({ message: 'One or more pages could not be processed' });
