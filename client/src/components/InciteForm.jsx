@@ -25,7 +25,7 @@ function InciteForm() {
   };
 
 
-  const fetchSelections = async () => {
+  const fetchSelections = useCallback(async () => {
     try {
       const queryParams = queryString.parse(window.location.search);
       if (queryParams.uuid) {
@@ -37,6 +37,7 @@ function InciteForm() {
         });
         if (response.status === 200) {
           setUrls(response.data.map(sel => sel.url));
+          console.log('Fetched URLs:', urls);
         } else {
           throw new Error('Failed to fetch selections');
         }
@@ -44,7 +45,7 @@ function InciteForm() {
     } catch (error) {
       console.error('Error fetching selections:', error);
     }
-  };
+  }, [uuid]); 
 
   // Polling function
   useEffect(() => {
@@ -134,8 +135,8 @@ function InciteForm() {
     }
   
     return () => clearInterval(loadingInterval); // Cleanup on effect unmount
-  }, [isLoading]); // Effect runs when isLoading changes
-      
+  }, [isPageVisible, fetchSelections]);
+        
   return (
     <main>
       <h1>INCITE</h1>
