@@ -10,7 +10,7 @@ const createDOMPurify = require('dompurify');
 
 const router = express.Router();
 
-const MAX_WORDS = 5800; // Maximum number of words I want to extract in total
+const MAX_WORDS = 5000; // Maximum number of words I want to extract in total
 
 async function fetchAndProcessPage(url, maxWordCount) {
   try {
@@ -21,7 +21,7 @@ async function fetchAndProcessPage(url, maxWordCount) {
     console.log(`Status Code: ${status} Content-Type: ${contentType}`);
 
     if (status !== 200 || !contentType.includes('text/html')) {
-      throw new Error(`Non-200 status code or content is not HTML: Status ${status}, Content-Type ${contentType}`);
+      throw new Error(`Non-200 status code received or content is not HTML: ${status}`);
     }
 
     const html = await response.text();
@@ -69,35 +69,29 @@ const generateEssay = async (req, res) => {
 
 const generateEssayWithSelections = async (req, res) => {
   try {
-    const { premises, urls } = req.body;
+    const { urls } = req.body; // Extract only urls from req.body
 
     if (!Array.isArray(urls)) {
       console.error('URLs provided are not an array:', urls);
       return res.status(400).json({ message: 'URLs must be an array' });
     }
     
-    // Calculate the maximum word count per selection based on the total word limit and the number of URLs
-    const maxWordCountPerSelection = Math.floor(MAX_WORDS / urls.length);
-    
-    // Fetch the content for each URL with the calculated word limit per selection
-    const contentFromPages = await Promise.all(urls.map(url => fetchAndProcessPage(url, maxWordCountPerSelection)));
-    
-    // Check if any content fetching returned an empty string, which indicates failure
+    const totalMaxWords = MAX_WORDS < 700 ? 700 : MAX_WORDS;
+    const maxWordCountPerSelection = Math.floor(totalMaxWords / urls.length);
+    const contentFromPages = await Promise.allSettled(urls.map(url => fetchAndProcessPage(url, maxWordCountPerSelection)))
+      .then(results => results.filter(result => result.status === 'fulfilled').map(result => result.value));
+
     if (contentFromPages.some(content => content === '')) {
       console.error('One or more pages returned no content:', contentFromPages);
       return res.status(400).json({ message: 'One or more pages could not be processed' });
     }
     
-    // Construct the prompts object using the premises provided by the user
-    const prompts = {
-      premise: req.body.premises, // Assuming the first premise is sent as 'premises' in the body
-      ...req.body.urls.reduce((acc, url, index) => {
-        acc[`prompt${index + 1}`] = ''; // Use URL or some other identifier as needed
-        return acc;
-      }, {})
-    };
+    // Directly use req.body.premises in the forEach loop
+    const prompts = {};
+    req.body.premises.forEach((premise, index) => {
+      prompts[`prompt${index + 1}`] = premise;
+    });
     
-    // Generate the essay content using the prompts and the concatenated page contents
     const essay = await generateEssayContent(prompts, contentFromPages.join("\n\n"));
     res.status(200).json({ essay });
   } catch (error) {
