@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import queryString from 'query-string';
 import '../styles/inciteStyles.css';
@@ -37,15 +37,15 @@ function InciteForm() {
         });
         if (response.status === 200) {
           setUrls(response.data.map(sel => sel.url));
-          console.log('Fetched URLs:', urls);
         } else {
+          console.log('Fetched URLs:', urls);
           throw new Error('Failed to fetch selections');
         }
       }
     } catch (error) {
       console.error('Error fetching selections:', error);
     }
-  }, [uuid]); 
+  }, [urls]); 
 
   // Polling function
   useEffect(() => {
@@ -87,7 +87,7 @@ function InciteForm() {
       stopPolling();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [isPageVisible]); // Re-run effect when isPageVisible changes
+  }, [isPageVisible, fetchSelections]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -135,8 +135,8 @@ function InciteForm() {
     }
   
     return () => clearInterval(loadingInterval); // Cleanup on effect unmount
-  }, [isPageVisible, fetchSelections]);
-        
+  }, [isLoading]);
+
   return (
     <main>
       <h1>INCITE</h1>
