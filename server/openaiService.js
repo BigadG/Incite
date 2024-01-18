@@ -28,7 +28,7 @@ const generateEssayContent = async (prompts, contentFromPages) => {
   const completion = await openai.chat.completions.create({
     model: "gpt-4-1106-preview",
     messages: messages,
-    max_tokens: 3500
+    max_tokens: 4000
   });
 
   // Post-process the essay to format paragraphs correctly
