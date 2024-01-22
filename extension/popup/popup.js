@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function () {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${uuid}`
         },
-        body: JSON.stringify({ url, title }),
+        body: JSON.stringify({ url, title, citationData }),
       });
 
       if (response.ok) {
@@ -237,13 +237,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const citationData = extractCitationData();
     return citationData;
   }
-  
-  async function addSelection(url, title, citationData) {
-    // ...existing code...
-    // Add a new field to the body with the citationData
-    body: JSON.stringify({ url, title, citationData })
-    // ...existing code...
-  }  
 
   showButton.addEventListener('click', function() {
     showSelections();
