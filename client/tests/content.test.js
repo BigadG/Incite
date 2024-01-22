@@ -16,8 +16,8 @@ describe('content script', () => {
     global.window = dom.window;
     global.document = dom.window.document;
 
-    // Now require your content script functions and test them
-    const { extractCitationData } = require('./content');
+    // Now require the content script functions and test them
+    const { extractCitationData } = require('.../extension/content');
 
     const expectedCitationData = {
       author: 'John Doe',
