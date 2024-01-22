@@ -216,8 +216,18 @@ document.addEventListener('DOMContentLoaded', function () {
   addButton.addEventListener('click', function() {
     chrome.tabs.query({active: true, currentWindow: true}, async function(tabs) {
       const currentTab = tabs[0];
-      await addSelection(currentTab.url, currentTab.title);
-      window.close();
+      chrome.scripting.executeScript({
+        target: { tabId: currentTab.id },
+        function: extractCitationDataFromPage,
+      }, async (injectionResults) => {
+        for (const frameResult of injectionResults) {
+          const citationData = frameResult.result;
+          if (citationData) {
+            // Use the citationData here
+            await addSelection(citationData.url, citationData.title, citationData);
+          }
+        }
+      });
     });
   });
 
