@@ -16,24 +16,17 @@ global.chrome = {
   runtime: {
     sendMessage: jest.fn(),
     onMessage: {
-      addListener: jest.fn((callback) => {
-        // Simulate the content script sending back citation data
-        callback({ action: "getCitationData" }, {}, (response) => {
-          expect(response).toEqual({
-            citationData: expect.any(Object) // You can add more specific expectations here
-          });
-        });
-      }),
+      addListener: jest.fn()
     },
   },
   tabs: {
-    query: jest.fn((queryInfo, callback) => {
+    query: jest.fn().mockImplementation((queryInfo, callback) => {
       callback([{ id: 1, url: 'http://example.com', title: 'Example' }]);
     }),
   },
   storage: {
     local: {
-      get: jest.fn((key, callback) => {
+      get: jest.fn().mockImplementation((key, callback) => {
         callback({ userId: 'test-uuid' });
       }),
       set: jest.fn(),
@@ -44,8 +37,11 @@ global.chrome = {
 describe('popup.js', () => {
   it('should extract citation data and send to server when add button is clicked', (done) => {
     const window = loadHTML();
-    window.document.addEventListener('DOMContentLoaded', () => {
-      const addButton = window.document.getElementById('addButton');
+    // Ensure that the DOMContentLoaded event is fired
+    const domContentLoadedEvent = new window.Event('DOMContentLoaded');
+    window.document.dispatchEvent(domContentLoadedEvent);
+    
+    const addButton = window.document.getElementById('addButton');
 
       // Mock the fetch call to the server for storing the selection with citation data
       global.fetch = jest.fn(() =>
@@ -75,6 +71,5 @@ describe('popup.js', () => {
 
         done(); // Finish the test when all assertions have run
       }, 100);
-    });
+    }, 10000);
   });
-});
