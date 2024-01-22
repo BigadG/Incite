@@ -13,29 +13,45 @@ function loadHTML() {
 
 // Mock the chrome API
 global.chrome = {
+  runtime: {
+    sendMessage: jest.fn(),
+    onMessage: {
+      addListener: jest.fn((callback) => {
+        // Simulate the content script sending back citation data
+        callback({ action: "getCitationData" }, {}, (response) => {
+          expect(response).toEqual({
+            citationData: expect.any(Object) // You can add more specific expectations here
+          });
+        });
+      }),
+    },
+  },
   tabs: {
     query: jest.fn((queryInfo, callback) => {
-      callback([{ url: 'http://example.com', title: 'Example' }]);
+      callback([{ id: 1, url: 'http://example.com', title: 'Example' }]);
     }),
   },
   storage: {
     local: {
+      get: jest.fn((key, callback) => {
+        callback({ userId: 'test-uuid' });
+      }),
       set: jest.fn(),
     },
   },
 };
 
 describe('popup.js', () => {
-  it('should call chrome.tabs.query and chrome.storage.local.set when add button is clicked', (done) => {
+  it('should extract citation data and send to server when add button is clicked', (done) => {
     const window = loadHTML();
     window.document.addEventListener('DOMContentLoaded', () => {
       const addButton = window.document.getElementById('addButton');
 
-      // Mock the fetch call to addSelection endpoint
+      // Mock the fetch call to the server for storing the selection with citation data
       global.fetch = jest.fn(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ message: 'Selection added' }),
+          json: () => Promise.resolve({ message: 'Selection added with citation data' }),
         })
       );
 
@@ -43,11 +59,22 @@ describe('popup.js', () => {
       addButton.dispatchEvent(new window.Event('click'));
 
       // Assertions
-      expect(chrome.tabs.query).toHaveBeenCalled();
-      expect(chrome.storage.local.set).toHaveBeenCalled();
-      expect(fetch).toHaveBeenCalledWith(expect.any(String), expect.any(Object));
+      setTimeout(() => { // Set timeout to allow for async operations
+        expect(chrome.tabs.query).toHaveBeenCalled();
+        expect(chrome.storage.local.get).toHaveBeenCalled();
+        expect(fetch).toHaveBeenCalledWith(
+          expect.stringContaining('/addSelection'), // Check if the endpoint is correct
+          expect.objectContaining({
+            method: 'POST',
+            headers: expect.objectContaining({
+              'Authorization': `Bearer test-uuid`, // Check if the Authorization header is correct
+            }),
+            body: expect.stringContaining('citationData'), // Check if the body includes citationData
+          })
+        );
 
-      done(); // Finish the test when the DOM content is fully loaded and script has executed
+        done(); // Finish the test when all assertions have run
+      }, 100);
     });
   });
 });
