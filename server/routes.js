@@ -48,7 +48,7 @@ async function fetchAndProcessPage(url, maxWordCount) {
     return truncatedText;
   } catch (error) {
     console.error(`Error fetching or processing page at URL ${url}:`, error);
-    return ''; // Return empty string to indicate failure
+    return '';
   }
 }
 
@@ -58,7 +58,6 @@ const generateEssay = async (req, res) => {
     return res.status(400).json({ message: 'Invalid request body' });
   }
   try {
-    // The `prompts` should be passed here, not the entire `req.body`
     const essay = await generateEssayContent(req.body.prompts);
     res.status(200).json({ essay });
   } catch (error) {
