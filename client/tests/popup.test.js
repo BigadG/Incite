@@ -5,7 +5,7 @@ const { expect } = require('@jest/globals');
 
 // Define a helper function to load the HTML and return the window
 function loadHTML() {
-  const popupHtmlPath = path.join(__dirname, '.../extension/popup/popup.html');
+  const popupHtmlPath = path.join(__dirname, '../../extension/popup/popup.html');
   const html = fs.readFileSync(popupHtmlPath, 'utf-8');
   const dom = new JSDOM(html, { runScripts: 'dangerously', resources: 'usable' });
   return dom.window;
