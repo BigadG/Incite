@@ -231,6 +231,20 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+  function extractCitationDataFromPage() {
+    // The content script's code to extract citation data would be injected here.
+    // For now, it's just calling the content script's function.
+    const citationData = extractCitationData();
+    return citationData;
+  }
+  
+  async function addSelection(url, title, citationData) {
+    // ...existing code...
+    // Add a new field to the body with the citationData
+    body: JSON.stringify({ url, title, citationData })
+    // ...existing code...
+  }  
+
   showButton.addEventListener('click', function() {
     showSelections();
     toggleDropdown();
