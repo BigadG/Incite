@@ -1,5 +1,15 @@
 const { JSDOM } = require('jsdom');
 
+// Mock the chrome API before requiring your modules
+global.chrome = {
+  runtime: {
+    onMessage: {
+      addListener: jest.fn()
+    },
+    sendMessage: jest.fn()
+  }
+};
+
 describe('content script', () => {
   it('correctly extracts citation data', () => {
     // Mock the DOM with meta tags and structured data
@@ -17,7 +27,7 @@ describe('content script', () => {
     global.document = dom.window.document;
 
     // Now require the content script functions and test them
-    const { extractCitationData } = require('.../extension/content');
+    const { extractCitationData } = require('../../extension/content');
 
     const expectedCitationData = {
       author: 'John Doe',
@@ -31,3 +41,4 @@ describe('content script', () => {
     expect(citationData).toEqual(expectedCitationData);
   });
 });
+
