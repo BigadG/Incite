@@ -121,12 +121,12 @@ router.use(authMiddleware);
 router.post('/addSelection', async (req, res) => {
   try {
     const db = await connect();
-    const { title, url } = req.body;
+    const { title, url, citationData } = req.body;
     const uuid = req.userId; // Now using the UUID provided by the middleware
 
     const result = await db.collection('Users').updateOne(
       { uuid },
-      { $push: { selections: { title, url, pageId: new ObjectId(), timestamp: new Date() } } },
+      { $push: { selections: { title, url, citationData, pageId: new ObjectId(), timestamp: new Date() } } },
       { upsert: true }
     );
     res.status(200).json({ message: 'Selection added', result });
