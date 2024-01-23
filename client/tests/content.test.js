@@ -42,9 +42,10 @@ describe('content script', () => {
     console.log(document.querySelector('meta[property="og:title"]')?.outerHTML);
 
     Object.defineProperty(global.window, 'location', {
-      value: { href: FIXED_URL },
-      writable: true
-    });
+      value: {
+        href: FIXED_URL,
+      },
+    });    
 
     const { extractCitationData } = require('../../extension/content');
 
