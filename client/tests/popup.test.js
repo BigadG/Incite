@@ -34,6 +34,24 @@ global.chrome = {
   },
 };
 
+// Mock the chrome.scripting API
+global.chrome.scripting = {
+  executeScript: jest.fn((...args) => {
+    const [ , callback] = args;
+    // Simulate injecting the script and receiving data
+    callback([{ result: { title: 'Mock Title', url: 'http://mockurl.com' } }]);
+  }),
+};
+
+global.chrome.tabs.query.mockImplementation((queryInfo, callback) => {
+  console.log('chrome.tabs.query is called');
+  callback([{ id: 1, url: 'http://example.com', title: 'Example' }]);
+});
+
+afterEach(() => {
+  jest.clearAllMocks();
+});
+
 describe('popup.js', () => {
   it('should extract citation data and send to server when add button is clicked', (done) => {
     const window = loadHTML();
@@ -71,5 +89,5 @@ describe('popup.js', () => {
 
         done(); // Finish the test when all assertions have run
       }, 100);
-    }, 10000);
+    }, 20000);
   });

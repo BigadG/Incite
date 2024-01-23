@@ -11,7 +11,7 @@ global.chrome = {
 };
 
 // Mock Date and URL
-const FIXED_DATE = "2024-01-01T00:00:00Z";
+const FIXED_DATE = "2024-01-01T00:00:00.000Z";
 const FIXED_URL = "about:blank";
 
 describe('content script', () => {
@@ -34,8 +34,16 @@ describe('content script', () => {
 
     global.window = dom.window;
     global.document = dom.window.document;
-    // Mock window.location.href if necessary
-    // global.window.location.href = FIXED_URL;
+
+    // Mock window.location
+    const mockLocation = {
+      href: FIXED_URL,
+      // Add other properties and methods if needed
+    };
+
+    Object.defineProperty(global.window, 'location', {
+      value: mockLocation
+    });
 
     // Now require the content script functions and test them
     const { extractCitationData } = require('../../extension/content');
@@ -55,5 +63,6 @@ describe('content script', () => {
     jest.useRealTimers();
   });
 });
+
 
 
