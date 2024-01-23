@@ -6,8 +6,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 function extractCitationData() {
-  const metaAuthor = document.querySelector('meta[name="author"]')?.content;
-  const metaTitle = document.querySelector('meta[property="og:title"]')?.content || document.title;
+  // Temporarily hardcode values for debugging
+  const metaAuthor = "John Doe";
+  const metaTitle = "Example Title";
 
   // Temporary debugging logs
   console.log('metaAuthor:', metaAuthor);
@@ -17,9 +18,11 @@ function extractCitationData() {
   const url = window.location.href;
 
   return {
-    author: metaAuthor || 'Author unknown',
+    author: metaAuthor,
     title: metaTitle,
     datePublished: metaDate,
     url
   };
 }
+
+module.exports = { extractCitationData };

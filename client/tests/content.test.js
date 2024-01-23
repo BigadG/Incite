@@ -21,16 +21,18 @@ describe('content script', () => {
 
     // Mock the DOM with meta tags and structured data
     const dom = new JSDOM(`
-      <html>
-      <head>
-        <meta name="author" content="John Doe">
-        <meta property="og:title" content="Example Title">
-        <meta property="article:published_time" content="${FIXED_DATE}">
-      </head>
-      </html>
-    `, {
-      url: FIXED_URL, // Set a fixed URL for JSDOM
-    });
+    <html>
+    <head>
+      <meta name="author" content="John Doe">
+      <meta property="og:title" content="Example Title">
+      <meta property="article:published_time" content="${FIXED_DATE}">
+      <title>Example Title</title> <!-- Ensure this is present -->
+    </head>
+    <body></body>
+    </html>
+  `, {
+    url: FIXED_URL,
+  });
 
     global.window = dom.window;
     global.document = dom.window.document;
