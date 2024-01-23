@@ -42,7 +42,8 @@ describe('content script', () => {
     };
 
     Object.defineProperty(global.window, 'location', {
-      value: mockLocation
+      value: { href: FIXED_URL },
+      writable: true
     });
 
     // Now require the content script functions and test them
