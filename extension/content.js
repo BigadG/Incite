@@ -6,12 +6,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 function extractCitationData() {
-  // Add more robust selectors
   const metaAuthor = document.querySelector('meta[name="author"]')?.content ||
                      document.querySelector('meta[property="og:author"]')?.content ||
+                     document.querySelector('meta[property="article:author"]')?.content ||
                      'Author unknown';
+
   const metaTitle = document.querySelector('meta[property="og:title"]')?.content ||
-                    document.querySelector('title')?.textContent ||
+                    document.querySelector('meta[name="title"]')?.content ||
+                    document.title ||
                     '';
   const metaDate = document.querySelector('meta[property="article:published_time"]')?.content || new Date().toISOString();
   console.log(`metaDate: ${metaDate}`); // Debug log
