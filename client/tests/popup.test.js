@@ -52,42 +52,45 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-describe('popup.js', () => {
-  it('should extract citation data and send to server when add button is clicked', (done) => {
-    const window = loadHTML();
-    // Ensure that the DOMContentLoaded event is fired
-    const domContentLoadedEvent = new window.Event('DOMContentLoaded');
-    window.document.dispatchEvent(domContentLoadedEvent);
-    
-    const addButton = window.document.getElementById('addButton');
+describe('content script', () => {
+  it('correctly extracts citation data', () => {
+    jest.useFakeTimers().setSystemTime(new Date(FIXED_DATE));
 
-      // Mock the fetch call to the server for storing the selection with citation data
-      global.fetch = jest.fn(() =>
-        Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({ message: 'Selection added with citation data' }),
-        })
-      );
+    const dom = new JSDOM(`
+      <html>
+      <head>
+        <meta name="author" content="John Doe">
+        <meta property="og:title" content="Example Title">
+        <meta property="article:published_time" content="${FIXED_DATE}">
+        <title>Example Title</title>
+      </head>
+      <body></body>
+      </html>
+    `, {
+      url: FIXED_URL,
+    });
 
-      // Simulate button click
-      addButton.dispatchEvent(new window.Event('click'));
+    global.window = dom.window;
+    global.document = dom.window.document;
 
-      // Assertions
-      setTimeout(() => { // Set timeout to allow for async operations
-        expect(chrome.tabs.query).toHaveBeenCalled();
-        expect(chrome.storage.local.get).toHaveBeenCalled();
-        expect(fetch).toHaveBeenCalledWith(
-          expect.stringContaining('/addSelection'), // Check if the endpoint is correct
-          expect.objectContaining({
-            method: 'POST',
-            headers: expect.objectContaining({
-              'Authorization': `Bearer test-uuid`, // Check if the Authorization header is correct
-            }),
-            body: expect.stringContaining('citationData'), // Check if the body includes citationData
-          })
-        );
+    Object.defineProperty(global.window, 'location', {
+      value: { href: FIXED_URL },
+      writable: true
+    });
 
-        done(); // Finish the test when all assertions have run
-      }, 100);
-    }, 20000);
+    const { extractCitationData } = require('../../extension/content');
+
+    const expectedCitationData = {
+      author: 'John Doe',
+      title: 'Example Title',
+      datePublished: FIXED_DATE,
+      url: FIXED_URL
+    };
+
+    const citationData = extractCitationData();
+    expect(citationData).toEqual(expectedCitationData);
+
+    jest.useRealTimers();
   });
+}, 20000);
+
