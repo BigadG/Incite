@@ -6,14 +6,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 function extractCitationData() {
-  // Temporarily hardcode values for debugging
-  const metaAuthor = "John Doe";
-  const metaTitle = "Example Title";
-
-  // Temporary debugging logs
-  console.log('metaAuthor:', metaAuthor);
-  console.log('metaTitle:', metaTitle);
-
+  const metaAuthor = document.querySelector('meta[name="author"]')?.content || 'Author unknown';
+  const metaTitle = document.querySelector('meta[property="og:title"]')?.content || document.title || '';
   const metaDate = document.querySelector('meta[property="article:published_time"]')?.content || new Date().toISOString();
   const url = window.location.href;
 
