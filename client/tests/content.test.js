@@ -16,10 +16,8 @@ const FIXED_URL = "about:blank";
 
 describe('content script', () => {
   it('correctly extracts citation data', () => {
-    // Mock Date
     jest.useFakeTimers().setSystemTime(new Date(FIXED_DATE));
 
-    // Mock the DOM with meta tags and structured data
     const dom = new JSDOM(`
       <html>
       <head>
@@ -37,13 +35,11 @@ describe('content script', () => {
     global.window = dom.window;
     global.document = dom.window.document;
 
-    // Mock window.location
     Object.defineProperty(global.window, 'location', {
       value: { href: FIXED_URL },
       writable: true
     });
 
-    // Now require the content script functions and test them
     const { extractCitationData } = require('../../extension/content');
 
     const expectedCitationData = {
@@ -54,13 +50,12 @@ describe('content script', () => {
     };
 
     const citationData = extractCitationData();
-
     expect(citationData).toEqual(expectedCitationData);
 
-    // Restore timers
     jest.useRealTimers();
   });
 });
+
 
 
 
