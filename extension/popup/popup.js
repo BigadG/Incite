@@ -232,42 +232,21 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     });
   });
-
   function extractCitationDataFromPage() {
     return new Promise((resolve, reject) => {
-      chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-        const activeTabId = tabs[0].id;
-        chrome.scripting.executeScript({
-          target: { tabId: activeTabId },
-          function: extractCitationData
-        }, (results) => {
-          if (chrome.runtime.lastError || !results || results.length === 0) {
-            reject(new Error('Failed to extract citation data.'));
-          } else {
-            const citationData = results[0].result;
-            resolve(citationData);
-          }
-        });
+      chrome.scripting.executeScript({
+        target: { tabId: currentTab.id },
+        func: extractCitationData,
+      }, (results) => {
+        if (chrome.runtime.lastError || !results || results.length === 0) {
+          reject(new Error('Failed to extract citation data.'));
+        } else {
+          const citationData = results[0].result;
+          resolve(citationData);
+        }
       });
     });
   }
-
-  // This function gets executed in the context of the current page
-function extractCitationData() {
-  // This should replicate the logic in the content.js's extractCitationData function.
-  // For example:
-  const metaAuthor = document.querySelector('meta[name="author"]')?.content || 'Author unknown';
-  const metaTitle = document.querySelector('meta[property="og:title"]')?.content || document.title || '';
-  const metaDate = document.querySelector('meta[property="article:published_time"]')?.content || new Date().toISOString();
-  const url = window.location.href;
-
-  return {
-    author: metaAuthor,
-    title: metaTitle,
-    datePublished: metaDate,
-    url
-  };
-}
 
   showButton.addEventListener('click', function() {
     showSelections();
