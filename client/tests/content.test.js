@@ -43,8 +43,9 @@ describe('content script', () => {
 
     Object.defineProperty(global.window, 'location', {
       value: {
-        href: FIXED_URL,
+        href: FIXED_URL
       },
+      writable: true
     });    
 
     const { extractCitationData } = require('../../extension/content');

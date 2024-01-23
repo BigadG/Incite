@@ -15,6 +15,10 @@ function extractCitationData() {
                     document.querySelector('meta[name="title"]')?.content ||
                     document.title ||
                     '';
+                    
+  console.log('Author Meta Tag:', document.querySelector('meta[name="author"]')?.outerHTML);
+  console.log('Title Meta Tag:', document.querySelector('meta[property="og:title"]')?.outerHTML);
+
   const metaDate = document.querySelector('meta[property="article:published_time"]')?.content || new Date().toISOString();
   console.log(`metaDate: ${metaDate}`); // Debug log
 
