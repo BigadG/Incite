@@ -18,18 +18,23 @@ describe('content script', () => {
   it('correctly extracts citation data', () => {
     jest.useFakeTimers().setSystemTime(new Date(FIXED_DATE));
 
-  const dom = new JSDOM(`
-    <html>
-    <head>
-      <meta name="author" content="John Doe">
-      <meta property="og:title" content="Example Title">
-      <title>Alternate Title</title>
-      <!-- other meta tags -->
-    </head>
-    <body></body>
-    </html>
-  `, { url: FIXED_URL });
-  
+// Existing JSDOM setup
+    const dom = new JSDOM(`
+      <html>
+      <head>
+        <meta name="author" content="John Doe">
+        <meta property="og:title" content="Example Title">
+        <title>Alternate Title</title>
+        <!-- Ensure other meta tags are set up correctly -->
+      </head>
+      <body></body>
+      </html>
+    `, { url: FIXED_URL });
+// Remaining test code unchanged
+
+      // In your test, after setting up JSDOM
+    console.log(document.querySelector('meta[name="author"]').outerHTML);
+    console.log(document.querySelector('meta[property="og:title"]').outerHTML);
 
     global.window = dom.window;
     global.document = dom.window.document;
