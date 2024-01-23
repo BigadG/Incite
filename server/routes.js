@@ -19,6 +19,7 @@ async function fetchAndProcessPage(url, maxWordCount) {
     const contentType = response.headers.get('content-type');
 
     console.log(`Status Code: ${status} Content-Type: ${contentType}`);
+    console.error(`Error while processing page: ${url}`, error);
 
     if (status !== 200 || !contentType.includes('text/html')) {
       throw new Error(`Non-200 status code received or content is not HTML: ${status}`);
