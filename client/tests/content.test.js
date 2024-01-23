@@ -1,3 +1,19 @@
+const { JSDOM } = require('jsdom');
+
+// Mock the chrome API before requiring your modules
+global.chrome = {
+  runtime: {
+    onMessage: {
+      addListener: jest.fn()
+    },
+    sendMessage: jest.fn()
+  }
+};
+
+// Mock Date and URL
+const FIXED_DATE = "2024-01-01T00:00:00.000Z";
+const FIXED_URL = "about:blank";
+
 describe('content script', () => {
   it('correctly identifies meta tags', () => {
     // JSDOM setup
@@ -22,4 +38,3 @@ describe('content script', () => {
     expect(metaTitleContent).toBe('Example Title');
   });
 });
-
