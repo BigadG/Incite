@@ -18,19 +18,18 @@ describe('content script', () => {
   it('correctly extracts citation data', () => {
     jest.useFakeTimers().setSystemTime(new Date(FIXED_DATE));
 
-    const dom = new JSDOM(`
-      <html>
-      <head>
-        <meta name="author" content="John Doe">
-        <meta property="og:title" content="Example Title">
-        <meta property="article:published_time" content="${FIXED_DATE}">
-        <title>Example Title</title>
-      </head>
-      <body></body>
-      </html>
-    `, {
-      url: FIXED_URL,
-    });
+  const dom = new JSDOM(`
+    <html>
+    <head>
+      <meta name="author" content="John Doe">
+      <meta property="og:title" content="Example Title">
+      <title>Alternate Title</title>
+      <!-- other meta tags -->
+    </head>
+    <body></body>
+    </html>
+  `, { url: FIXED_URL });
+  
 
     global.window = dom.window;
     global.document = dom.window.document;
