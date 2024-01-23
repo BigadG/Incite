@@ -6,17 +6,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 function extractCitationData() {
-  const metaAuthor = document.querySelector('meta[name="author"]')?.content || 'Author unknown';
-  const metaTitle = document.querySelector('meta[property="og:title"]')?.content || document.title || '';
+  const metaAuthor = document.querySelector('meta[name="author"]')?.content;
+  const metaTitle = document.querySelector('meta[property="og:title"]')?.content || document.title;
+
+  // Temporary debugging logs
+  console.log('metaAuthor:', metaAuthor);
+  console.log('metaTitle:', metaTitle);
+
   const metaDate = document.querySelector('meta[property="article:published_time"]')?.content || new Date().toISOString();
   const url = window.location.href;
 
   return {
-    author: metaAuthor,
+    author: metaAuthor || 'Author unknown',
     title: metaTitle,
     datePublished: metaDate,
     url
   };
 }
-
-module.exports = { extractCitationData };
