@@ -7,6 +7,11 @@ document.addEventListener('DOMContentLoaded', function () {
   const listContainer = document.getElementById('listContainer');
   const createButton = document.getElementById('createButton');
 
+    // Initialize listeners
+    addButton.addEventListener('click', handleAddButtonClick);
+    showButton.addEventListener('click', handleShowButtonClick);
+    createButton.addEventListener('click', handleCreateButtonClick);
+
   async function getUUID() {
     return new Promise((resolve, reject) => {
       chrome.storage.local.get(['userId'], function(result) {
@@ -213,24 +218,60 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }  
 
-  addButton.addEventListener('click', function() {
-    chrome.tabs.query({active: true, currentWindow: true}, async function(tabs) {
-      const currentTab = tabs[0];
-      await addSelection(currentTab.url, currentTab.title);
-      window.close();
-    });
-  });
+      async function handleAddButtonClick() {
+        chrome.tabs.query({ active: true, currentWindow: true }, async function (tabs) {
+          const currentTab = tabs[0];
+          try {
+            // Ensure content script is ready
+            const ready = await isContentScriptReady(currentTab.id);
+            if (ready) {
+              await addSelection(currentTab.url, currentTab.title);
+            }
+          } catch (error) {
+            console.error('Error in handleAddButtonClick:', error);
+          }
+        });
+      }     
+      
+  async function isContentScriptReady(tabId) {
+      // Send a test message to the content script and wait for a response
+      return new Promise((resolve, reject) => {
+        let isReady = false;
 
-  showButton.addEventListener('click', function() {
-    showSelections();
-    toggleDropdown();
+    // Define a message listener for the response
+    function messageResponseHandler(response) {
+      if (response && response.isReady) {
+        isReady = true;
+        chrome.runtime.onMessage.removeListener(messageResponseHandler);
+        resolve(true);
+      }
+    }
+
+    // Add the message listener
+    chrome.runtime.onMessage.addListener(messageResponseHandler);
+
+    // Send a test message to the content script
+    chrome.tabs.sendMessage(tabId, { action: "checkReady" });
+
+    // Set a timeout for the readiness check
+    setTimeout(() => {
+      if (!isReady) {
+        chrome.runtime.onMessage.removeListener(messageResponseHandler);
+        reject(new Error("Content script not ready"));
+      }
+    }, 1000); // 1 second timeout
   });
-  
-  createButton.addEventListener('click', async function() {
-    const selections = await getSelections();
-    const uuid = await getUUID();
-    const selectionUrls = selections.map(selection => encodeURIComponent(selection.url)).join(',');
-    const inciteAppUrl = `http://localhost:5173/?uuid=${uuid}&selections=${selectionUrls}`;
-    chrome.tabs.create({ url: inciteAppUrl });
-  });
+  }
+
+      function handleShowButtonClick() {
+        showSelections();
+        toggleDropdown();
+      }
+    
+      async function handleCreateButtonClick() {
+        const selections = await getSelections();
+        const selectionUrls = selections.map(selection => encodeURIComponent(selection.url)).join(',');
+        const inciteAppUrl = `http://localhost:5173/?uuid=${uuid}&selections=${selectionUrls}`;
+        chrome.tabs.create({ url: inciteAppUrl });
+      }
 });
