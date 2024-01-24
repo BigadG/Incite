@@ -1,28 +1,51 @@
 //This script runs in the context of the webpage and extracts metadata
-// content.js
 (() => {
-  let author = document.querySelector('meta[name="author"]')?.content ||
-               document.querySelector('meta[property="og:author"]')?.content ||
-               document.querySelector('meta[property="book:author"]')?.content ||
-               document.querySelector('meta[name="article:author"]')?.content; // Additional selectors
+  let authorSelectors = [
+    'meta[name="author"]',
+    'meta[property="og:author"]',
+    'meta[property="book:author"]',
+    'meta[name="article:author"]',
+    'article .author',
+    '.post-author',
+    '.meta-author',
+    '.author-name',
+    // Add any more selectors that are relevant to the websites you are targeting
+  ];
 
-  let publicationDate = document.querySelector('meta[property="article:published_time"]')?.content ||
-                        document.querySelector('meta[name="date"]')?.content ||
-                        document.querySelector('meta[name="DC.date.issued"]')?.content ||
-                        document.querySelector('meta[name="publish-date"]')?.content ||
-                        document.querySelector('meta[name="sailthru.date"]')?.content; // Additional selectors
+  let publicationDateSelectors = [
+    'meta[property="article:published_time"]',
+    'meta[name="date"]',
+    'meta[name="DC.date.issued"]',
+    'meta[name="publish-date"]',
+    'meta[name="sailthru.date"]',
+    'time[datetime]',
+    '.post-date',
+    '.meta-date',
+    '.publish-date',
+    // Again, add more selectors as needed
+  ];
 
-  // Fallbacks if author or publicationDate are not found
-  if (!author) {
-    author = document.querySelector('article .author, .post-author, .meta-author')?.textContent.trim() || 'Unknown';
+  // Function to query the document with a set of selectors until one matches
+  function querySelectors(selectors) {
+    for (let selector of selectors) {
+      const content = document.querySelector(selector)?.content || document.querySelector(selector)?.textContent;
+      if (content) return content.trim();
+    }
+    return null; // Return null if no matching selectors are found
   }
 
-  if (!publicationDate) {
-    publicationDate = document.querySelector('time[datetime], .post-date, .meta-date')?.getAttribute('datetime') ||
-                      document.querySelector('time')?.textContent.trim() || 
-                      new Date().toISOString(); // Use current time as a last resort
+  let author = querySelectors(authorSelectors) || 'Unknown';
+  let publicationDate = querySelectors(publicationDateSelectors);
+
+  if (publicationDate) {
+    // Attempt to standardize the publication date format
+    publicationDate = new Date(publicationDate).toISOString();
+  } else {
+    // If no publication date is found, leave it as null
+    publicationDate = null;
   }
 
   return { author, publicationDate };
 })();
+
 
