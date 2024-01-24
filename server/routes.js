@@ -118,15 +118,14 @@ const register = async (req, res) => {
 
 
 router.use(authMiddleware);
-
 router.post('/addSelection', async (req, res) => {
   try {
     const db = await connect();
     const { title, url, author, publicationDate } = req.body;
 
     // Validate author and publicationDate
-    const validAuthor = author || 'Unknown'; // Default to 'Unknown' if author is falsy
-    const validPublicationDate = publicationDate ? new Date(publicationDate).toISOString() : new Date().toISOString();
+    const validAuthor = author || 'Unknown'; // Use 'Unknown' if author is falsy
+    const validPublicationDate = publicationDate ? publicationDate : 'Unknown'; // Use 'Unknown' if publicationDate is null or undefined
 
     const uuid = req.userId;
 
