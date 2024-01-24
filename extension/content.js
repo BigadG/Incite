@@ -2,8 +2,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "extractCitationData") {
     const citationData = extractCitationData();
     sendResponse(citationData);
+  } else if (request.action === "checkReady") {
+    // Respond to the readiness check
+    sendResponse({ isReady: true });
   }
-  return true;  // Important for asynchronous sendResponse
+  return true;
 });
 
 function extractCitationData() {
