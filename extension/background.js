@@ -1,14 +1,14 @@
 chrome.runtime.onInstalled.addListener(() => {
   // Initialize extension state with a UUID
-  function generateUUID() { // Public Domain/MIT
-    var d = new Date().getTime(); //Timestamp
-    var d2 = (performance && performance.now && (performance.now()*1000)) || 0; //Time in microseconds since page-load or 0 if unsupported
+  function generateUUID() {
+    var d = new Date().getTime();
+    var d2 = (performance && performance.now && (performance.now()*1000)) || 0;
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      var r = Math.random() * 16; //random number between 0 and 16
-      if(d > 0){ //Use timestamp until depleted
+      var r = Math.random() * 16;
+      if(d > 0){
         r = (d + r)%16 | 0;
         d = Math.floor(d/16);
-      } else { //Use microseconds since page-load if supported
+      } else {
         r = (d2 + r)%16 | 0;
         d2 = Math.floor(d2/16);
       }
@@ -21,7 +21,6 @@ chrome.runtime.onInstalled.addListener(() => {
   
   const serverUrl = 'http://localhost:3001/api';
 
-  // Call the new /register endpoint to register the UUID
   fetch(`${serverUrl}/register`, {
     method: 'POST',
     headers: {
@@ -38,4 +37,20 @@ chrome.runtime.onInstalled.addListener(() => {
   })
   .then(data => console.log('Registration successful', data))
   .catch(error => console.error('Error registering UUID:', error));
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "extractCitationData") {
+    chrome.scripting.executeScript({
+      target: { tabId: message.tabId },
+      files: ['content.js']
+    }, () => {
+      if (chrome.runtime.lastError) {
+        sendResponse({ error: chrome.runtime.lastError.message });
+          } else {
+            sendResponse({ citationData: response });
+          }
+        });
+        return true;
+  }
 });
