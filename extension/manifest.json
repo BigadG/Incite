@@ -6,10 +6,13 @@
     "permissions": [
       "activeTab",
       "storage",
-      "tabs"
+      "tabs",
+      "scripting"
     ],
     "host_permissions": [
-      "http://localhost:3001/*"
+      "http://localhost:3001/*",
+      "http://*/*",
+      "https://*/*"
     ],
     "action": {
       "default_popup": "popup/popup.html",
@@ -26,7 +29,13 @@
     },
     "background": {
       "service_worker": "background.js"
-    }
+    },
+    "web_accessible_resources": [
+      {
+        "resources": ["content.js"],
+        "matches": ["<all_urls>"]
+      }
+    ]
   }
   
   
