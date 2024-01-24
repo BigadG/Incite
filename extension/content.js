@@ -10,7 +10,7 @@
     '.post-author',
     '.meta-author',
     '.author-name',
-    // Include as many reasonable selectors as I can find across different websites
+    // Include as many reasonable selectors as you I find across different websites
   ];
 
   let publicationDateSelectors = [
@@ -23,7 +23,6 @@
     '.post-date',
     '.meta-date',
     '.publish-date',
-    // Again, add more selectors as needed
   ];
 
   function querySelectors(selectors) {
@@ -46,11 +45,26 @@
     return null;
   }
 
-  let author = querySelectors(authorSelectors) || heuristicExtraction('p, div', /by\s+([^\n\r]+)/i, 1) || 'Unknown';
-  let publicationDate = querySelectors(publicationDateSelectors) || heuristicExtraction('p, span, div', /\b\d{4}-\d{2}-\d{2}\b/) || null;
+  // Regular expressions for finding author and publication date
+  const dateRegex = /\b(19|20)\d{2}[-/](0[1-9]|1[012])[-/](0[1-9]|[12][0-9]|3[01])\b/;
+  const authorRegex = /(?:author|by)\s*:\s*(.+?)(?:\||<|\/|\n|$)/i;
+
+  let author = querySelectors(authorSelectors) ||
+               heuristicExtraction('p, div', authorRegex, 1) || 
+               document.body.textContent.match(authorRegex)?.[1]?.trim() ||
+               'Unknown';
+
+  let publicationDate = querySelectors(publicationDateSelectors) ||
+                        heuristicExtraction('p, span, div', dateRegex) ||
+                        document.body.textContent.match(dateRegex)?.[0] ||
+                        null;
 
   if (publicationDate) {
+    // Attempt to standardize the publication date format
     publicationDate = new Date(publicationDate).toISOString();
+  } else {
+    // If no publication date is found, leave it as null
+    publicationDate = null;
   }
 
   return { author, publicationDate };
