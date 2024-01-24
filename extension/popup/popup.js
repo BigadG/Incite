@@ -65,31 +65,6 @@ document.addEventListener('DOMContentLoaded', async function () {
           return [];
         }
       }
-
-      async function addSelection(url, title) {
-        try {
-          const uuid = await getUUID();
-          const citationData = await getCitationData(); // Retrieve citation data here
-          const response = await fetch(`${serverUrl}/addSelection`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${uuid}`
-            },
-            body: JSON.stringify({ url, title, citationData }),
-          });
-      
-          if (response.ok) {
-            const currentSelections = await getFromStorage('selections');
-            const newSelections = [...currentSelections, { title, url }];
-            await setToStorage('selections', newSelections);
-          } else {
-            console.error('Failed to add selection to server. Status:', response.status);
-          }
-        } catch (error) {
-          console.error('Error in addSelection:', error);
-        }
-      }
       
       function createListElement(title, url, pageId) {
         const selectionBox = document.createElement('div');
@@ -225,18 +200,40 @@ document.addEventListener('DOMContentLoaded', async function () {
 
       async function handleAddButtonClick() {
         chrome.tabs.query({ active: true, currentWindow: true }, async function (tabs) {
-          const currentTab = tabs[0];
-          try {
-            // Ensure content script is ready
-            const ready = await isContentScriptReady(currentTab.id);
-            if (ready) {
-              await addSelection(currentTab.url, currentTab.title);
+            const currentTab = tabs[0];
+            try {
+                const citationData = await getCitationData(currentTab.id);
+                await addSelection(currentTab.url, currentTab.title, citationData);
+            } catch (error) {
+                console.error('Error in handleAddButtonClick:', error);
             }
-          } catch (error) {
-            console.error('Error in handleAddButtonClick:', error);
-          }
         });
-      }     
+    } 
+
+    async function addSelection(url, title) {
+      try {
+        const uuid = await getUUID();
+        const citationData = await getCitationData(); // Retrieve citation data here
+        const response = await fetch(`${serverUrl}/addSelection`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${uuid}`
+          },
+          body: JSON.stringify({ url, title, citationData }),
+        });
+    
+        if (response.ok) {
+          const currentSelections = await getFromStorage('selections');
+          const newSelections = [...currentSelections, { title, url }];
+          await setToStorage('selections', newSelections);
+        } else {
+          console.error('Failed to add selection to server. Status:', response.status);
+        }
+      } catch (error) {
+        console.error('Error in addSelection:', error);
+      }
+    }
       
 async function isContentScriptReady(tabId) {
   // Send a test message to the content script and wait for a response
