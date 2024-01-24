@@ -236,7 +236,37 @@ document.addEventListener('DOMContentLoaded', async function () {
             console.error('Error in handleAddButtonClick:', error);
           }
         });
-      }          
+      }     
+      
+async function isContentScriptReady(tabId) {
+  // Send a test message to the content script and wait for a response
+  return new Promise((resolve, reject) => {
+    let isReady = false;
+
+    // Define a message listener for the response
+    function messageResponseHandler(response) {
+      if (response && response.isReady) {
+        isReady = true;
+        chrome.runtime.onMessage.removeListener(messageResponseHandler);
+        resolve(true);
+      }
+    }
+
+    // Add the message listener
+    chrome.runtime.onMessage.addListener(messageResponseHandler);
+
+    // Send a test message to the content script
+    chrome.tabs.sendMessage(tabId, { action: "checkReady" });
+
+    // Set a timeout for the readiness check
+    setTimeout(() => {
+      if (!isReady) {
+        chrome.runtime.onMessage.removeListener(messageResponseHandler);
+        reject(new Error("Content script not ready"));
+      }
+    }, 1000); // 1 second timeout
+  });
+}
 
       function handleShowButtonClick() {
         showSelections();

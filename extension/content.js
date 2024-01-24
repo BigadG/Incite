@@ -6,7 +6,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return true;  // Important for asynchronous sendResponse
 });
 
-
 function extractCitationData() {
   const metaAuthor = document.querySelector('meta[name="author"]')?.content ||
                      document.querySelector('meta[property="og:author"]')?.content ||
