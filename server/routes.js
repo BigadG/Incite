@@ -122,12 +122,17 @@ router.use(authMiddleware);
 router.post('/addSelection', async (req, res) => {
   try {
     const db = await connect();
-    const { title, url, author, publicationDate } = req.body; // Destructure to include new fields
+    const { title, url, author, publicationDate } = req.body;
+
+    // Validate author and publicationDate
+    const validAuthor = author || 'Unknown'; // Default to 'Unknown' if author is falsy
+    const validPublicationDate = publicationDate ? new Date(publicationDate).toISOString() : new Date().toISOString();
+
     const uuid = req.userId;
 
     const result = await db.collection('Users').updateOne(
       { uuid },
-      { $push: { selections: { title, url, author, publicationDate, pageId: new ObjectId(), timestamp: new Date() } } },
+      { $push: { selections: { title, url, author: validAuthor, publicationDate: validPublicationDate, pageId: new ObjectId(), timestamp: new Date() } } },
       { upsert: true }
     );
     res.status(200).json({ message: 'Selection added', result });
