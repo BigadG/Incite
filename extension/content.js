@@ -1,7 +1,7 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "getCitationData") {
+  if (request.action === "extractCitationData") {
     const citationData = extractCitationData();
-    sendResponse({ citationData });
+    sendResponse(citationData);
   }
 });
 
