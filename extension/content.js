@@ -1,5 +1,6 @@
-//This script runs in the context of the webpage and extracts metadata
+// content.js
 (() => {
+  // Extend selectors list based on common patterns observed across various sites
   let authorSelectors = [
     'meta[name="author"]',
     'meta[property="og:author"]',
@@ -9,7 +10,7 @@
     '.post-author',
     '.meta-author',
     '.author-name',
-    // Add any more selectors that are relevant to the websites you are targeting
+    // Include as many reasonable selectors as I can find across different websites
   ];
 
   let publicationDateSelectors = [
@@ -25,27 +26,35 @@
     // Again, add more selectors as needed
   ];
 
-  // Function to query the document with a set of selectors until one matches
   function querySelectors(selectors) {
     for (let selector of selectors) {
-      const content = document.querySelector(selector)?.content || document.querySelector(selector)?.textContent;
+      const content = document.querySelector(selector)?.content || document.querySelector(selector)?.getAttribute('content') || document.querySelector(selector)?.textContent;
       if (content) return content.trim();
     }
-    return null; // Return null if no matching selectors are found
+    return null;
   }
 
-  let author = querySelectors(authorSelectors) || 'Unknown';
-  let publicationDate = querySelectors(publicationDateSelectors);
+  // Function to extract information using heuristic-based extraction
+  function heuristicExtraction(selector, regexPattern, matchGroupIndex = 0) {
+    const elements = Array.from(document.querySelectorAll(selector));
+    for (let element of elements) {
+      const matches = element.textContent.match(regexPattern);
+      if (matches) {
+        return matches[matchGroupIndex].trim();
+      }
+    }
+    return null;
+  }
+
+  let author = querySelectors(authorSelectors) || heuristicExtraction('p, div', /by\s+([^\n\r]+)/i, 1) || 'Unknown';
+  let publicationDate = querySelectors(publicationDateSelectors) || heuristicExtraction('p, span, div', /\b\d{4}-\d{2}-\d{2}\b/) || null;
 
   if (publicationDate) {
-    // Attempt to standardize the publication date format
     publicationDate = new Date(publicationDate).toISOString();
-  } else {
-    // If no publication date is found, leave it as null
-    publicationDate = null;
   }
 
   return { author, publicationDate };
 })();
+
 
 
