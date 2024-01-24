@@ -43,23 +43,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "extractCitationData") {
     chrome.scripting.executeScript({
       target: { tabId: message.tabId },
-      files: ['content.js']  // Ensure this file is in web_accessible_resources
+      files: ['content.js']
     }, () => {
       if (chrome.runtime.lastError) {
         sendResponse({ error: chrome.runtime.lastError.message });
-        return;
-      }
-      // Wait a bit to ensure content script is ready
-      setTimeout(() => {
-        chrome.tabs.sendMessage(message.tabId, { action: "extractCitationData" }, (response) => {
-          if (chrome.runtime.lastError) {
-            sendResponse({ error: 'Failed to extract citation data.' });
           } else {
             sendResponse({ citationData: response });
           }
         });
-      }, 500); // Delay of 500 ms; adjust as needed
-    });
-    return true; // Indicates asynchronous response
+        return true;
   }
 });
