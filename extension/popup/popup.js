@@ -65,8 +65,8 @@ document.addEventListener('DOMContentLoaded', async function () {
           return [];
         }
       }
-    
-      async function addSelection(url, title) {
+
+      async function addSelection(url, title, citationData) {
         try {
           const uuid = await getUUID();
           const response = await fetch(`${serverUrl}/addSelection`, {
@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             },
             body: JSON.stringify({ url, title, citationData }),
           });
-    
+      
           if (response.ok) {
             const currentSelections = await getFromStorage('selections');
             const newSelections = [...currentSelections, { title, url }];
@@ -229,13 +229,15 @@ document.addEventListener('DOMContentLoaded', async function () {
             try {
               if (response && response.citationData) {
                 await addSelection(response.citationData.url, response.citationData.title, response.citationData);
+              } else if (response && response.error) {
+                console.error('Error extracting citation data:', response.error);
               }
             } catch (error) {
               console.error('Error in handleAddButtonClick:', error);
             }
           });
         });
-      }      
+      }           
 
       function handleShowButtonClick() {
         showSelections();
