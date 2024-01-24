@@ -284,7 +284,7 @@ document.addEventListener('DOMContentLoaded', function () {
         chrome.runtime.onMessage.removeListener(messageResponseHandler);
         reject(new Error("Content script not ready"));
       }
-    }, 1000); // 1 second timeout
+    }, 10000); // 1 second timeout
   });
   }
 
