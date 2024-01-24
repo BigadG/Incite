@@ -39,7 +39,6 @@ chrome.runtime.onInstalled.addListener(() => {
   .catch(error => console.error('Error registering UUID:', error));
 });
 
-  // Handler for messages from popup.js
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "extractCitationData") {
     chrome.scripting.executeScript({
@@ -50,14 +49,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ error: chrome.runtime.lastError.message });
         return;
       }
-      // Send a message to content script to perform the data extraction
-      chrome.tabs.sendMessage(message.tabId, { action: "extractCitationData" }, (response) => {
-        if (chrome.runtime.lastError) {
-          sendResponse({ error: 'Failed to extract citation data.' });
-        } else {
-          sendResponse({ citationData: response });
-        }
-      });
+      // Wait a bit to ensure content script is ready
+      setTimeout(() => {
+        chrome.tabs.sendMessage(message.tabId, { action: "extractCitationData" }, (response) => {
+          if (chrome.runtime.lastError) {
+            sendResponse({ error: 'Failed to extract citation data.' });
+          } else {
+            sendResponse({ citationData: response });
+          }
+        });
+      }, 500); // Delay of 500 ms; adjust as needed
     });
     return true; // Indicates asynchronous response
   }
