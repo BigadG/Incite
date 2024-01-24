@@ -57,8 +57,26 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
+  async function fetchMetadata() {
+    return new Promise((resolve, reject) => {
+      chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+        chrome.scripting.executeScript(
+          {
+            target: {tabId: tabs[0].id},
+            files: ['content.js']
+          },
+          (injectionResults) => {
+            for (const frameResult of injectionResults)
+              resolve(frameResult.result);
+          }
+        );
+      });
+    });
+  }
+
   async function addSelection(url, title) {
     try {
+      const metadata = await fetchMetadata(); // Fetch additional metadata
       const uuid = await getUUID();
       const response = await fetch(`${serverUrl}/addSelection`, {
         method: 'POST',
@@ -66,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function () {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${uuid}`
         },
-        body: JSON.stringify({ url, title }),
+        body: JSON.stringify({ url, title, ...metadata }), // Send metadata to server
       });
 
       if (response.ok) {
