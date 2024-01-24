@@ -65,6 +65,8 @@ document.addEventListener('DOMContentLoaded', function () {
   async function addSelection(url, title) {
     try {
       const uuid = await getUUID();
+      const currentTab = (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
+      const citationData = await getCitationData(currentTab.id);
       const response = await fetch(`${serverUrl}/addSelection`, {
         method: 'POST',
         headers: {
@@ -84,6 +86,29 @@ document.addEventListener('DOMContentLoaded', function () {
     } catch (error) {
       console.error('Error in addSelection:', error);
     }
+  }
+  
+  async function getCitationData(tabId) {
+    return new Promise((resolve, reject) => {
+      chrome.scripting.executeScript({
+        target: { tabId },
+        files: ['content.js']
+      }, () => {
+        if (chrome.runtime.lastError) {
+          console.error('Error injecting content script:', chrome.runtime.lastError.message);
+          reject(chrome.runtime.lastError);
+        } else {
+          chrome.tabs.sendMessage(tabId, { action: "extractCitationData" }, (response) => {
+            if (chrome.runtime.lastError) {
+              console.error('Error extracting citation data:', chrome.runtime.lastError.message);
+              reject(chrome.runtime.lastError);
+            } else {
+              resolve(response);
+            }
+          });
+        }
+      });
+    });
   }
   
   function createListElement(title, url, pageId) {
