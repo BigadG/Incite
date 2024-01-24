@@ -66,9 +66,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
       }
 
-      async function addSelection(url, title, citationData) {
+      async function addSelection(url, title) {
         try {
           const uuid = await getUUID();
+          const citationData = await getCitationData(); // Retrieve citation data here
           const response = await fetch(`${serverUrl}/addSelection`, {
             method: 'POST',
             headers: {
@@ -223,21 +224,19 @@ document.addEventListener('DOMContentLoaded', async function () {
       }  
 
       async function handleAddButtonClick() {
-        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        chrome.tabs.query({ active: true, currentWindow: true }, async function (tabs) {
           const currentTab = tabs[0];
-          chrome.runtime.sendMessage({ action: "extractCitationData", tabId: currentTab.id }, async (response) => {
-            try {
-              if (response && response.citationData) {
-                await addSelection(response.citationData.url, response.citationData.title, response.citationData);
-              } else if (response && response.error) {
-                console.error('Error extracting citation data:', response.error);
-              }
-            } catch (error) {
-              console.error('Error in handleAddButtonClick:', error);
+          try {
+            // Ensure content script is ready
+            const ready = await isContentScriptReady(currentTab.id);
+            if (ready) {
+              await addSelection(currentTab.url, currentTab.title);
             }
-          });
+          } catch (error) {
+            console.error('Error in handleAddButtonClick:', error);
+          }
         });
-      }           
+      }          
 
       function handleShowButtonClick() {
         showSelections();
