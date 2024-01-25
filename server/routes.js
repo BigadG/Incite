@@ -78,21 +78,25 @@ const generateEssayWithSelections = async (req, res) => {
     
     const totalMaxWords = MAX_WORDS < 700 ? 700 : MAX_WORDS;
     const maxWordCountPerSelection = Math.floor(totalMaxWords / urls.length);
-    const contentFromPages = await Promise.allSettled(urls.map(url => fetchAndProcessPage(url, maxWordCountPerSelection)))
+    const selections = await Promise.allSettled(urls.map(url => fetchAndProcessPage(url, maxWordCountPerSelection)))
       .then(results => results.filter(result => result.status === 'fulfilled').map(result => result.value));
 
-    if (contentFromPages.some(content => content === '')) {
-      console.error('One or more pages returned no content:', contentFromPages);
-      return res.status(400).json({ message: 'One or more pages could not be processed' });
-    }
-    
-    // Directly use req.body.premises in the forEach loop
-    const prompts = {};
-    req.body.premises.forEach((premise, index) => {
-      prompts[`prompt${index + 1}`] = premise;
+    // Create an array of citations in APA format
+    const citations = selections.map(selection => {
+      const accessDate = new Date().toISOString().split('T')[0]; // Format the access date in YYYY-MM-DD format
+      // Assuming 'selection' contains the necessary metadata fields
+      return `${selection.author}. (${selection.publicationDate}). ${selection.title}. Retrieved ${accessDate}, from ${selection.url}`;
     });
+
+    // Join the citations with line breaks to separate them
+    const citationsText = citations.join('\n');
+
+    // Combine premises and citations for the essay prompt
+    const essayPrompt = `Based on the following premises: [insert premises here], write an essay that includes citations where appropriate. Use APA citation format. Here is the citation information for each page:\n\n${citationsText}`;
+
+    // Call the function to generate essay content with GPT
+    const essay = await generateEssayContent({ prompt: essayPrompt });
     
-    const essay = await generateEssayContent(prompts, contentFromPages.join("\n\n"));
     res.status(200).json({ essay });
   } catch (error) {
     console.error('Error generating essay with selections:', error);

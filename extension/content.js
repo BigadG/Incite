@@ -1,4 +1,3 @@
-// content.js
 (() => {
   // Extend selectors list based on common patterns observed across various sites
   let authorSelectors = [
