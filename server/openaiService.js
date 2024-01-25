@@ -3,24 +3,30 @@ const OpenAI = require('openai');
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const generateCitations = async (selections) => {
+  // Log the selections to check if they are correctly passed
+  console.log("Selections for citation:", selections);
+
   const citationPrompts = selections.map(selection =>
     `Generate a citation in APA format for the following page: Title: "${selection.title}", Author: "${selection.author}", URL: "${selection.url}", Accessed on: "${selection.accessDate}".`
   );
 
   const citations = await Promise.all(citationPrompts.map(async (citationPrompt) => {
     const completion = await openai.completions.create({
-      model: "text-davinci-002",
+      model: "gpt-4-1106-preview",
       prompt: citationPrompt,
       max_tokens: 60,
     });
     return completion.choices[0].text.trim();
   }));
 
+  // Log generated citations to verify
+  console.log("Generated citations:", citations);
   return citations.join('\n');
 };
 
-const generateEssayContent = async (prompts, contentFromPages) => {
+const generateEssayContent = async (prompts, contentFromPages, selections) => {
   const citations = await generateCitations(selections);
+  console.log("Citations received in generateEssayContent:", citations);
   // Construct a string of premises, with the first premise separated as the main thesis
   const thesis = prompts['premise'];
   const bodyPremises = Object.keys(prompts)
@@ -41,6 +47,8 @@ const generateEssayContent = async (prompts, contentFromPages) => {
       content: `Thesis: ${thesis}\n\nContent: ${contentFromPages}\n\nBody Premises: ${bodyPremises}\n\nCitations: ${citations}`
     }      
   ];
+
+  console.log("Messages sent to GPT API:", messages);
 
   // Request a completion from the GPT API
   const completion = await openai.chat.completions.create({

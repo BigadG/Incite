@@ -58,8 +58,7 @@ const generateEssay = async (req, res) => {
     return res.status(400).json({ message: 'Invalid request body' });
   }
   try {
-    // The `prompts` should be passed here, not the entire `req.body`
-    const essay = await generateEssayContent(req.body.prompts);
+    const essay = await generateEssayContent(premises, contentFromPages.join("\n\n"), selections);
     res.status(200).json({ essay });
   } catch (error) {
     console.error('GPT API Call Error:', error.message);
