@@ -2,6 +2,23 @@ const OpenAI = require('openai');
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+const generateCitations = async (selections) => {
+  const citationPrompts = selections.map(selection =>
+    `Generate a citation in APA format for the following page: Title: "${selection.title}", Author: "${selection.author}", URL: "${selection.url}", Accessed on: "${selection.accessDate}".`
+  );
+
+  const citations = await Promise.all(citationPrompts.map(async (citationPrompt) => {
+    const completion = await openai.completions.create({
+      model: "text-davinci-002",
+      prompt: citationPrompt,
+      max_tokens: 60,
+    });
+    return completion.choices[0].text.trim();
+  }));
+
+  return citations.join('\n');
+};
+
 const generateEssayContent = async (prompts, contentFromPages) => {
   // Construct a string of premises, with the first premise separated as the main thesis
   const thesis = prompts['premise'];
