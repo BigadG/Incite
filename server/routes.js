@@ -94,6 +94,9 @@ const generateEssayWithSelections = async (req, res) => {
     const uuid = req.userId;
     const user = await db.collection('Users').findOne({ uuid });
     const selections = user ? user.selections : []; // This should include title, url, author, publicationDate
+    
+    console.log("Selections retrieved for essay generation:", selections);
+    console.log("Calling generateEssayContent with premises and selections...");
 
     // Pass the premises and selections along with the content to the GPT API to generate the essay
     const essay = await generateEssayContent(premises, contentFromPages.join("\n\n"), selections);
