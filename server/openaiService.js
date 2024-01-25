@@ -20,6 +20,7 @@ const generateCitations = async (selections) => {
 };
 
 const generateEssayContent = async (prompts, contentFromPages) => {
+  const citations = await generateCitations(selections);
   // Construct a string of premises, with the first premise separated as the main thesis
   const thesis = prompts['premise'];
   const bodyPremises = Object.keys(prompts)
@@ -33,11 +34,11 @@ const generateEssayContent = async (prompts, contentFromPages) => {
   const messages = [
     {
       role: "system",
-      content: "Compose a 700 or more word essay with an introductory thesis, body paragraphs on given premises, and a conclusion, all of which should have indents at the start of each paragraph. Include no paragraph titles or line breaks."
+      content: "Compose a 700 or more word essay with an introductory thesis, body paragraphs on given premises, and a conclusion, all of which should have indents at the start of each paragraph. Include no paragraph titles or line breaks. Include citations"
     },
     {
       role: "user",
-      content: `Thesis: ${thesis}\n\nContent: ${contentFromPages}\n\nBody Premises: ${bodyPremises}`
+      content: `Thesis: ${thesis}\n\nContent: ${contentFromPages}\n\nBody Premises: ${bodyPremises}\n\nCitations: ${citations}`
     }      
   ];
 
