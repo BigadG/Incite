@@ -57,22 +57,38 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  async function fetchMetadata() {
-    return new Promise((resolve, reject) => {
-      chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-        chrome.scripting.executeScript(
-          {
-            target: {tabId: tabs[0].id},
-            files: ['content.js']
-          },
-          (injectionResults) => {
-            for (const frameResult of injectionResults)
-              resolve(frameResult.result);
+  let metadataCache = null;
+
+async function fetchMetadata() {
+  if (metadataCache) return metadataCache;
+  // ...existing fetchMetadata implementation...
+  metadataCache = frameResult.result;
+  return metadataCache;
+}
+
+async function fetchMetadata() {
+  if (metadataCache) return metadataCache;
+
+  return new Promise((resolve, reject) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      chrome.scripting.executeScript(
+        {
+          target: { tabId: tabs[0].id },
+          files: ['content.js']
+        },
+        (injectionResults) => {
+          if (injectionResults && injectionResults.length > 0) {
+            const frameResult = injectionResults[0];
+            metadataCache = frameResult.result;
+            resolve(metadataCache);
+          } else {
+            reject(new Error("No results from content script"));
           }
-        );
-      });
+        }
+      );
     });
-  }
+  });
+}
 
   async function addSelection(url, title) {
     try {
