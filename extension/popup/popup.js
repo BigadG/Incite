@@ -231,6 +231,18 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }  
 
+  async function getStorageData(keys) {
+    return new Promise((resolve, reject) => {
+      chrome.storage.local.get(keys, (result) => {
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError);
+        } else {
+          resolve(keys.reduce((acc, key) => ({...acc, [key]: result[key]}), {}));
+        }
+      });
+    });
+  }
+  
   addButton.addEventListener('click', function() {
     chrome.tabs.query({active: true, currentWindow: true}, async function(tabs) {
       const currentTab = tabs[0];
