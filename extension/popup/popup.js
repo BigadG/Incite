@@ -243,14 +243,21 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
   
-  addButton.addEventListener('click', function() {
-    chrome.tabs.query({active: true, currentWindow: true}, async function(tabs) {
-      const currentTab = tabs[0];
-      await addSelection(currentTab.url, currentTab.title);
-      window.close();
-    });
-  });
-
+  addButton.addEventListener('click', debounce(async function() {
+    const tabs = await chrome.tabs.query({active: true, currentWindow: true});
+    const currentTab = tabs[0];
+    await addSelection(currentTab.url, currentTab.title);
+    window.close();
+  }, 500));
+  
+  function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+  }
+  
   showButton.addEventListener('click', function() {
     showSelections();
     toggleDropdown();
