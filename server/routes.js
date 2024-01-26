@@ -9,46 +9,30 @@ const { Readability } = require('@mozilla/readability');
 const createDOMPurify = require('dompurify');
 
 const router = express.Router();
-
-const MAX_WORDS = 5000; // Maximum number of words I want to extract in total
+const MAX_WORDS = 5000;
 
 async function fetchAndProcessPage(url, maxWordCount) {
   try {
     const response = await fetch(url);
-    const status = response.status;
-    const contentType = response.headers.get('content-type');
-
-    console.log(`Status Code: ${status} Content-Type: ${contentType}`);
-
-    if (status !== 200 || !contentType.includes('text/html')) {
-      throw new Error(`Non-200 status code received or content is not HTML: ${status}`);
+    if (response.status !== 200 || !response.headers.get('content-type').includes('text/html')) {
+      throw new Error(`Non-200 status code or content is not HTML: ${response.status}`);
     }
 
     const html = await response.text();
-    console.log(`Fetched HTML for ${url}:`, html.substring(0, 500));
-
-    // Sanitize the HTML with DOMPurify
     const window = new JSDOM('').window;
-    const DOMPurify = createDOMPurify(window);
-    const cleanHtml = DOMPurify.sanitize(html);
-
-    // Now create a JSDOM instance with sanitized HTML
+    const cleanHtml = createDOMPurify(window).sanitize(html);
     const doc = new JSDOM(cleanHtml, { url });
-    const reader = new Readability(doc.window.document);
-    const article = reader.parse();
+    const article = new Readability(doc.window.document).parse();
 
     if (!article || !article.textContent) {
-      throw new Error('Readability was unable to parse the article from the page.');
+      throw new Error('Unable to parse the article.');
     }
 
-    // Truncate the text to the maximum word count allowed per selection
     const words = article.textContent.trim().split(/\s+/);
-    const truncatedText = words.length > maxWordCount ? words.slice(0, maxWordCount).join(' ') + '...' : article.textContent.trim();
-    
-    return truncatedText;
+    return words.length > maxWordCount ? words.slice(0, maxWordCount).join(' ') + '...' : article.textContent.trim();
   } catch (error) {
-    console.error(`Error fetching or processing page at URL ${url}:`, error);
-    return ''; // Return empty string to indicate failure
+    console.error(`Error fetching or processing page at ${url}:`, error);
+    return '';
   }
 }
 
@@ -66,46 +50,30 @@ const generateEssay = async (req, res) => {
   }
 };
 
-const generateEssayWithSelections = async (req, res) => {
+async function generateEssayWithSelections(req, res) {
   try {
-    const { urls, premises } = req.body; // Ensure you're getting premises from the request body
-
+    const { urls, premises } = req.body;
     if (!Array.isArray(urls)) {
-      console.error('URLs provided are not an array:', urls);
       return res.status(400).json({ message: 'URLs must be an array' });
     }
-    
-    // Calculate the max word count per selection based on total max words allowed
-    const totalMaxWords = MAX_WORDS < 700 ? 700 : MAX_WORDS;
-    const maxWordCountPerSelection = Math.floor(totalMaxWords / urls.length);
 
-    // Fetch and process the content from each page
+    const maxWordCountPerSelection = Math.floor(MAX_WORDS / urls.length);
     const contentFromPages = await Promise.allSettled(urls.map(url => fetchAndProcessPage(url, maxWordCountPerSelection)))
       .then(results => results.filter(result => result.status === 'fulfilled').map(result => result.value));
 
-    // Check if any page content could not be processed
     if (contentFromPages.some(content => content === '')) {
-      console.error('One or more pages returned no content:', contentFromPages);
       return res.status(400).json({ message: 'One or more pages could not be processed' });
     }
-    
-    // Retrieve selections from the database to get the citation information
-    const db = await connect();
-    const uuid = req.userId;
-    const user = await db.collection('Users').findOne({ uuid });
-    const selections = user ? user.selections : []; // This should include title, url, author, publicationDate
-    
-    console.log("Selections retrieved for essay generation:", selections);
-    console.log("Calling generateEssayContent with premises and selections...");
 
-    // Pass the premises and selections along with the content to the GPT API to generate the essay
+    const db = await connect();
+    const selections = (await db.collection('Users').findOne({ uuid: req.userId }))?.selections ?? [];
     const essay = await generateEssayContent(premises, contentFromPages.join("\n\n"), selections);
     res.status(200).json({ essay });
   } catch (error) {
-    console.error('Error generating essay with selections:', error);
-    res.status(500).json({ message: 'Error generating essay with selections', error: error.toString() });
+    console.error('Error generating essay:', error);
+    res.status(500).json({ message: 'Error generating essay', error: error.toString() });
   }
-};
+}
 
 const register = async (req, res) => {
   try {
