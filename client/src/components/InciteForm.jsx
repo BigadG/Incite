@@ -104,13 +104,14 @@ function InciteForm() {
       }
   
       const latestSelections = response.data;
-      console.log('Saved selections:', latestSelections); // Add this line to log the selections
+      console.log('Saved selections:', latestSelections);
       const updatedUrls = latestSelections.map(sel => sel.url);
   
       const serverUrl = 'http://localhost:3001/api/generateEssayWithSelections';
       const dataToSend = {
-        premises: inputs.filter(input => input.trim() !== ''),
-        urls: updatedUrls // Directly using the updated URLs
+        thesis: inputs[0].trim(), // First input is the thesis
+        bodyPremises: inputs.slice(1).filter(input => input.trim() !== ''), // Remaining inputs are body premises
+        urls: updatedUrls
       };
       const essayResponse = await axios.post(serverUrl, dataToSend);
       setResult(essayResponse.data.essay);

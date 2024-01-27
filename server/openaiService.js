@@ -24,6 +24,8 @@ const generateEssayContent = async (prompts, contentFromPages) => {
     }      
   ];
 
+  console.log("Messages sent to GPT API:", messages);
+
   // Request a completion from the GPT API
   const completion = await openai.chat.completions.create({
     model: "gpt-4-1106-preview",
