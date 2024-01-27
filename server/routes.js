@@ -69,36 +69,39 @@ const generateEssay = async (req, res) => {
 
 const generateEssayWithSelections = async (req, res) => {
   try {
-    const { urls, thesis, bodyPremises } = req.body;
+      const { urls, thesis, bodyPremises } = req.body;
 
-    const validatedBodyPremises = Array.isArray(bodyPremises) ? bodyPremises : [];
+      if (!Array.isArray(urls) || !thesis || !Array.isArray(bodyPremises)) {
+          console.error('Invalid input:', req.body);
+          return res.status(400).json({ message: 'Invalid input' });
+      }
 
-    if (!Array.isArray(urls) || !thesis || !Array.isArray(bodyPremises)) {
-      console.error('Invalid input:', req.body);
-      return res.status(400).json({ message: 'Invalid input' });
-    }
-    
-    const totalMaxWords = MAX_WORDS < 700 ? 700 : MAX_WORDS;
-    const maxWordCountPerSelection = Math.floor(totalMaxWords / urls.length);
-    const contentFromPages = await Promise.allSettled(urls.map(url => fetchAndProcessPage(url, maxWordCountPerSelection)))
-      .then(results => results.filter(result => result.status === 'fulfilled').map(result => result.value));
+      const validatedBodyPremises = Array.isArray(bodyPremises) ? bodyPremises : [];
+      const totalMaxWords = MAX_WORDS < 700 ? 700 : MAX_WORDS;
+      const maxWordCountPerSelection = Math.floor(totalMaxWords / urls.length);
 
-    if (contentFromPages.some(content => content === '')) {
-      console.error('One or more pages returned no content:', contentFromPages);
-      return res.status(400).json({ message: 'One or more pages could not be processed' });
-    }
-    
-    // Directly use req.body.premises in the forEach loop
-    const prompts = {
-      premise: thesis,
-      ...Object.fromEntries(bodyPremises.map((premise, index) => [`prompt${index + 2}`, premise]))
-    };
+      const contentFromPages = await Promise.allSettled(urls.map(url => fetchAndProcessPage(url, maxWordCountPerSelection)))
+          .then(results => results.filter(result => result.status === 'fulfilled').map(result => result.value));
 
-    const essay = await generateEssayContent({ thesis, bodyPremises: validatedBodyPremises }, contentFromPages.join("\n\n"));
-    res.status(200).json({ essay });
+      if (contentFromPages.some(content => content === '')) {
+          console.error('One or more pages returned no content:', contentFromPages);
+          return res.status(400).json({ message: 'One or more pages could not be processed' });
+      }
+
+      // Retrieve selections from the database for citation information
+      const db = await connect();
+      const uuid = req.userId;
+      const user = await db.collection('Users').findOne({ uuid });
+      const selections = user ? user.selections : []; // Include title, url, author, publicationDate
+
+      console.log("Selections retrieved for essay generation:", selections);
+
+      // Combine premises, selections, and page content for the essay generation
+      const essay = await generateEssayContent({ thesis, bodyPremises: validatedBodyPremises }, contentFromPages.join("\n\n"), selections);
+      res.status(200).json({ essay });
   } catch (error) {
-    console.error('Error generating essay with selections:', error);
-    res.status(500).json({ message: 'Error generating essay with selections', error: error.toString() });
+      console.error('Error generating essay with selections:', error);
+      res.status(500).json({ message: 'Error generating essay with selections', error: error.toString() });
   }
 };
 
