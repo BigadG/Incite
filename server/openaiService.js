@@ -2,17 +2,7 @@ const OpenAI = require('openai');
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-const generateEssayContent = async (prompts, contentFromPages) => {
-  // Construct a string of premises, with the first premise separated as the main thesis
-  const thesis = prompts['premise'];
-  const bodyPremises = Object.keys(prompts)
-    .sort()
-    .filter(key => key.startsWith('prompt'))
-    .map(key => `${prompts[key]}`)
-    .slice(1)  // Skip the first premise since it's used as the thesis
-    .join('. ');
-    
-  // Construct the message to be sent to the GPT API
+const generateEssayContent = async ({ thesis, bodyPremises }, contentFromPages) => {
   const messages = [
     {
       role: "system",
@@ -20,7 +10,7 @@ const generateEssayContent = async (prompts, contentFromPages) => {
     },
     {
       role: "user",
-      content: `Thesis: ${thesis}\n\nContent: ${contentFromPages}\n\nBody Premises: ${bodyPremises}`
+      content: `Thesis: ${thesis}\n\nContent: ${contentFromPages}\n\nBody Premises: ${bodyPremises.join('. ')}`
     }      
   ];
 
