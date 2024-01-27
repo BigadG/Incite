@@ -87,19 +87,18 @@ const generateEssayWithSelections = async (req, res) => {
     }
     
     // Directly use req.body.premises in the forEach loop
-    const prompts = {};
-    req.body.premises.forEach((premise, index) => {
-      prompts[`prompt${index + 1}`] = premise;
-    });
-    
-    const essay = await generateEssayContent({ thesis, bodyPremises }, contentFromPages.join("\n\n"));
+    const prompts = {
+      premise: thesis,
+      ...Object.fromEntries(bodyPremises.map((premise, index) => [`prompt${index + 2}`, premise]))
+    };
+
+    const essay = await generateEssayContent(prompts, contentFromPages.join("\n\n"));
     res.status(200).json({ essay });
   } catch (error) {
     console.error('Error generating essay with selections:', error);
     res.status(500).json({ message: 'Error generating essay with selections', error: error.toString() });
   }
 };
-
 const register = async (req, res) => {
   try {
     const { uuid } = req.body;
