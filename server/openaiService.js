@@ -10,7 +10,7 @@ const generateEssayContent = async ({ thesis, bodyPremises }, contentFromPages) 
     },
     {
       role: "user",
-      content: `Thesis: ${thesis}\n\nContent: ${contentFromPages}\n\nBody Premises: ${bodyPremises.join('. ')}`
+      content: `Thesis: ${thesis}\n\nBody Premises: ${bodyPremises.join('. ')}\n\nContent: ${contentFromPages}`
     }      
   ];
 
