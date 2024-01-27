@@ -69,11 +69,11 @@ const generateEssay = async (req, res) => {
 
 const generateEssayWithSelections = async (req, res) => {
   try {
-    const { urls } = req.body; // Extract only urls from req.body
+    const { urls, thesis, bodyPremises } = req.body;
 
-    if (!Array.isArray(urls)) {
-      console.error('URLs provided are not an array:', urls);
-      return res.status(400).json({ message: 'URLs must be an array' });
+    if (!Array.isArray(urls) || !thesis || !Array.isArray(bodyPremises)) {
+      console.error('Invalid input:', req.body);
+      return res.status(400).json({ message: 'Invalid input' });
     }
     
     const totalMaxWords = MAX_WORDS < 700 ? 700 : MAX_WORDS;
@@ -92,7 +92,7 @@ const generateEssayWithSelections = async (req, res) => {
       prompts[`prompt${index + 1}`] = premise;
     });
     
-    const essay = await generateEssayContent(prompts, contentFromPages.join("\n\n"));
+    const essay = await generateEssayContent({ thesis, bodyPremises }, contentFromPages.join("\n\n"));
     res.status(200).json({ essay });
   } catch (error) {
     console.error('Error generating essay with selections:', error);
