@@ -71,6 +71,8 @@ const generateEssayWithSelections = async (req, res) => {
   try {
     const { urls, thesis, bodyPremises } = req.body;
 
+    const validatedBodyPremises = Array.isArray(bodyPremises) ? bodyPremises : [];
+
     if (!Array.isArray(urls) || !thesis || !Array.isArray(bodyPremises)) {
       console.error('Invalid input:', req.body);
       return res.status(400).json({ message: 'Invalid input' });
@@ -92,13 +94,14 @@ const generateEssayWithSelections = async (req, res) => {
       ...Object.fromEntries(bodyPremises.map((premise, index) => [`prompt${index + 2}`, premise]))
     };
 
-    const essay = await generateEssayContent(prompts, contentFromPages.join("\n\n"));
+    const essay = await generateEssayContent({ thesis, bodyPremises: validatedBodyPremises }, contentFromPages.join("\n\n"));
     res.status(200).json({ essay });
   } catch (error) {
     console.error('Error generating essay with selections:', error);
     res.status(500).json({ message: 'Error generating essay with selections', error: error.toString() });
   }
 };
+
 const register = async (req, res) => {
   try {
     const { uuid } = req.body;
