@@ -2,15 +2,26 @@ const OpenAI = require('openai');
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-const generateEssayContent = async ({ thesis, bodyPremises }, contentFromPages) => {
+// Function to format a single selection into an APA style citation
+const formatCitation = ({ title, author, publicationDate, url }) => {
+  const date = new Date(publicationDate);
+  const year = date.getFullYear();
+  const authorFormatted = author.split(', ').reverse().join(' ');
+  return `${authorFormatted} (${year}). ${title}. Retrieved from ${url}`;
+};
+
+const generateEssayContent = async ({ thesis, bodyPremises }, contentFromPages, selections) => {
+  // Format each selection into an APA style citation
+  const citations = selections.map(formatCitation).join('\n');
+
   const messages = [
     {
       role: "system",
-      content: "Compose a 700 or more word essay with an introductory thesis, body paragraphs on given premises, and a conclusion, all of which should have indents at the start of each paragraph. Include no paragraph titles or line breaks."
+      content: "Compose a 700 or more word essay with an introductory thesis, body paragraphs on given premises, and a conclusion. Include APA style citations and references."
     },
     {
       role: "user",
-      content: `Thesis: ${thesis}\n\nBody Premises: ${bodyPremises.join('. ')}\n\nContent: ${contentFromPages}`
+      content: `Thesis: ${thesis}\n\nBody Premises: ${bodyPremises.join('. ')}\n\nContent: ${contentFromPages}\n\nCitations: ${citations}`
     }      
   ];
 
@@ -23,15 +34,12 @@ const generateEssayContent = async ({ thesis, bodyPremises }, contentFromPages) 
     max_tokens: 3500
   });
 
-  // Post-process the essay to format paragraphs correctly
   let formattedEssay = completion.choices[0].message.content;
+
+  // Post-process the essay to format paragraphs correctly
   formattedEssay = formattedEssay.replace(/\n\n/g, '\n'); // Replace double newlines with single newlines to remove unwanted breaks
 
   return formattedEssay;
 };
   
 module.exports = { generateEssayContent };
-
-
-
-
