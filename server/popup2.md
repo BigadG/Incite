@@ -84,12 +84,12 @@ document.addEventListener('DOMContentLoaded', function () {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${uuid}`
         },
-        body: JSON.stringify({ url, title, author: metadata.author, publicationDate: metadata.publicationDate }), // Include author and publicationDate
+        body: JSON.stringify({ url, title, ...metadata }), // Send metadata to server
       });
 
       if (response.ok) {
         const currentSelections = await getFromStorage('selections');
-        const newSelections = [...currentSelections, { title, url, ...metadata }];
+        const newSelections = [...currentSelections, { title, url }];
         await setToStorage('selections', newSelections);
       } else {
         console.error('Failed to add selection to server. Status:', response.status);
@@ -98,7 +98,6 @@ document.addEventListener('DOMContentLoaded', function () {
       console.error('Error in addSelection:', error);
     }
   }
-
   
   function createListElement(title, url, pageId) {
     const selectionBox = document.createElement('div');
@@ -244,7 +243,7 @@ document.addEventListener('DOMContentLoaded', function () {
     showSelections();
     toggleDropdown();
   });
-
+  
   createButton.addEventListener('click', async function() {
     const selections = await getSelections();
     const uuid = await getUUID();
