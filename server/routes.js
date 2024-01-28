@@ -69,39 +69,57 @@ const generateEssay = async (req, res) => {
 
 const generateEssayWithSelections = async (req, res) => {
   try {
-      const { urls, thesis, bodyPremises } = req.body;
+    const { urls, thesis, bodyPremises, missingCitations } = req.body;
 
-      if (!Array.isArray(urls) || !thesis || !Array.isArray(bodyPremises)) {
-          console.error('Invalid input:', req.body);
-          return res.status(400).json({ message: 'Invalid input' });
-      }
+    if (!Array.isArray(urls) || !thesis || !Array.isArray(bodyPremises)) {
+      console.error('Invalid input:', req.body);
+      return res.status(400).json({ message: 'Invalid input' });
+    }
 
-      const validatedBodyPremises = Array.isArray(bodyPremises) ? bodyPremises : [];
-      const totalMaxWords = MAX_WORDS < 700 ? 700 : MAX_WORDS;
-      const maxWordCountPerSelection = Math.floor(totalMaxWords / urls.length);
+    const validatedBodyPremises = Array.isArray(bodyPremises) ? bodyPremises : [];
+    const totalMaxWords = MAX_WORDS < 700 ? 700 : MAX_WORDS;
+    const maxWordCountPerSelection = Math.floor(totalMaxWords / urls.length);
 
-      const contentFromPages = await Promise.allSettled(urls.map(url => fetchAndProcessPage(url, maxWordCountPerSelection)))
-          .then(results => results.filter(result => result.status === 'fulfilled').map(result => result.value));
+    const contentFromPages = await Promise.allSettled(urls.map(url => fetchAndProcessPage(url, maxWordCountPerSelection)))
+        .then(results => results.filter(result => result.status === 'fulfilled').map(result => result.value));
 
-      if (contentFromPages.some(content => content === '')) {
-          console.error('One or more pages returned no content:', contentFromPages);
-          return res.status(400).json({ message: 'One or more pages could not be processed' });
-      }
+    if (contentFromPages.some(content => content === '')) {
+      console.error('One or more pages returned no content:', contentFromPages);
+      return res.status(400).json({ message: 'One or more pages could not be processed' });
+    }
 
-      // Retrieve selections from the database for citation information
-      const db = await connect();
-      const uuid = req.userId;
-      const user = await db.collection('Users').findOne({ uuid });
-      const selections = user ? user.selections : []; // Include title, url, author, publicationDate
+    // Retrieve selections from the database for citation information
+    const db = await connect();
+    const uuid = req.userId;
+    const user = await db.collection('Users').findOne({ uuid });
+    let selections = user ? user.selections : []; // Include title, url, author, publicationDate
 
-      console.log("Selections retrieved for essay generation:", selections);
+    // If there are any missing citations provided by the user, replace the corresponding selection
+    if (missingCitations && missingCitations.length > 0) {
+      missingCitations.forEach((missing) => {
+        const index = selections.findIndex(sel => sel.url === missing.url);
+        if (index !== -1) {
+          selections[index].author = missing.author;
+          selections[index].publicationDate = missing.publicationDate;
+        }
+      });
+    }
 
-      // Combine premises, selections, and page content for the essay generation
-      const essay = await generateEssayContent({ thesis, bodyPremises: validatedBodyPremises }, contentFromPages.join("\n\n"), selections);
-      res.status(200).json({ essay });
+    // Generate the essay content, passing the selections (with any updates)
+    const essayContentResult = await generateEssayContent({ thesis, bodyPremises: validatedBodyPremises }, contentFromPages.join("\n\n"), selections);
+
+    // If missing citations were identified by generateEssayContent, send them back to the client
+    if (essayContentResult.missingCitations) {
+      return res.status(200).json({
+        missingCitations: essayContentResult.missingCitations
+      });
+    }
+
+    // If an essay was generated successfully, send it back to the client
+    res.status(200).json({ essay: essayContentResult });
   } catch (error) {
-      console.error('Error generating essay with selections:', error);
-      res.status(500).json({ message: 'Error generating essay with selections', error: error.toString() });
+    console.error('Error generating essay with selections:', error);
+    res.status(500).json({ message: 'Error generating essay with selections', error: error.toString() });
   }
 };
 
