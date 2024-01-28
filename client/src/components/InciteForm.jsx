@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import queryString from 'query-string';
+import InputField from './InputField';
+import ResultTextArea from './ResultTextArea';
 import '../styles/inciteStyles.css';
 
 function InciteForm() {
@@ -143,35 +145,22 @@ function InciteForm() {
       <h1>INCITE</h1>
       <form onSubmit={handleSubmit}>
         {inputs.map((input, index) => (
-          <div key={`input-wrapper-${index}`}>
-            {index === 0 ? (
-              <label htmlFor="premise">Essay Premise:</label>
-            ) : index === 1 ? (
-              <label htmlFor={`input${index}-Id`}>Body Premises:</label>
-            ) : null}
-            <input
-              type="text"
-              className="textbox"
-              name={index === 0 ? "premise" : `prompt${index}`}
-              id={index === 0 ? "premise" : `input${index}-Id`}
-              placeholder={index === 0 ? "Essay Premise" : `Body ${index}`}
-              value={input}
-              onChange={handleChange(index)}
-            />
-          </div>
+          <InputField
+            key={`input-${index}`}
+            index={index}
+            value={input}
+            handleChange={handleChange}
+          />
         ))}
         {inputs.length < 10 && (
           <button type="button" onClick={addInput} className="add-button">
             +
           </button>
         )}
-        <textarea
-          name="result"
-          className="textbox"
-          id="result"
-          placeholder={isLoading ? '' : 'Result'}
-          value={isLoading ? loadingText : result}
-          readOnly
+        <ResultTextArea
+          isLoading={isLoading}
+          loadingText={loadingText}
+          result={result}
         />
         <br />
         <button type="submit" className="submit">Sum It!</button>

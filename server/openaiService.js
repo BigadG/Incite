@@ -4,6 +4,12 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // Function to format a single selection into an APA style citation
 const formatCitation = ({ title, author, publicationDate, url }) => {
+  if (!author || !publicationDate) {
+    // Handle missing author or publicationDate
+    console.warn(`Missing author or publicationDate for url: ${url}`);
+    return `Citation unavailable for ${title}`;
+  }
+
   const date = new Date(publicationDate);
   const year = date.getFullYear();
   const authorFormatted = author.split(', ').reverse().join(' ');
