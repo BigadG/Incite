@@ -65,6 +65,7 @@ label {
     height: 42px;
     font-size: 30px;
     border-radius: 60px;
+    margin-bottom: 10px;
 }
 
 .submit {

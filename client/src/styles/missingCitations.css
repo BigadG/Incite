@@ -1,6 +1,48 @@
 .missing-citations {
-    background-color: lightblue;
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 50%;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #333333; /* slightly lighter than the main background for contrast */
+    border-radius: 10px;
+    border: 3px solid lightblue;
+    color: rgb(180, 0, 0);
 }
+
+.missing-citations h3 {
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    font-size: 24px;
+    margin-bottom: 15px;
+    align-self: center;
+}
+
+.missing-citations label {
+    font-family: Arial, sans-serif;
+    margin-bottom: 10px;
+    margin-left: 0px;
+    font-size: 16px;
+    color: lightblue;
+    align-self: flex-start;
+}
+
+.missing-citations input[type="text"], 
+.missing-citations input[type="date"] {
+    width: 30%;
+    padding: 8px;
+    margin-bottom: 10px;
+    margin-left: 5px;
+    border-radius: 5px;
+    border: 2px solid lightblue;
+    background-color: #222222;
+    color: white;
+    font-family: Arial, sans-serif;
+    align-self: flex-start;
+}
+
+.missing-citations input[type="text"]::placeholder, 
+.missing-citations input[type="date"]::placeholder {
+    color: #aaa;
+}
+

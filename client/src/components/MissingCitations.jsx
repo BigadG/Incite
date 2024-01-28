@@ -6,7 +6,7 @@ function MissingCitations({ missing, onCitationChange }) {
             <h3>Missing Citation Information</h3>
             {missing.map((citation, index) => (
                 <div key={`citation-${index}`}>
-                <label>{`Citation for URL: ${citation.url}`}</label>
+                <label>{`Citation for ${citation.url}`}</label>
                 <input
                     type="text"
                     onChange={(e) => onCitationChange(index, 'author', e.target.value)}
