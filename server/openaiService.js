@@ -18,17 +18,21 @@ const generateEssayContent = async ({ thesis, bodyPremises }, contentFromPages, 
   let citations = [];
   let missingCitations = [];
 
-  // Attempt to format each selection into an APA style citation & separate out missing citations
   selections.forEach(selection => {
     const citation = formatCitation(selection);
     if (citation) {
       citations.push(citation);
     } else {
-      missingCitations.push(selection.url);
+      missingCitations.push({
+        url: selection.url,
+        missingFields: {
+          author: !selection.author,
+          publicationDate: !selection.publicationDate
+        }
+      });
     }
   });
 
-  // If there are missing citations, return them
   if (missingCitations.length > 0) {
     return { missingCitations };
   }
