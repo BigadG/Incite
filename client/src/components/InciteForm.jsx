@@ -98,15 +98,22 @@ function InciteForm() {
     };
 
     useEffect(() => {
-        if (isLoading) {
-            let dotsCount = 1;
-            const loadingInterval = setInterval(() => {
-                setLoadingText(`Loading${'.'.repeat(dotsCount)}`);
-                dotsCount = (dotsCount % 3) + 1;
-            }, 500);
-            return () => clearInterval(loadingInterval);
-        }
-    }, [isLoading]);
+      let loadingInterval;
+
+      if (isLoading) {
+          let dotsCount = 1;
+          loadingInterval = setInterval(() => {
+              setLoadingText(`Loading${'.'.repeat(dotsCount)}`);
+              dotsCount = (dotsCount % 3) + 1;
+          }, 500);
+      }
+
+      return () => {
+          if (loadingInterval) {
+              clearInterval(loadingInterval);
+          }
+      };
+  }, [isLoading]);
 
   return (
     <main>
@@ -125,6 +132,12 @@ function InciteForm() {
             +
           </button>
         )}
+        {missingCitations.length > 0 && (
+          <MissingCitations
+            missing={missingCitations}
+            onCitationChange={handleCitationChange}
+          />
+        )}
         <ResultTextArea
           isLoading={isLoading}
           loadingText={loadingText}
@@ -132,12 +145,6 @@ function InciteForm() {
         />
         <br />
         <button type="submit" className="submit">Sum It!</button>
-        {missingCitations.length > 0 && (
-          <MissingCitations
-            missing={missingCitations}
-            onCitationChange={handleCitationChange}
-          />
-        )}
       </form>
     </main>
   );
