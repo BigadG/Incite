@@ -11,3 +11,4 @@ function ResultTextArea({ isLoading, loadingText, result }) {
     );
   }
   
+  export default ResultTextArea;
