@@ -5,9 +5,7 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 // Function to format a single selection into an APA style citation
 const formatCitation = ({ title, author, publicationDate, url }) => {
   if (!author || !publicationDate) {
-    // Handle missing author or publicationDate
-    console.warn(`Missing author or publicationDate for url: ${url}`);
-    return `Citation unavailable for ${title}`;
+    return null; // Return null for missing citation information
   }
 
   const date = new Date(publicationDate);
@@ -17,8 +15,23 @@ const formatCitation = ({ title, author, publicationDate, url }) => {
 };
 
 const generateEssayContent = async ({ thesis, bodyPremises }, contentFromPages, selections) => {
-  // Format each selection into an APA style citation
-  const citations = selections.map(formatCitation).join('\n');
+  let citations = [];
+  let missingCitations = [];
+
+  // Attempt to format each selection into an APA style citation & separate out missing citations
+  selections.forEach(selection => {
+    const citation = formatCitation(selection);
+    if (citation) {
+      citations.push(citation);
+    } else {
+      missingCitations.push(selection.url);
+    }
+  });
+
+  // If there are missing citations, return them
+  if (missingCitations.length > 0) {
+    return { missingCitations };
+  }
 
   const messages = [
     {
@@ -27,7 +40,7 @@ const generateEssayContent = async ({ thesis, bodyPremises }, contentFromPages, 
     },
     {
       role: "user",
-      content: `Thesis: ${thesis}\n\nBody Premises: ${bodyPremises.join('. ')}\n\nContent: ${contentFromPages}\n\nCitations: ${citations}`
+      content: `Thesis: ${thesis}\n\nBody Premises: ${bodyPremises.join('. ')}\n\nCitations: ${citations}\n\nContent: ${contentFromPages}`
     }      
   ];
 
