@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import queryString from 'query-string';
 import InputField from './InputField';
+import MissingCitations from './MissingCitations';
 import ResultTextArea from './ResultTextArea';
 import '../styles/inciteStyles.css';
 
@@ -13,6 +14,7 @@ function InciteForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingText, setLoadingText] = useState('Loading');
   const [isPageVisible, setIsPageVisible] = useState(true);
+  const [missingCitations, setMissingCitations] = useState([]);
 
   const handleChange = (index) => (event) => {
     const newInputs = [...inputs];
@@ -26,6 +28,16 @@ function InciteForm() {
     }
   };
 
+  const handleCitationChange = (index, value, isDate = false) => {
+    // Update the missingCitations state with the new values
+    const updatedCitations = [...missingCitations];
+    if (isDate) {
+      updatedCitations[index].publicationDate = value;
+    } else {
+      updatedCitations[index].author = value;
+    }
+    setMissingCitations(updatedCitations);
+  };
 
   const fetchSelections = useCallback(async () => {
     try {
