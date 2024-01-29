@@ -81,13 +81,8 @@ function InciteForm() {
 
           // Check if there are missing citations returned from the server
           if (response.data.missingCitations) {
-            // Map over the missingCitations to create the expected structure
-            setMissingCitations(response.data.missingCitations.map(citation => ({
-                url: citation.url, // Assuming `url` is directly provided as a string
-                author: citation.author || '', // Provide an empty string if author is missing
-                publicationDate: citation.publicationDate || '', // Provide an empty string if publicationDate is missing
-                missingFields: citation.missingFields // This should be an object with boolean values
-            })));
+            // directly use the missingCitations structure provided by the server
+            setMissingCitations(response.data.missingCitations);
             setResult('');
           } else {
               // If the essay was generated, display it
