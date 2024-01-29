@@ -19,8 +19,9 @@ function MissingCitations({ missing, onCitationChange }) {
                         )}
                         {citation.missingFields.publicationDate && (
                             <>
-                                <small>Publication Date</small>
+                                <label htmlFor={`publication-date-${index}`}>Publication Date</label>
                                 <input
+                                    id={`publication-date-${index}`}
                                     type="date"
                                     onChange={(e) => onCitationChange(index, 'publicationDate', e.target.value)}
                                     value={citation.publicationDate || ''}
