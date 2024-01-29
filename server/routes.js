@@ -99,8 +99,10 @@ const generateEssayWithSelections = async (req, res) => {
       missingCitations.forEach((missing) => {
         const index = selections.findIndex(sel => sel.url === missing.url);
         if (index !== -1) {
-          selections[index].author = missing.author;
-          selections[index].publicationDate = missing.publicationDate;
+          selections[index].author = missing.author || selections[index].author;
+          selections[index].publicationDate = missing.publicationDate || selections[index].publicationDate;
+        } else {
+          console.error(`URL not found in selections: ${missing.url}`);
         }
       });
     }
@@ -111,7 +113,14 @@ const generateEssayWithSelections = async (req, res) => {
     // If missing citations were identified by generateEssayContent, send them back to the client
     if (essayContentResult.missingCitations) {
       return res.status(200).json({
-        missingCitations: essayContentResult.missingCitations
+        missingCitations: essayContentResult.missingCitations.map(missing => {
+          return {
+            url: missing.url, // Make sure this is the correct URL from the selections
+            author: missing.author || '',
+            publicationDate: missing.publicationDate || '',
+            missingFields: missing.missingFields
+          };
+        })
       });
     }
 
