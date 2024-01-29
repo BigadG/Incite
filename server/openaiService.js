@@ -18,33 +18,43 @@ const generateEssayContent = async ({ thesis, bodyPremises }, contentFromPages, 
   let citations = [];
   let missingCitations = [];
 
+  // Attempt to format each selection into an APA style citation
+  // and separate out missing citations
   selections.forEach(selection => {
     const citation = formatCitation(selection);
     if (citation) {
       citations.push(citation);
     } else {
-      missingCitations.push({
-        url: selection.url,
-        missingFields: {
-          author: !selection.author,
-          publicationDate: !selection.publicationDate
-        }
-      });
+      // Identify which pieces of information are missing
+      const missingFields = {};
+      if (!selection.author) missingFields.author = true;
+      if (!selection.publicationDate) missingFields.publicationDate = true;
+
+      if (Object.keys(missingFields).length > 0) {
+        missingCitations.push({
+          url: selection.url, // Expecting `url` to be a string
+          author: selection.author || "",
+          publicationDate: selection.publicationDate || "",
+          missingFields: missingFields
+        });
+      }
     }
   });
 
+  // If there are missing citations, return them
   if (missingCitations.length > 0) {
     return { missingCitations };
   }
 
+  // Compose messages to send to the GPT API
   const messages = [
     {
       role: "system",
-      content: "Compose a 700 or more word essay with an introductory thesis, body paragraphs on given premises, and a conclusion. Include APA style citations and references."
+      content: "Compose a 700 or more word essay with an introductory thesis, body paragraphs on given premises, and a conclusion. Each paragraph should start with an indent. Include APA style citations and references."
     },
     {
       role: "user",
-      content: `Thesis: ${thesis}\n\nBody Premises: ${bodyPremises.join('. ')}\n\nCitations: ${citations}\n\nContent: ${contentFromPages}`
+      content: `Thesis: ${thesis}\n\nBody Premises: ${bodyPremises.join('. ')}\n\nCitations: ${citations.join('\n')}\n\nContent: ${contentFromPages}`
     }      
   ];
 
@@ -64,5 +74,5 @@ const generateEssayContent = async ({ thesis, bodyPremises }, contentFromPages, 
 
   return formattedEssay;
 };
-  
+
 module.exports = { generateEssayContent };
