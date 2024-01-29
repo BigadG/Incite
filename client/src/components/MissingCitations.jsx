@@ -5,12 +5,9 @@ function MissingCitations({ missing, onCitationChange }) {
         <div className="missing-citations">
             <h3>Missing Citation Information</h3>
             {missing.map((citation, index) => {
-                // Correctly reference the nested 'url' property
-                const citationUrl = citation.url.url;
-
                 return (
                     <div key={`citation-${index}`} className="citation-input-group">
-                        <label>{`Citation for ${citationUrl}`}</label>
+                        <label>{`Citation for ${citation.url}`}</label> {/* Make sure `url` is a string */}
                         {citation.missingFields.author && (
                             <input
                                 type="text"
@@ -35,7 +32,6 @@ function MissingCitations({ missing, onCitationChange }) {
         </div>
     );
 }
-
 
 export default MissingCitations;
 
