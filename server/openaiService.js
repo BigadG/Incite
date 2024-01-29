@@ -4,14 +4,13 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // Function to format a single selection into an APA style citation
 const formatCitation = ({ title, author, publicationDate, url }) => {
-  if (!author || !publicationDate) {
-    return null; // Return null for missing citation information
-  }
-
-  const date = new Date(publicationDate);
+  const date = publicationDate ? new Date(publicationDate) : new Date();
   const year = date.getFullYear();
-  const authorFormatted = author.split(', ').reverse().join(' ');
-  return `${authorFormatted} (${year}). ${title}. Retrieved from ${url}`;
+  const authorFormatted = author ? author.split(', ').reverse().join(' ') : 'Unknown author';
+  
+  const titleFormatted = title || 'Unknown Title';
+  
+  return `${authorFormatted} (${year}). ${titleFormatted}. Retrieved from ${url}`;
 };
 
 const generateEssayContent = async ({ thesis, bodyPremises }, contentFromPages, selections) => {
