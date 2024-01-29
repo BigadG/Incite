@@ -112,6 +112,7 @@ const generateEssayWithSelections = async (req, res) => {
 
     // If missing citations were identified by generateEssayContent, send them back to the client
     if (essayContentResult.missingCitations) {
+      console.log('Sending missingCitations to client:', essayContentResult.missingCitations);
       return res.status(200).json({
         missingCitations: essayContentResult.missingCitations.map(missing => {
           return {

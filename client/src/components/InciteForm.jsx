@@ -81,7 +81,7 @@ function InciteForm() {
 
           // Check if there are missing citations returned from the server
           if (response.data.missingCitations) {
-            // directly use the missingCitations structure provided by the server
+            console.log('Received missingCitations:', response.data.missingCitations);
             setMissingCitations(response.data.missingCitations);
             setResult('');
           } else {

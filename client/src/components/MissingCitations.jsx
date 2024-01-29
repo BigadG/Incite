@@ -1,13 +1,14 @@
 import '../styles/missingCitations.css';
 
 function MissingCitations({ missing, onCitationChange }) {
+    console.log('Missing citations props:', missing);
     return (
         <div className="missing-citations">
             <h3>Missing Citation Information</h3>
             {missing.map((citation, index) => {
                 return (
                     <div key={`citation-${index}`} className="citation-input-group">
-                        <label>{`Citation for ${citation.url}`}</label> {/* Make sure `url` is a string */}
+                        <label>{`Citation for ${citation.url}`}</label>
                         {citation.missingFields.author && (
                             <input
                                 type="text"
