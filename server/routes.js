@@ -92,12 +92,15 @@ const generateEssayWithSelections = async (req, res) => {
     const db = await connect();
     const uuid = req.userId;
     const user = await db.collection('Users').findOne({ uuid });
+    console.log('User selections retrieved:', user.selections);
     let selections = user ? user.selections : []; // Include title, url, author, publicationDate
 
     // If there are any missing citations provided by the user, replace the corresponding selection
     if (missingCitations && missingCitations.length > 0) {
       missingCitations.forEach((missing) => {
         const index = selections.findIndex(sel => sel.url === missing.url);
+        console.log('Missing citations received:', missingCitations);
+        console.log('Selections after update:', selections);
         if (index !== -1) {
           selections[index].author = missing.author || selections[index].author;
           selections[index].publicationDate = missing.publicationDate || selections[index].publicationDate;
