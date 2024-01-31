@@ -17,30 +17,24 @@ const generateEssayContent = async ({ thesis, bodyPremises }, contentFromPages, 
   let citations = [];
   let missingCitations = [];
 
-  // Attempt to format each selection into an APA style citation
-  // and separate out missing citations
   selections.forEach(selection => {
     const citation = formatCitation(selection);
     if (citation) {
       citations.push(citation);
     } else {
-      // Identify which pieces of information are missing
       const missingFields = {};
       if (!selection.author) missingFields.author = true;
       if (!selection.publicationDate) missingFields.publicationDate = true;
 
       if (Object.keys(missingFields).length > 0) {
         missingCitations.push({
-          url: selection.url, // Expecting `url` to be a string
-          author: selection.author || "",
-          publicationDate: selection.publicationDate || "",
+          ...selection,
           missingFields: missingFields
         });
       }
     }
   });
 
-  // If there are missing citations, return them
   if (missingCitations.length > 0) {
     return { missingCitations };
   }
