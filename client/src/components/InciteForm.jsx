@@ -81,12 +81,10 @@ function InciteForm() {
 
           // Check if there are missing citations returned from the server
           if (response.data.missingCitations) {
-            console.log('Received missingCitations:', response.data.missingCitations);
             setMissingCitations(response.data.missingCitations);
-            setResult('');
           } else {
-              // If the essay was generated, display it
-              setResult(response.data.essay);
+            setResult(response.data.essay);
+            setMissingCitations([]); // Clear missing citations if the essay is generated
           }
       } catch (error) {
           console.error('Error submitting essay:', error);
