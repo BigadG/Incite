@@ -76,30 +76,34 @@ document.addEventListener('DOMContentLoaded', function () {
 
   async function addSelection(url, title) {
     try {
-      const metadata = await fetchMetadata(); // Fetch additional metadata
-      const uuid = await getUUID();
-      const response = await fetch(`${serverUrl}/addSelection`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${uuid}`
-        },
-        body: JSON.stringify({ url, title, author: metadata.author, publicationDate: metadata.publicationDate }), // Include author and publicationDate
-      });
+        const metadata = await fetchMetadata(); // Fetch additional metadata
+        const uuid = await getUUID();
+        const response = await fetch(`${serverUrl}/addSelection`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${uuid}`
+            },
+            body: JSON.stringify({ 
+                url: url, 
+                title: title, 
+                author: metadata.author, 
+                publicationDate: metadata.publicationDate 
+            }), // Include author and publicationDate
+        });
 
-      if (response.ok) {
-        const currentSelections = await getFromStorage('selections');
-        const newSelections = [...currentSelections, { title, url, ...metadata }];
-        await setToStorage('selections', newSelections);
-      } else {
-        console.error('Failed to add selection to server. Status:', response.status);
-      }
+        if (response.ok) {
+            const currentSelections = await getFromStorage('selections');
+            const newSelections = [...currentSelections, { title, url, ...metadata }];
+            await setToStorage('selections', newSelections);
+        } else {
+            console.error('Failed to add selection to server. Status:', response.status);
+        }
     } catch (error) {
-      console.error('Error in addSelection:', error);
+        console.error('Error in addSelection:', error);
     }
-  }
+}
 
-  
   function createListElement(title, url, pageId) {
     const selectionBox = document.createElement('div');
     selectionBox.classList.add('selectionBox');
