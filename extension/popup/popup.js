@@ -104,10 +104,12 @@ async function addSelection(url, title) {
       });
 
       if (response.ok) {
-          const newSelection = { title, url, ...metadata };
-          await setToStorage('selections', [newSelection]); // Replace current selections with new one
+        const newSelection = { title, url, ...metadata };
+        const currentSelections = await getFromStorage('selections');
+        const newSelections = [...currentSelections, newSelection];
+        await setToStorage('selections', newSelections); // Update local storage immediately
       } else {
-          console.error('Failed to add selection to server. Status:', response.status);
+        console.error('Failed to add selection to server. Status:', response.status);
       }
   } catch (error) {
       console.error('Error in addSelection:', error);
@@ -272,4 +274,5 @@ async function addSelection(url, title) {
 
     console.log(`Opening React app with URL: ${inciteAppUrl}`);
     chrome.tabs.create({ url: inciteAppUrl });
+  });
 });

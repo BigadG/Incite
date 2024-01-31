@@ -110,10 +110,16 @@ const generateEssayWithSelections = async (req, res) => {
 
     // Retrieve selections from the database for citation information
     const db = await connect();
-    const uuid = req.userId;
+    const uuid = req.userId; // Ensure that this uuid is correctly retrieved and matches the user's uuid
+  
     const user = await db.collection('Users').findOne({ uuid });
-    console.log('User selections retrieved:', user.selections);
-    let selections = user ? user.selections : []; // Include title, url, author, publicationDate
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+  
+    console.log('User selections retrieved:', user.selections); // This should now display the latest selections
+  
+    let selections = user.selections || [];
 
     // If there are any missing citations provided by the user, replace the corresponding selection
     if (missingCitations && missingCitations.length > 0) {
