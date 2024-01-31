@@ -12,6 +12,26 @@ const router = express.Router();
 
 const MAX_WORDS = 5000; // Maximum number of words I want to extract in total
 
+
+router.post('/updateSelections', async (req, res) => {
+  try {
+    const db = await connect();
+    const { updatedSelections, uuid } = req.body;
+
+    updatedSelections.forEach(async (selection) => {
+      await db.collection('Users').updateOne(
+        { uuid, 'selections.url': selection.url },
+        { $set: { 'selections.$.author': selection.author, 'selections.$.publicationDate': selection.publicationDate } }
+      );
+    });
+
+    res.status(200).json({ message: 'Selections updated' });
+  } catch (error) {
+    console.error('Update Selections Error:', error);
+    res.status(500).json({ message: 'Error updating selections', error });
+  }
+});
+
 async function fetchAndProcessPage(url, maxWordCount) {
   try {
     const response = await fetch(url);
