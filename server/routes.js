@@ -108,17 +108,17 @@ const generateEssayWithSelections = async (req, res) => {
       return res.status(400).json({ message: 'One or more pages could not be processed' });
     }
 
-    // Retrieve selections from the database for citation information
+    // Retrieve the latest selections from the database
     const db = await connect();
     const uuid = req.userId;
     const user = await db.collection('Users').findOne({ uuid });
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+    if (!user || !user.selections) {
+      return res.status(404).json({ message: 'No user or selections found' });
     }
 
-    // Filter the selections to include only those corresponding to the provided URLs
-    let selections = user.selections.filter(selection => urls.includes(selection.url));
+    // Filter the selections based on provided URLs
+    let selections = user.selections.filter(sel => urls.includes(sel.url));
+
     console.log('User selections retrieved:', selections);
 
     // If there are any missing citations provided by the user, replace the corresponding selection
