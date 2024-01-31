@@ -12,34 +12,17 @@ const router = express.Router();
 
 const MAX_WORDS = 5000; // Maximum number of words I want to extract in total
 
-
 router.post('/updateSelections', async (req, res) => {
   try {
     const db = await connect();
     const { updatedSelections, uuid } = req.body;
 
-    // Retrieve the latest selections from the database
-    const user = await db.collection('Users').findOne({ uuid });
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    let selections = user.selections || []; // Use the latest selections
-
-    // Update the selections with the provided missing citation information
-    updatedSelections.forEach(async (updatedSelection) => {
-      const index = selections.findIndex(sel => sel.url === updatedSelection.url);
-      if (index !== -1) {
-        selections[index].author = updatedSelection.author || selections[index].author;
-        selections[index].publicationDate = updatedSelection.publicationDate || selections[index].publicationDate;
-      }
+    updatedSelections.forEach(async (selection) => {
+      await db.collection('Users').updateOne(
+        { uuid, 'selections.url': selection.url },
+        { $set: { 'selections.$.author': selection.author, 'selections.$.publicationDate': selection.publicationDate } }
+      );
     });
-
-    // Update the selections in the database
-    await db.collection('Users').updateOne(
-      { uuid },
-      { $set: { selections } }
-    );
 
     res.status(200).json({ message: 'Selections updated' });
   } catch (error) {
@@ -125,19 +108,19 @@ const generateEssayWithSelections = async (req, res) => {
       return res.status(400).json({ message: 'One or more pages could not be processed' });
     }
 
-    // Retrieve the latest selections from the database
+    // Retrieve selections from the database for citation information
     const db = await connect();
     const uuid = req.userId;
     const user = await db.collection('Users').findOne({ uuid });
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    
-    // Ensure selections match the URLs requested
-    let selections = user.selections.filter(selection => urls.includes(selection.url));
 
+    // Filter the selections to include only those corresponding to the provided URLs
+    let selections = user.selections.filter(selection => urls.includes(selection.url));
     console.log('User selections retrieved:', selections);
-    
+
     // If there are any missing citations provided by the user, replace the corresponding selection
     if (missingCitations && missingCitations.length > 0) {
       missingCitations.forEach((missing) => {
@@ -156,11 +139,6 @@ const generateEssayWithSelections = async (req, res) => {
     // Generate the essay content, passing the selections (with any updates)
     const essayContentResult = await generateEssayContent({ thesis, bodyPremises: validatedBodyPremises }, contentFromPages.join("\n\n"), selections);
 
-    if (essayContentResult.missingCitations && essayContentResult.missingCitations.length > 0) {
-      return res.status(200).json({
-        missingCitations: essayContentResult.missingCitations
-      });
-    }
     // If missing citations were identified by generateEssayContent, send them back to the client
     if (essayContentResult.missingCitations) {
       console.log('Sending missingCitations to client:', essayContentResult.missingCitations);
