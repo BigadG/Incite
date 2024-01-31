@@ -81,13 +81,12 @@ document.addEventListener('DOMContentLoaded', function () {
 }
 
 async function addSelection(url, title) {
-  // Prevent adding chrome internal pages like 'chrome://extensions/'
-  if (url.startsWith('chrome://')) {
-      console.log('Chrome internal page. Not adding to selections.');
-      return;
-  }
-
   try {
+      if (url.startsWith('chrome://')) {
+          // Ignore chrome URLs
+          return;
+      }
+
       const metadata = await fetchMetadata(); // Fetch additional metadata
       const uuid = await getUUID();
       const response = await fetch(`${serverUrl}/addSelection`, {
@@ -97,17 +96,16 @@ async function addSelection(url, title) {
               'Authorization': `Bearer ${uuid}`
           },
           body: JSON.stringify({ 
-              url, 
-              title, 
+              url: url, 
+              title: title, 
               author: metadata.author, 
               publicationDate: metadata.publicationDate 
           }), // Include author and publicationDate
       });
 
       if (response.ok) {
-          const currentSelections = await getFromStorage('selections');
-          const newSelections = [...currentSelections, { title, url, ...metadata }];
-          await setToStorage('selections', newSelections);
+          const newSelection = { title, url, ...metadata };
+          await setToStorage('selections', [newSelection]); // Replace current selections with new one
       } else {
           console.error('Failed to add selection to server. Status:', response.status);
       }
@@ -263,9 +261,15 @@ async function addSelection(url, title) {
 
   createButton.addEventListener('click', async function() {
     const selections = await getSelections();
+    if (selections.length === 0) {
+        console.log('No selections to generate essay');
+        return;
+    }
     const uuid = await getUUID();
     const selectionUrls = selections.map(selection => encodeURIComponent(selection.url)).join(',');
+
     const inciteAppUrl = `http://localhost:5173/?uuid=${uuid}&selections=${selectionUrls}`;
+
+    console.log(`Opening React app with URL: ${inciteAppUrl}`);
     chrome.tabs.create({ url: inciteAppUrl });
-  });
 });
