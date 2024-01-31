@@ -63,6 +63,29 @@ function InciteForm() {
         }
     }, [fetchSelections]);
 
+    const handleMissingCitationSubmit = async () => {
+      const updatedSelections = missingCitations.map(citation => {
+        return {
+          url: citation.url,
+          author: citation.author,
+          publicationDate: citation.publicationDate
+        };
+      });
+    
+      try {
+        await axios.post('http://localhost:3001/api/updateSelections', { updatedSelections, uuid }, {
+          headers: {
+            'Authorization': `Bearer ${uuid}`
+          }
+        });
+    
+        // After updating the selections, generate the essay
+        handleSubmit(); 
+      } catch (error) {
+        console.error('Error updating selections:', error);
+      }
+    };
+    
     const handleSubmit = async (event) => {
       event.preventDefault();
       setIsLoading(true);
