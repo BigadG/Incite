@@ -18,12 +18,28 @@ router.post('/updateSelections', async (req, res) => {
     const db = await connect();
     const { updatedSelections, uuid } = req.body;
 
-    updatedSelections.forEach(async (selection) => {
-      await db.collection('Users').updateOne(
-        { uuid, 'selections.url': selection.url },
-        { $set: { 'selections.$.author': selection.author, 'selections.$.publicationDate': selection.publicationDate } }
-      );
+    // Retrieve the latest selections from the database
+    const user = await db.collection('Users').findOne({ uuid });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    let selections = user.selections || []; // Use the latest selections
+
+    // Update the selections with the provided missing citation information
+    updatedSelections.forEach(async (updatedSelection) => {
+      const index = selections.findIndex(sel => sel.url === updatedSelection.url);
+      if (index !== -1) {
+        selections[index].author = updatedSelection.author || selections[index].author;
+        selections[index].publicationDate = updatedSelection.publicationDate || selections[index].publicationDate;
+      }
     });
+
+    // Update the selections in the database
+    await db.collection('Users').updateOne(
+      { uuid },
+      { $set: { selections } }
+    );
 
     res.status(200).json({ message: 'Selections updated' });
   } catch (error) {
@@ -31,6 +47,7 @@ router.post('/updateSelections', async (req, res) => {
     res.status(500).json({ message: 'Error updating selections', error });
   }
 });
+
 
 async function fetchAndProcessPage(url, maxWordCount) {
   try {
@@ -110,16 +127,10 @@ const generateEssayWithSelections = async (req, res) => {
 
     // Retrieve selections from the database for citation information
     const db = await connect();
-    const uuid = req.userId; // Ensure that this uuid is correctly retrieved and matches the user's uuid
-  
+    const uuid = req.userId;
     const user = await db.collection('Users').findOne({ uuid });
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-  
-    console.log('User selections retrieved:', user.selections); // This should now display the latest selections
-  
-    let selections = user.selections || [];
+    console.log('User selections retrieved:', user.selections);
+    let selections = user ? user.selections : []; // Include title, url, author, publicationDate
 
     // If there are any missing citations provided by the user, replace the corresponding selection
     if (missingCitations && missingCitations.length > 0) {
@@ -144,7 +155,6 @@ const generateEssayWithSelections = async (req, res) => {
         missingCitations: essayContentResult.missingCitations
       });
     }
-    
     // If missing citations were identified by generateEssayContent, send them back to the client
     if (essayContentResult.missingCitations) {
       console.log('Sending missingCitations to client:', essayContentResult.missingCitations);
