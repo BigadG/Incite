@@ -88,32 +88,38 @@ function InciteForm() {
     const handleSubmit = async (event) => {
       event.preventDefault();
       setIsLoading(true);
+    
       try {
-          const dataToSend = {
-              thesis: inputs[0].trim(),
-              bodyPremises: inputs.slice(1).filter(input => input.trim() !== ''),
-              urls: urls,
-              missingCitations: missingCitations
-          };
-          const response = await axios.post('http://localhost:3001/api/generateEssayWithSelections', dataToSend, {
-              headers: {
-                  'Authorization': `Bearer ${uuid}`
-              }
-          });
-
-          if (response.data.missingCitations) {
-            setMissingCitations(response.data.missingCitations);
-            handleMissingCitationSubmit();
-          } else {
-            setResult(response.data.essay);
-            setMissingCitations([]); // Clear missing citations if the essay is generated
-          }
+        // Fetch the latest selections before generating the essay
+        await fetchSelections();
+    
+        const dataToSend = {
+          thesis: inputs[0].trim(),
+          bodyPremises: inputs.slice(1).filter(input => input.trim() !== ''),
+          urls: urls,
+          missingCitations: missingCitations
+        };
+    
+        const response = await axios.post('http://localhost:3001/api/generateEssayWithSelections', dataToSend, {
+            headers: {
+                'Authorization': `Bearer ${uuid}`
+            }
+        });
+    
+        if (response.data.missingCitations) {
+          setMissingCitations(response.data.missingCitations);
+          handleMissingCitationSubmit();
+        } else {
+          setResult(response.data.essay);
+          setMissingCitations([]); // Clear missing citations if the essay is generated
+        }
       } catch (error) {
-          console.error('Error submitting essay:', error);
-          setResult('Error generating essay with latest selections');
+        console.error('Error submitting essay:', error);
+        setResult('Error generating essay with latest selections');
       }
       setIsLoading(false);
-  };
+    };
+    
 
     useEffect(() => {
       let loadingInterval;
