@@ -79,13 +79,12 @@ function InciteForm() {
           }
         });
     
-        // After updating the selections, generate the essay
-        handleSubmit(); 
+        handleSubmit(); // This will now generate the essay without missing citations.
       } catch (error) {
         console.error('Error updating selections:', error);
       }
     };
-    
+
     const handleSubmit = async (event) => {
       event.preventDefault();
       setIsLoading(true);
@@ -102,9 +101,9 @@ function InciteForm() {
               }
           });
 
-          // Check if there are missing citations returned from the server
           if (response.data.missingCitations) {
             setMissingCitations(response.data.missingCitations);
+            handleMissingCitationSubmit();
           } else {
             setResult(response.data.essay);
             setMissingCitations([]); // Clear missing citations if the essay is generated
@@ -155,6 +154,7 @@ function InciteForm() {
           <MissingCitations
             missing={missingCitations}
             onCitationChange={handleCitationChange}
+            onSubmit={handleMissingCitationSubmit}
           />
         )}
         <ResultTextArea
