@@ -133,6 +133,12 @@ const generateEssayWithSelections = async (req, res) => {
     // Generate the essay content, passing the selections (with any updates)
     const essayContentResult = await generateEssayContent({ thesis, bodyPremises: validatedBodyPremises }, contentFromPages.join("\n\n"), selections);
 
+    if (essayContentResult.missingCitations && essayContentResult.missingCitations.length > 0) {
+      return res.status(200).json({
+        missingCitations: essayContentResult.missingCitations
+      });
+    }
+    
     // If missing citations were identified by generateEssayContent, send them back to the client
     if (essayContentResult.missingCitations) {
       console.log('Sending missingCitations to client:', essayContentResult.missingCitations);
