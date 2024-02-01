@@ -86,33 +86,37 @@ function InciteForm() {
     };
 
     const handleSubmit = async (event) => {
-      event.preventDefault();
+      event && event.preventDefault();
       setIsLoading(true);
+  
+      const dataToSend = {
+          thesis: inputs[0].trim(),
+          bodyPremises: inputs.slice(1).filter(input => input.trim() !== ''),
+          urls: urls,
+      };
+  
       try {
-          const dataToSend = {
-              thesis: inputs[0].trim(),
-              bodyPremises: inputs.slice(1).filter(input => input.trim() !== ''),
-              urls: urls,
-              missingCitations: missingCitations
-          };
           const response = await axios.post('http://localhost:3001/api/generateEssayWithSelections', dataToSend, {
               headers: {
                   'Authorization': `Bearer ${uuid}`
               }
           });
-
-          if (response.data.missingCitations) {
-            setMissingCitations(response.data.missingCitations);
-            handleMissingCitationSubmit();
+  
+          // Handle response with missing citations by updating state to show the MissingCitations component
+          if (response.data.missingCitations && response.data.missingCitations.length > 0) {
+              setMissingCitations(response.data.missingCitations);
+              // No automatic submission of missing citations; let the user submit manually
           } else {
-            setResult(response.data.essay);
-            setMissingCitations([]); // Clear missing citations if the essay is generated
+              // Essay generated successfully, display it and clear missing citations
+              setResult(response.data.essay);
+              setMissingCitations([]);
           }
       } catch (error) {
           console.error('Error submitting essay:', error);
           setResult('Error generating essay with latest selections');
+      } finally {
+          setIsLoading(false);
       }
-      setIsLoading(false);
   };
 
     useEffect(() => {
