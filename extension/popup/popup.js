@@ -59,26 +59,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
   async function fetchMetadata() {
     return new Promise((resolve, reject) => {
-        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-            chrome.scripting.executeScript(
-                {
-                    target: {tabId: tabs[0].id},
-                    files: ['content.js']
-                },
-                (injectionResults) => {
-                    if (chrome.runtime.lastError) {
-                        console.error('Error executing content script:', chrome.runtime.lastError.message);
-                        reject(chrome.runtime.lastError);
-                    } else if (injectionResults && injectionResults.length > 0 && injectionResults[0].result) {
-                        resolve(injectionResults[0].result);
-                    } else {
-                        reject('No result returned from content script');
-                    }
-                }
-            );
-        });
+      chrome.runtime.sendMessage({ action: 'executeContentScript' }, (response) => {
+        if (response.error) {
+          reject(response.error);
+        } else {
+          resolve(response.data);
+        }
+      });
     });
-}
+  }
 
 async function addSelection(url, title) {
   try {
