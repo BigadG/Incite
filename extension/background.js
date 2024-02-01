@@ -39,3 +39,31 @@ chrome.runtime.onInstalled.addListener(() => {
   .then(data => console.log('Registration successful', data))
   .catch(error => console.error('Error registering UUID:', error));
 });
+
+function executeContentScript(callback) {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.scripting.executeScript(
+      {
+        target: { tabId: tabs[0].id },
+        files: ['content.js']
+      },
+      (injectionResults) => {
+        if (chrome.runtime.lastError) {
+          callback({ error: chrome.runtime.lastError.message });
+        } else if (injectionResults && injectionResults.length > 0) {
+          callback({ data: injectionResults[0].result });
+        } else {
+          callback({ error: 'No result returned from content script' });
+        }
+      }
+    );
+  });
+}
+
+// Listens for messages from the popup script
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'executeContentScript') {
+    executeContentScript(sendResponse);
+    return true; // Keep the message channel open for the asynchronous response
+  }
+});
