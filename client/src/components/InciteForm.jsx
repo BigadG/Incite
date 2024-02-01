@@ -86,28 +86,29 @@ function InciteForm() {
     };
 
     const handleSubmit = async (event) => {
-      event && event.preventDefault();
+      if (event) event.preventDefault();
       setIsLoading(true);
-  
+    
       const dataToSend = {
           thesis: inputs[0].trim(),
           bodyPremises: inputs.slice(1).filter(input => input.trim() !== ''),
           urls: urls,
       };
-  
+    
+      console.log('Submitting data to generate essay:', dataToSend);
+    
       try {
           const response = await axios.post('http://localhost:3001/api/generateEssayWithSelections', dataToSend, {
               headers: {
                   'Authorization': `Bearer ${uuid}`
               }
           });
-  
-          // Handle response with missing citations by updating state to show the MissingCitations component
+    
+          console.log('Response received from generateEssayWithSelections:', response.data);
+    
           if (response.data.missingCitations && response.data.missingCitations.length > 0) {
               setMissingCitations(response.data.missingCitations);
-              // No automatic submission of missing citations; let the user submit manually
           } else {
-              // Essay generated successfully, display it and clear missing citations
               setResult(response.data.essay);
               setMissingCitations([]);
           }
@@ -117,7 +118,7 @@ function InciteForm() {
       } finally {
           setIsLoading(false);
       }
-  };
+    };
 
     useEffect(() => {
       let loadingInterval;
