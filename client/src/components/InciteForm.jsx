@@ -85,40 +85,39 @@ function InciteForm() {
       }
     };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setIsLoading(true);
-    setLoadingText('Generating essay...');
-    try {
-        const dataToSend = {
-            thesis: inputs[0].trim(),
-            bodyPremises: inputs.slice(1).filter(input => input.trim() !== ''),
-            urls: urls,
-            missingCitations: missingCitations // This line remains unchanged
-        };
-        const response = await axios.post('http://localhost:3001/api/generateEssayWithSelections', dataToSend, {
-            headers: {
-                'Authorization': `Bearer ${uuid}`
-            }
-        });
-
-        if (response.data.missingCitations && response.data.missingCitations.length > 0) {
-          console.log('Missing citation information required:', response.data.missingCitations);
-          setMissingCitations(response.data.missingCitations);
-          setResult(''); // Clear previous results or error messages
-        } else if (response.data.essay) {
-          setResult(response.data.essay);
-          setMissingCitations([]); // Clear missing citations if the essay is generated
-        } else {
-          throw new Error('Unexpected response format from server');
-        }
-    } catch (error) {
-        console.error('Error submitting essay:', error);
-        setResult('Error generating essay with latest selections. Please check the console for more details.');
-    }
-    setIsLoading(false);
+    const handleSubmit = async (event) => {
+      event && event.preventDefault();
+      setIsLoading(true);
+  
+      const dataToSend = {
+          thesis: inputs[0].trim(),
+          bodyPremises: inputs.slice(1).filter(input => input.trim() !== ''),
+          urls: urls,
+      };
+  
+      try {
+          const response = await axios.post('http://localhost:3001/api/generateEssayWithSelections', dataToSend, {
+              headers: {
+                  'Authorization': `Bearer ${uuid}`
+              }
+          });
+  
+          // Handle response with missing citations by updating state to show the MissingCitations component
+          if (response.data.missingCitations && response.data.missingCitations.length > 0) {
+              setMissingCitations(response.data.missingCitations);
+              // No automatic submission of missing citations; let the user submit manually
+          } else {
+              // Essay generated successfully, display it and clear missing citations
+              setResult(response.data.essay);
+              setMissingCitations([]);
+          }
+      } catch (error) {
+          console.error('Error submitting essay:', error);
+          setResult('Error generating essay with latest selections');
+      } finally {
+          setIsLoading(false);
+      }
   };
-
 
     useEffect(() => {
       let loadingInterval;
