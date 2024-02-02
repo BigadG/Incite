@@ -88,3 +88,7 @@
     padding-left: 20px;
     width: 800px;
 }
+
+.input-label-missing {
+    color: rgb(180, 0, 0); /* Red color for missing inputs' labels */
+}
