@@ -96,6 +96,8 @@ const generateEssayWithSelections = async (req, res) => {
       return res.status(400).json({ message: 'Invalid input' });
     }
 
+    const validatedBodyPremises = Array.isArray(bodyPremises) ? bodyPremises : [];
+
     const db = await connect();
     const uuid = req.userId;
     const user = await db.collection('Users').findOne({ uuid });
@@ -119,23 +121,29 @@ const generateEssayWithSelections = async (req, res) => {
       console.log('Updated selections with user-provided citations:', selections);
     }
 
-    // Generate the essay content, passing the selections (with any updates)
-    const essayContentResult = await generateEssayContent({ thesis, bodyPremises: validatedBodyPremises }, contentFromPages.join("\n\n"), selections);
+    // Check for missing citation information in selections
+    let missingCitationsResponse = selections.filter(sel => !sel.author || !sel.publicationDate).map(sel => {
+      return {
+        url: sel.url,
+        missingFields: {
+          author: !sel.author,
+          publicationDate: !sel.publicationDate,
+        }
+      };
+    });
 
-    // If missing citations were identified by generateEssayContent, send them back to the client
-    if (essayContentResult.missingCitations) {
-      console.log('Sending missingCitations to client:', essayContentResult.missingCitations);
-      return res.status(200).json({
-        missingCitations: essayContentResult.missingCitations.map(missing => {
-          return {
-            url: missing.url, // Make sure this is the correct URL from the selections
-            author: missing.author || '',
-            publicationDate: missing.publicationDate || '',
-            missingFields: missing.missingFields
-          };
-        })
-      });
+    if (missingCitationsResponse.length > 0) {
+      // Respond with missing citation information
+      console.log('Missing citation information identified, sending to client:', missingCitationsResponse);
+      return res.status(200).json({ missingCitations: missingCitationsResponse });
     }
+
+    // Assuming contentFromPages is generated here or earlier in the function
+    const contentFromPages = await Promise.allSettled(urls.map(url => fetchAndProcessPage(url)))
+      .then(results => results.filter(result => result.status === 'fulfilled').map(result => result.value));
+
+    // Proceed with essay generation if no missing citations
+    const essayContentResult = await generateEssayContent({ thesis, bodyPremises: validatedBodyPremises, contentFromPages: contentFromPages.join("\n\n"), selections });
 
     // If an essay was generated successfully, send it back to the client
     res.status(200).json({ essay: essayContentResult });
@@ -144,6 +152,7 @@ const generateEssayWithSelections = async (req, res) => {
     res.status(500).json({ message: 'Error generating essay with selections', error: error.toString() });
   }
 };
+
 
 const register = async (req, res) => {
   try {
