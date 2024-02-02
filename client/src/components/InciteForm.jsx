@@ -13,7 +13,6 @@ function InciteForm() {
     const [uuid, setUUID] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [loadingText, setLoadingText] = useState('Loading...');
-    const [isPageVisible, setIsPageVisible] = useState(true);
     const [missingCitations, setMissingCitations] = useState([]);
 
     const handleChange = (index) => (event) => {
@@ -64,79 +63,83 @@ function InciteForm() {
     }, [fetchSelections]);
 
     const handleMissingCitationSubmit = async () => {
-      const updatedSelections = missingCitations.map(citation => {
-        return {
-          url: citation.url,
-          author: citation.author,
-          publicationDate: citation.publicationDate
-        };
-      });
-    
-      try {
-        await axios.post('http://localhost:3001/api/updateSelections', { updatedSelections, uuid }, {
-          headers: {
-            'Authorization': `Bearer ${uuid}`
-          }
+        const updatedSelections = missingCitations.map(citation => {
+            return {
+                url: citation.url,
+                author: citation.author,
+                publicationDate: citation.publicationDate
+            };
         });
-    
-        handleSubmit(); // This will now generate the essay without missing citations.
-      } catch (error) {
-        console.error('Error updating selections:', error);
-      }
+
+        try {
+            await axios.post('http://localhost:3001/api/updateSelections', { updatedSelections, uuid }, {
+                headers: {
+                    'Authorization': `Bearer ${uuid}`
+                }
+            });
+
+            handleSubmit(); // This will now generate the essay without missing citations.
+        } catch (error) {
+            console.error('Error updating selections:', error);
+        }
     };
 
     const handleSubmit = async (event) => {
-      if (event) event.preventDefault();
-      setIsLoading(true);
-    
-      const dataToSend = {
-          thesis: inputs[0].trim(),
-          bodyPremises: inputs.slice(1).filter(input => input.trim() !== ''),
-          urls: urls,
-      };
-    
-      console.log('Submitting data to generate essay:', dataToSend);
-    
-      try {
-          const response = await axios.post('http://localhost:3001/api/generateEssayWithSelections', dataToSend, {
-              headers: {
-                  'Authorization': `Bearer ${uuid}`
-              }
-          });
-    
-          console.log('Response received from generateEssayWithSelections:', response.data);
-    
-          if (response.data.missingCitations && response.data.missingCitations.length > 0) {
-            setMissingCitations(response.data.missingCitations);
-          } else {
-              setResult(response.data.essay);
-              setMissingCitations([]);
-          }
-      } catch (error) {
-          console.error('Error submitting essay:', error);
-          setResult('Error generating essay with latest selections');
-      } finally {
-          setIsLoading(false);
-      }
+        if (event) event.preventDefault();
+        setIsLoading(true);
+
+        const dataToSend = {
+            thesis: inputs[0].trim(),
+            bodyPremises: inputs.slice(1).filter(input => input.trim() !== ''),
+            urls: urls,
+        };
+
+        console.log('Submitting data to generate essay:', dataToSend);
+
+        try {
+            const response = await axios.post('http://localhost:3001/api/generateEssayWithSelections', dataToSend, {
+                headers: {
+                    'Authorization': `Bearer ${uuid}`
+                }
+            });
+
+            console.log('Response received from generateEssayWithSelections:', response.data);
+
+            if (response.data.missingCitations && response.data.missingCitations.length > 0) {
+                setMissingCitations(response.data.missingCitations);
+            } else {
+                setResult(response.data.essay);
+                setMissingCitations([]);
+            }
+        } catch (error) {
+            console.error('Error submitting essay:', error);
+            setResult('Error generating essay with latest selections');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     useEffect(() => {
-      let loadingInterval;
+        let loadingInterval;
 
-      if (isLoading) {
-          let dotsCount = 1;
-          loadingInterval = setInterval(() => {
-              setLoadingText(`Loading${'.'.repeat(dotsCount)}`);
-              dotsCount = (dotsCount % 3) + 1;
-          }, 500);
-      }
+        if (isLoading) {
+            let dotsCount = 1;
+            loadingInterval = setInterval(() => {
+                setLoadingText(`Loading${'.'.repeat(dotsCount)}`);
+                dotsCount = (dotsCount % 3) + 1;
+            }, 500);
+        }
 
-      return () => {
-          if (loadingInterval) {
-              clearInterval(loadingInterval);
-          }
-      };
-  }, [isLoading]);
+        return () => {
+            if (loadingInterval) {
+                clearInterval(loadingInterval);
+            }
+        };
+    }, [isLoading]);
+
+    useEffect(() => {
+        console.log('Updated missingCitations state:', missingCitations);
+    }, [missingCitations]);
 
   return (
     <main>
