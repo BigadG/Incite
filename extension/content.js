@@ -51,7 +51,7 @@
   let author = querySelectors(authorSelectors) ||
                heuristicExtraction('p, div', authorRegex, 1) || 
                document.body.textContent.match(authorRegex)?.[1]?.trim() ||
-               'Unknown';
+               null;
 
   let publicationDate = querySelectors(publicationDateSelectors) ||
                         heuristicExtraction('p, span, div', dateRegex) ||
