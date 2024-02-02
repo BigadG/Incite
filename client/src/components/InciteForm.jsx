@@ -14,6 +14,7 @@ function InciteForm() {
     const [isLoading, setIsLoading] = useState(false);
     const [loadingText, setLoadingText] = useState('Loading...');
     const [missingCitations, setMissingCitations] = useState([]);
+    const [isPageVisible, setIsPageVisible] = useState(true);  // State for tracking page visibility
 
     const handleChange = (index) => (event) => {
         const newInputs = [...inputs];
@@ -55,12 +56,24 @@ function InciteForm() {
     }, []);
 
     useEffect(() => {
-        const isVisible = document.visibilityState === 'visible';
-        setIsPageVisible(isVisible);
-        if (isVisible) {
+        // Event handler for page visibility change
+        const handleVisibilityChange = () => {
+            setIsPageVisible(document.visibilityState === 'visible');
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        handleVisibilityChange(); // Set initial visibility state
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (isPageVisible) {
             fetchSelections();
         }
-    }, [fetchSelections]);
+    }, [isPageVisible, fetchSelections]);
 
     const handleMissingCitationSubmit = async () => {
         const updatedSelections = missingCitations.map(citation => {
@@ -138,45 +151,45 @@ function InciteForm() {
     }, [isLoading]);
 
     useEffect(() => {
-        console.log('Updated missingCitations state:', missingCitations);
-    }, [missingCitations]);
-
-  return (
-    <main>
-      <h1>INCITE</h1>
-      <form onSubmit={handleSubmit}>
-        {inputs.map((input, index) => (
-          <InputField
-            key={`input-${index}`}
-            index={index}
-            value={input}
-            handleChange={handleChange}
-          />
-        ))}
-        {inputs.length < 10 && (
-          <button type="button" onClick={addInput} className="add-button">
-            +
-          </button>
-        )}
-        {missingCitations.length > 0 && (
-          <MissingCitations
-            missing={missingCitations}
-            onCitationChange={handleCitationChange}
-            onSubmit={handleMissingCitationSubmit}
-          />
-        )}
-        <ResultTextArea
-          isLoading={isLoading}
-          loadingText={loadingText}
-          result={result}
-        />
-        <br />
-        <button type="submit" className="submit">Sum It!</button>
-      </form>
-    </main>
-  );
+      console.log('Updated missingCitations state:', missingCitations);
+  }, [missingCitations]);
+  
+    return (
+        <main>
+            <h1>INCITE</h1>
+            <form onSubmit={handleSubmit}>
+                {inputs.map((input, index) => (
+                    <InputField
+                        key={`input-${index}`}
+                        index={index}
+                        value={input}
+                        handleChange={handleChange}
+                    />
+                ))}
+                {inputs.length < 10 && (
+                    <button type="button" onClick={addInput} className="add-button">
+                        +
+                    </button>
+                )}
+                {missingCitations.length > 0 && (
+                    <MissingCitations
+                        missing={missingCitations}
+                        onCitationChange={handleCitationChange}
+                        onSubmit={handleMissingCitationSubmit}
+                    />
+                )}
+                <ResultTextArea
+                    isLoading={isLoading}
+                    loadingText={loadingText}
+                    result={result}
+                />
+                <br />
+                <button type="submit" className="submit">Sum It!</button>
+            </form>
+        </main>
+    );
 }
-          
+
 export default InciteForm;
 
 
