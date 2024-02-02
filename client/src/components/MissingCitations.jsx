@@ -1,6 +1,24 @@
+import React, { useState } from 'react';
 import '../styles/MissingCitations.css';
 
 function MissingCitations({ missing, onCitationChange, onSubmit }) {
+    const [touched, setTouched] = useState(false);
+
+    // Check if all fields are filled
+    const allFieldsFilled = missing.every(citation => {
+        return (!citation.missingFields.author || citation.author) && 
+               (!citation.missingFields.publicationDate || citation.publicationDate);
+    });
+
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        if (allFieldsFilled) {
+            onSubmit();
+        } else {
+            setTouched(true); // User has attempted to submit, so trigger validation display
+        }
+    };
+
     return (
         <div className="missing-citations">
             <h3>Missing Citation Information</h3>
@@ -10,7 +28,9 @@ function MissingCitations({ missing, onCitationChange, onSubmit }) {
                     <div className="input-container">  
                         {citation.missingFields.author && (
                             <div className="input-pair">
-                                <label className="input-label">Author's name:</label>
+                                <label className={`input-label ${!citation.author && touched ? 'input-label-missing' : ''}`}>
+                                    Author's name:
+                                </label>
                                 <input
                                     type="text"
                                     onChange={(e) => onCitationChange(index, 'author', e.target.value)}
@@ -21,7 +41,10 @@ function MissingCitations({ missing, onCitationChange, onSubmit }) {
                         )}
                         {citation.missingFields.publicationDate && (
                             <div className="input-pair">
-                                <label htmlFor={`publication-date-${index}`} className="input-label">Publication Date:</label>
+                                <label htmlFor={`publication-date-${index}`} 
+                                       className={`input-label ${!citation.publicationDate && touched ? 'input-label-missing' : ''}`}>
+                                    Publication Date:
+                                </label>
                                 <input
                                     id={`publication-date-${index}`}
                                     type="date"
@@ -33,12 +56,15 @@ function MissingCitations({ missing, onCitationChange, onSubmit }) {
                     </div>
                 </div>
             ))}
-            <button onClick={onSubmit} className='formSubmit'>Submit Citations</button>
+            <button onClick={handleSubmit} className='formSubmit' disabled={!allFieldsFilled}>
+                Submit Citations
+            </button>
         </div>
     );
 }
 
 export default MissingCitations;
+
 
 
 
