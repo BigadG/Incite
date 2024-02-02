@@ -2,13 +2,29 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    width: 50%;
+    width: 65%;
     margin: 20px auto;
-    padding: 20px;
+    padding: 10px;
     background-color: #333333; /* slightly lighter than the main background for contrast */
     border-radius: 10px;
     border: 3px solid lightblue;
     color: rgb(180, 0, 0);
+}
+
+.citation-title {
+    border-style: solid;
+    padding: 5px;
+    border-radius: 5px;
+    color: #222222;
+}
+
+.citation-section {
+    width: 95%;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #333333; /* Same as missing-citations */
+    border-radius: 10px;
+    border: 3px solid lightblue;
 }
 
 .missing-citations h3 {
@@ -46,3 +62,18 @@
     color: #aaa;
 }
 
+.formSubmit {
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: none;
+    background-color: lightblue;
+    color: #333333;
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    cursor: pointer;
+    align-self: center;
+}
+
+.formSubmit:hover {
+    background-color: rgb(123, 207, 235);
+}
