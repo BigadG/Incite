@@ -107,11 +107,7 @@ function InciteForm() {
           console.log('Response received from generateEssayWithSelections:', response.data);
     
           if (response.data.missingCitations && response.data.missingCitations.length > 0) {
-            setMissingCitations(response.data.missingCitations.map(citation => ({
-                ...citation,
-                author: citation.missingFields.author ? '' : citation.author, // Initialize with empty string if author is missing
-                publicationDate: citation.missingFields.publicationDate ? '' : citation.publicationDate // Initialize with empty string if publicationDate is missing
-            })));
+            setMissingCitations(response.data.missingCitations);
           } else {
               setResult(response.data.essay);
               setMissingCitations([]);
