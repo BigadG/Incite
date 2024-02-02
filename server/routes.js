@@ -147,6 +147,7 @@ const generateEssayWithSelections = async (req, res) => {
 
     // If an essay was generated successfully, send it back to the client
     res.status(200).json({ essay: essayContentResult });
+    console.log('Response received from generateEssayWithSelections:', response.data.missingCitations);
   } catch (error) {
     console.error('Error generating essay with selections:', error);
     res.status(500).json({ message: 'Error generating essay with selections', error: error.toString() });
@@ -243,9 +244,3 @@ router.delete('/deleteSelection/:pageId', async (req, res) => {
 router.post('/generateEssayWithSelections', generateEssayWithSelections);
 
 module.exports = { router, register, generateEssay, fetchAndProcessPage, generateEssayWithSelections };
-
-
-
-
-
-
