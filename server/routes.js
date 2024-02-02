@@ -96,8 +96,6 @@ const generateEssayWithSelections = async (req, res) => {
       return res.status(400).json({ message: 'Invalid input' });
     }
 
-    const validatedBodyPremises = Array.isArray(bodyPremises) ? bodyPremises : [];
-
     const db = await connect();
     const uuid = req.userId;
     const user = await db.collection('Users').findOne({ uuid });
@@ -122,15 +120,15 @@ const generateEssayWithSelections = async (req, res) => {
     }
 
     // Check for missing citation information in selections
-    let missingCitationsResponse = selections.filter(sel => !sel.author || !sel.publicationDate).map(sel => {
+    let missingCitationsResponse = selections.map(sel => {
       return {
         url: sel.url,
         missingFields: {
-          author: !sel.author,
+          author: !sel.author || sel.author === 'Unknown',
           publicationDate: !sel.publicationDate,
         }
       };
-    });
+    }).filter(sel => sel.missingFields.author || sel.missingFields.publicationDate);
 
     if (missingCitationsResponse.length > 0) {
       // Respond with missing citation information
@@ -138,21 +136,22 @@ const generateEssayWithSelections = async (req, res) => {
       return res.status(200).json({ missingCitations: missingCitationsResponse });
     }
 
-    // Assuming contentFromPages is generated here or earlier in the function
-    const contentFromPages = await Promise.allSettled(urls.map(url => fetchAndProcessPage(url)))
-      .then(results => results.filter(result => result.status === 'fulfilled').map(result => result.value));
+    // Fetch content from pages, process it, and generate essay content
+    // (This part of the code assumes you have a function fetchAndProcessPage defined elsewhere)
+    const contentFromPages = await Promise.all(urls.map(url => fetchAndProcessPage(url)))
+      .then(results => results.join("\n\n"));
 
-    // Proceed with essay generation if no missing citations
-    const essayContentResult = await generateEssayContent({ thesis, bodyPremises: validatedBodyPremises, contentFromPages: contentFromPages.join("\n\n"), selections });
+    // Generate the essay content
+    const essayContentResult = await generateEssayContent({ thesis, bodyPremises }, contentFromPages, selections);
 
     // If an essay was generated successfully, send it back to the client
     res.status(200).json({ essay: essayContentResult });
-    console.log('Response received from generateEssayWithSelections:', response.data.missingCitations);
   } catch (error) {
     console.error('Error generating essay with selections:', error);
     res.status(500).json({ message: 'Error generating essay with selections', error: error.toString() });
   }
 };
+
 
 
 const register = async (req, res) => {
