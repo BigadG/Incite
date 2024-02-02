@@ -14,7 +14,8 @@ function InciteForm() {
     const [isLoading, setIsLoading] = useState(false);
     const [loadingText, setLoadingText] = useState('Loading...');
     const [missingCitations, setMissingCitations] = useState([]);
-    const [isPageVisible, setIsPageVisible] = useState(true);  // State for tracking page visibility
+    const [isPageVisible, setIsPageVisible] = useState(true);
+    const [formValid, setFormValid] = useState(true);
 
     const handleChange = (index) => (event) => {
         const newInputs = [...inputs];
@@ -99,6 +100,10 @@ function InciteForm() {
 
     const handleSubmit = async (event) => {
         if (event) event.preventDefault();
+        if (!formValid) {
+            console.log('Form is not valid. Please fill all required fields.');
+            return;
+        }
         setIsLoading(true);
 
         const dataToSend = {
@@ -151,8 +156,13 @@ function InciteForm() {
     }, [isLoading]);
 
     useEffect(() => {
-      console.log('Updated missingCitations state:', missingCitations);
-  }, [missingCitations]);
+        console.log('Updated missingCitations state:', missingCitations);
+    }, [missingCitations]);
+
+    // Callback to update the form validity based on missing citations
+    const updateFormValidity = (isValid) => {
+        setFormValid(isValid);
+    };
   
     return (
         <main>
@@ -176,6 +186,7 @@ function InciteForm() {
                         missing={missingCitations}
                         onCitationChange={handleCitationChange}
                         onSubmit={handleMissingCitationSubmit}
+                        updateFormValidity={updateFormValidity}
                     />
                 )}
                 <ResultTextArea
@@ -184,12 +195,12 @@ function InciteForm() {
                     result={result}
                 />
                 <br />
-                <button type="submit" className="submit">Sum It!</button>
+                <button type="submit" className="submit" disabled={!formValid || isLoading}>
+                    Sum It!
+                </button>
             </form>
         </main>
     );
 }
 
 export default InciteForm;
-
-

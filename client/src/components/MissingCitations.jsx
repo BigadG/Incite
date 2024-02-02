@@ -1,21 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../styles/MissingCitations.css';
 
-function MissingCitations({ missing, onCitationChange, onSubmit }) {
-    const [touched, setTouched] = useState(false);
+function MissingCitations({ missing, onCitationChange, onSubmit, updateFormValidity }) {
+    const [localMissingCitations, setLocalMissingCitations] = useState(missing);
 
-    // Check if all fields are filled
-    const allFieldsFilled = missing.every(citation => {
-        return (!citation.missingFields.author || citation.author) && 
-               (!citation.missingFields.publicationDate || citation.publicationDate);
-    });
+    // When localMissingCitations change, validate the form and inform the parent component
+    useEffect(() => {
+        const isValid = localMissingCitations.every(citation => 
+            (!citation.missingFields.author || citation.author) &&
+            (!citation.missingFields.publicationDate || citation.publicationDate)
+        );
+        updateFormValidity(isValid); // Inform the parent about the validation status
+    }, [localMissingCitations, updateFormValidity]);
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        if (allFieldsFilled) {
+    const handleCitationChange = (index, field, value) => {
+        const updatedCitations = [...localMissingCitations];
+        updatedCitations[index] = { ...updatedCitations[index], [field]: value };
+        setLocalMissingCitations(updatedCitations); // Update local state
+        onCitationChange(index, field, value); // Update parent state
+    };
+
+    const handleSubmit = () => {
+        // Perform submission if the local validation passes
+        const isValid = localMissingCitations.every(citation => 
+            (!citation.missingFields.author || citation.author) &&
+            (!citation.missingFields.publicationDate || citation.publicationDate)
+        );
+        if (isValid) {
             onSubmit();
-        } else {
-            setTouched(true); // User has attempted to submit, so trigger validation display
         }
     };
 
@@ -28,12 +40,12 @@ function MissingCitations({ missing, onCitationChange, onSubmit }) {
                     <div className="input-container">  
                         {citation.missingFields.author && (
                             <div className="input-pair">
-                                <label className={`input-label ${!citation.author && touched ? 'input-label-missing' : ''}`}>
+                                <label className={`input-label ${validation[`${index}-author`] ? 'input-label-missing' : ''}`}>
                                     Author's name:
                                 </label>
                                 <input
                                     type="text"
-                                    onChange={(e) => onCitationChange(index, 'author', e.target.value)}
+                                    onChange={(e) => handleCitationChange(index, 'author', e.target.value)}
                                     placeholder="Author's name"
                                     value={citation.author || ''}
                                 />
@@ -42,13 +54,13 @@ function MissingCitations({ missing, onCitationChange, onSubmit }) {
                         {citation.missingFields.publicationDate && (
                             <div className="input-pair">
                                 <label htmlFor={`publication-date-${index}`} 
-                                       className={`input-label ${!citation.publicationDate && touched ? 'input-label-missing' : ''}`}>
+                                       className={`input-label ${validation[`${index}-publicationDate`] ? 'input-label-missing' : ''}`}>
                                     Publication Date:
                                 </label>
                                 <input
                                     id={`publication-date-${index}`}
                                     type="date"
-                                    onChange={(e) => onCitationChange(index, 'publicationDate', e.target.value)}
+                                    onChange={(e) => handleCitationChange(index, 'publicationDate', e.target.value)}
                                     value={citation.publicationDate || ''}
                                 />
                             </div>
@@ -56,7 +68,7 @@ function MissingCitations({ missing, onCitationChange, onSubmit }) {
                     </div>
                 </div>
             ))}
-            <button onClick={handleSubmit} className='formSubmit' disabled={!allFieldsFilled}>
+            <button onClick={handleSubmit} className='formSubmit'>
                 Submit Citations
             </button>
         </div>
@@ -64,6 +76,7 @@ function MissingCitations({ missing, onCitationChange, onSubmit }) {
 }
 
 export default MissingCitations;
+
 
 
 
