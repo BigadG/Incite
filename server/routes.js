@@ -122,6 +122,7 @@ const generateEssayWithSelections = async (req, res) => {
     // Check for missing citation information in selections
     let missingCitationsResponse = selections.map(sel => {
       return {
+        title: sel.title, // Include the title in the response
         url: sel.url,
         missingFields: {
           author: !sel.author || sel.author === 'Unknown',
@@ -136,10 +137,9 @@ const generateEssayWithSelections = async (req, res) => {
       return res.status(200).json({ missingCitations: missingCitationsResponse });
     }
 
-    // Fetch content from pages, process it, and generate essay content
-    // (This part of the code assumes you have a function fetchAndProcessPage defined elsewhere)
+    // Assuming contentFromPages is generated here or earlier in the function
     const contentFromPages = await Promise.all(urls.map(url => fetchAndProcessPage(url)))
-      .then(results => results.join("\n\n"));
+      .then(results => results.filter(result => result.status === 'fulfilled').map(result => result.value).join("\n\n"));
 
     // Generate the essay content
     const essayContentResult = await generateEssayContent({ thesis, bodyPremises }, contentFromPages, selections);
@@ -151,8 +151,6 @@ const generateEssayWithSelections = async (req, res) => {
     res.status(500).json({ message: 'Error generating essay with selections', error: error.toString() });
   }
 };
-
-
 
 const register = async (req, res) => {
   try {
