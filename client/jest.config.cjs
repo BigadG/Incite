@@ -9,6 +9,10 @@ module.exports = {
   transform: {
     '^.+\\.jsx?$': 'babel-jest',
   },
+  transformIgnorePatterns: [
+    // ...
+    'node_modules/(?!(query-string)/)', // Add this line to include the query-string package
+  ],
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
     '\\.(gif|ttf|eot|svg|png|jpg)$': '<rootDir>/__mocks__/fileMock.js'
