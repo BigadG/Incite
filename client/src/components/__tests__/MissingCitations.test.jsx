@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import MissingCitations from '../MissingCitations';
 import axios from 'axios';
-import { act } from '@testing-library/react';
+import { act } from 'react-dom/test-utils';
 
 // Mock axios module for all tests in this file
 jest.mock('axios');
@@ -50,14 +50,18 @@ describe('MissingCitations Component', () => {
     const authorInput = screen.getByPlaceholderText("Author's name");
     const publicationDateInput = screen.getByLabelText("Publication Date:");
 
-    await act(async () => {
-      // Simulate user typing an author name
-      await userEvent.type(authorInput, 'Jane Doe');
-      expect(mockOnCitationChange).toHaveBeenCalledWith(0, 'author', 'Jane Doe');
+    // Simulate user typing an author name
+    await userEvent.type(authorInput, 'Jane Doe');
+    // Wait for all typing events to be processed
+    await waitFor(() => {
+      expect(mockOnCitationChange).toHaveBeenLastCalledWith(0, 'author', 'Jane Doe');
+    });
 
-      // Simulate user adding a publication date
-      await userEvent.type(publicationDateInput, '2021-01-01');
-      expect(mockOnCitationChange).toHaveBeenCalledWith(0, 'publicationDate', '2021-01-01');
+    // Simulate user adding a publication date
+    await userEvent.type(publicationDateInput, '2021-01-01');
+    // Ensure the publication date change is processed
+    await waitFor(() => {
+      expect(mockOnCitationChange).toHaveBeenLastCalledWith(0, 'publicationDate', '2021-01-01');
     });
   });
 
@@ -68,12 +72,10 @@ describe('MissingCitations Component', () => {
 
     axios.post.mockResolvedValue({ status: 200 });
 
-    await act(async () => {
-      // Simulate user input
-      await userEvent.type(authorInput, 'Jane Doe');
-      await userEvent.type(publicationDateInput, '2021-01-01');
-      userEvent.click(submitButton);
-    });
+    // Simulate user input
+    await userEvent.type(authorInput, 'Jane Doe');
+    await userEvent.type(publicationDateInput, '2021-01-01');
+    userEvent.click(submitButton);
 
     await waitFor(() => {
       expect(axios.post).toHaveBeenCalledWith('http://localhost:3001/api/updateSelections', expect.any(Object), expect.any(Object));
@@ -81,3 +83,4 @@ describe('MissingCitations Component', () => {
     });
   });
 });
+

@@ -38,11 +38,12 @@ describe('InciteForm Component', () => {
 
   test('submits form and generates essay', async () => {
     await act(async () => {
-      render(<InciteForm />);
+        render(<InciteForm />);
     });    
-    const thesisInput = screen.getByLabelText('Thesis:');
-    const bodyPremisesInput = screen.getByLabelText('Body Premises:');
+    const thesisInput = screen.getByLabelText('Essay Premise:'); // Corrected label text
+    const bodyPremisesInput = screen.getAllByLabelText('Body Premises:')[0]; // Assuming there could be multiple, access the first if needed
     const submitButton = screen.getByRole('button', { name: 'Sum It!' });
+  
 
     // Mock the axios post request for essay generation
     axios.post.mockResolvedValueOnce({ status: 200, data: { essay: 'Generated Essay' } });
