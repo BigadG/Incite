@@ -1,3 +1,4 @@
+import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import MissingCitations from '../MissingCitations';
@@ -49,13 +50,15 @@ describe('MissingCitations Component', () => {
     const authorInput = screen.getByPlaceholderText("Author's name");
     const publicationDateInput = screen.getByLabelText("Publication Date:");
 
-    // Simulate user typing an author name
-    await userEvent.type(authorInput, 'Jane Doe');
-    expect(mockOnCitationChange).toHaveBeenCalledWith(0, 'author', 'Jane Doe');
+    await act(async () => {
+      // Simulate user typing an author name
+      await userEvent.type(authorInput, 'Jane Doe');
+      expect(mockOnCitationChange).toHaveBeenCalledWith(0, 'author', 'Jane Doe');
 
-    // Simulate user adding a publication date
-    await userEvent.type(publicationDateInput, '2021-01-01');
-    expect(mockOnCitationChange).toHaveBeenCalledWith(0, 'publicationDate', '2021-01-01');
+      // Simulate user adding a publication date
+      await userEvent.type(publicationDateInput, '2021-01-01');
+      expect(mockOnCitationChange).toHaveBeenCalledWith(0, 'publicationDate', '2021-01-01');
+    });
   });
 
   test('submits when all inputs are valid and sends data to the server', async () => {
@@ -63,13 +66,14 @@ describe('MissingCitations Component', () => {
     const publicationDateInput = screen.getByLabelText("Publication Date:");
     const submitButton = screen.getByRole('button', { name: /submit citations/i });
 
-    // Mock the axios post request
     axios.post.mockResolvedValue({ status: 200 });
 
-    // Simulate user input
-    await userEvent.type(authorInput, 'Jane Doe');
-    await userEvent.type(publicationDateInput, '2021-01-01');
-    await userEvent.click(submitButton);
+    await act(async () => {
+      // Simulate user input
+      await userEvent.type(authorInput, 'Jane Doe');
+      await userEvent.type(publicationDateInput, '2021-01-01');
+      userEvent.click(submitButton);
+    });
 
     await waitFor(() => {
       expect(axios.post).toHaveBeenCalledWith('http://localhost:3001/api/updateSelections', expect.any(Object), expect.any(Object));
