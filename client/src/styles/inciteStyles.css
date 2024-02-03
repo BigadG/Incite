@@ -89,3 +89,7 @@ label {
 .add-button:focus, .submit:focus {
     box-shadow: 0px 3px 5px;
 }
+
+.input-label-missing {
+    color: rgb(180, 0, 0);
+}
