@@ -1,8 +1,8 @@
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import MissingCitations from '../MissingCitations';
 import axios from 'axios';
+import { act } from '@testing-library/react';
 
 // Mock axios module for all tests in this file
 jest.mock('axios');
