@@ -90,7 +90,17 @@ function MissingCitations({ missing, onCitationChange, onSubmit }) {
 
 export default MissingCitations;
 
+import PropTypes from 'prop-types';
 
+MissingCitations.propTypes = {
+  missing: PropTypes.arrayOf(PropTypes.shape({
+    title: PropTypes.string.isRequired,
+    url: PropTypes.string.isRequired,
+    missingFields: PropTypes.object.isRequired,
+  })).isRequired,
+  onCitationChange: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+};
 
 
 

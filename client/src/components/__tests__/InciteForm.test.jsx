@@ -3,6 +3,11 @@ import userEvent from '@testing-library/user-event';
 import InciteForm from '../InciteForm';
 import axios from 'axios';
 
+jest.mock('query-string', () => ({
+    parse: jest.fn(() => ({ uuid: 'mock-uuid' })), // Simulates parsing the URL query to return a mock uuid
+    stringify: jest.fn(),
+  }));   
+
 jest.mock('axios');
 
 describe('InciteForm Component', () => {
