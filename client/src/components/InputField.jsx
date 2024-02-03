@@ -2,11 +2,9 @@ import PropTypes from 'prop-types';
 
 function InputField({ index, value, handleChange }) {
     return (
-      <div>
-        {index === 0 ? (
+      <div key={`input-wrapper-${index}`}>
+        {index === 0 && (
           <label htmlFor="premise">Essay Premise:</label>
-        ) : (
-          <label htmlFor={`input${index}-Id`}>Body Premises:</label>
         )}
         <input
           type="text"
@@ -28,3 +26,4 @@ InputField.propTypes = {
 };
 
 export default InputField;
+

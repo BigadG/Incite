@@ -159,10 +159,17 @@ function InciteForm() {
         <main>
             <h1>INCITE</h1>
             <form onSubmit={handleSubmit}>
-                {inputs.map((input, index) => (
+                <InputField
+                    key={`input-0`}
+                    index={0}
+                    value={inputs[0]}
+                    handleChange={handleChange}
+                />
+                <label htmlFor={`input1-Id`}>Body Premises:</label>
+                {inputs.slice(1).map((input, index) => (
                     <InputField
-                        key={`input-${index}`}
-                        index={index}
+                        key={`input-${index + 1}`}
+                        index={index + 1}
                         value={input}
                         handleChange={handleChange}
                     />
