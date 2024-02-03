@@ -1,9 +1,10 @@
 // MissingCitations.test.js
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import MissingCitations from './MissingCitations';
+import MissingCitations from '../MissingCitations';
 import axios from 'axios';
+
 
 // Mock axios module for all tests in this file
 jest.mock('axios');

@@ -3,17 +3,18 @@ module.exports = {
   moduleFileExtensions: ['js', 'jsx', 'json', 'node'],
   testEnvironment: 'jsdom',
   testMatch: [
-    '**/tests/**/*.[jt]s?(x)',
+    '**/__tests__/**/*.[jt]s?(x)',
     '**/?(*.)+(spec|test).[tj]s?(x)'
   ],
   transform: {
-    '^.+\\.jsx?$': 'babel-jest',
+    '^.+\\.[tj]sx?$': 'babel-jest'
   },
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
     '\\.(gif|ttf|eot|svg|png|jpg)$': '<rootDir>/__mocks__/fileMock.js'
   },
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  setupFilesAfterEnv: ['<rootDir>/src/setupTests.js']
 };
+
 
   

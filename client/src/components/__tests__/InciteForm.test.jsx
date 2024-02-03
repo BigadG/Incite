@@ -2,7 +2,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import InciteForm from './InciteForm';
+import InciteForm from '../InciteForm';
 import axios from 'axios';
 
 jest.mock('axios');
