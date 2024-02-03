@@ -2,17 +2,28 @@ import React, { useState } from 'react';
 import '../styles/MissingCitations.css';
 
 function MissingCitations({ missing, onCitationChange, onSubmit }) {
-    const [submissionAttempted, setSubmissionAttempted] = useState(false);
+    const [validInputs, setValidInputs] = useState(missing.map(() => ({
+        author: true,
+        publicationDate: true,
+    })));
 
-    const handleFormSubmit = () => {
-        const allFilled = missing.every(citation => {
-            return (!citation.missingFields.author || citation.author) && (!citation.missingFields.publicationDate || citation.publicationDate);
-        });
+    const validateInputs = () => {
+        const inputsValidity = missing.map((citation, index) => ({
+            author: !citation.missingFields.author || (citation.author && citation.author.trim() !== ''),
+            publicationDate: !citation.missingFields.publicationDate || (citation.publicationDate && citation.publicationDate.trim() !== ''),
+        }));
 
-        if (allFilled) {
-            onSubmit(); // Proceed with submission as all fields are filled.
-        } else {
-            setSubmissionAttempted(true); // Prevent submission and trigger visual feedback.
+        setValidInputs(inputsValidity);
+
+        return inputsValidity.every(inputValidity => Object.values(inputValidity).every(isValid => isValid));
+    };
+
+    const handleFormSubmit = (e) => {
+        e.preventDefault(); // Prevent form submission to check for validation
+        const allInputsValid = validateInputs();
+
+        if (allInputsValid) {
+            onSubmit(); // Only proceed with submission if all inputs are valid
         }
     };
 
@@ -21,31 +32,33 @@ function MissingCitations({ missing, onCitationChange, onSubmit }) {
             <h3>Missing Citation Information</h3>
             {missing.map((citation, index) => (
                 <div key={`citation-${index}`} className="citation-section">
-                    {/* Existing content */}
-                    {citation.missingFields.author && (
-                        <div className="input-pair">
-                            <label className="input-label">Author's name:</label>
-                            <input
-                                className={submissionAttempted && !citation.author ? 'input-error' : ''}
-                                type="text"
-                                onChange={(e) => onCitationChange(index, 'author', e.target.value)}
-                                placeholder="Author's name"
-                                value={citation.author || ''}
-                            />
-                        </div>
-                    )}
-                    {citation.missingFields.publicationDate && (
-                        <div className="input-pair">
-                            <label htmlFor={`publication-date-${index}`} className="input-label">Publication Date:</label>
-                            <input
-                                className={submissionAttempted && !citation.publicationDate ? 'input-error' : ''}
-                                id={`publication-date-${index}`}
-                                type="date"
-                                onChange={(e) => onCitationChange(index, 'publicationDate', e.target.value)}
-                                value={citation.publicationDate || ''}
-                            />
-                        </div>
-                    )}
+                    <label className="citation-title">{`INFO FOR: ${citation.title}`}</label>
+                    <div className="input-container">  
+                        {citation.missingFields.author && (
+                            <div className="input-pair">
+                                <label className="input-label">Author's name:</label>
+                                <input
+                                    type="text"
+                                    onChange={(e) => onCitationChange(index, 'author', e.target.value)}
+                                    placeholder="Author's name"
+                                    value={citation.author || ''}
+                                    className={!validInputs[index].author ? 'invalid-input' : ''}
+                                />
+                            </div>
+                        )}
+                        {citation.missingFields.publicationDate && (
+                            <div className="input-pair">
+                                <label htmlFor={`publication-date-${index}`} className="input-label">Publication Date:</label>
+                                <input
+                                    id={`publication-date-${index}`}
+                                    type="date"
+                                    onChange={(e) => onCitationChange(index, 'publicationDate', e.target.value)}
+                                    value={citation.publicationDate || ''}
+                                    className={!validInputs[index].publicationDate ? 'invalid-input' : ''}
+                                />
+                            </div>
+                        )}
+                    </div>
                 </div>
             ))}
             <button onClick={handleFormSubmit} className='formSubmit'>Submit Citations</button>
