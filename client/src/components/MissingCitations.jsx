@@ -8,7 +8,7 @@ function MissingCitations({ missing, onCitationChange, onSubmit }) {
     })));
 
     useEffect(() => {
-        // Update validInputs state when missing citations change
+        // Update validInputs based on the current missing prop to reflect updates
         setValidInputs(missing.map(() => ({
             author: true,
             publicationDate: true,
@@ -35,7 +35,6 @@ function MissingCitations({ missing, onCitationChange, onSubmit }) {
         }
     };
 
-    // Render the component
     return (
         <div className="missing-citations">
             <h3>Missing Citation Information</h3>

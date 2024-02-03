@@ -55,8 +55,8 @@ function InciteForm() {
         }
     }, []);
 
-    // Handle visibility change
     useEffect(() => {
+        // Handle visibility change to fetch selections when the page is visible
         const handleVisibilityChange = () => {
             setIsPageVisible(document.visibilityState === 'visible');
         };
@@ -65,7 +65,6 @@ function InciteForm() {
         return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
     }, []);
 
-    // Fetch selections when the page is visible
     useEffect(() => {
         if (isPageVisible) {
             fetchSelections();
@@ -73,13 +72,11 @@ function InciteForm() {
     }, [isPageVisible, fetchSelections]);
 
     const handleMissingCitationSubmit = async () => {
-        const updatedSelections = missingCitations.map(citation => {
-            return {
-                url: citation.url,
-                author: citation.author,
-                publicationDate: citation.publicationDate
-            };
-        });
+        const updatedSelections = missingCitations.map(citation => ({
+            url: citation.url,
+            author: citation.author,
+            publicationDate: citation.publicationDate,
+        }));
 
         try {
             const response = await axios.post('http://localhost:3001/api/updateSelections', { updatedSelections, uuid }, {
@@ -89,8 +86,10 @@ function InciteForm() {
             });
 
             if (response.status === 200) {
-                setMissingCitations([]); // Clear the missing citations after successful update
-                handleSubmit(); // Proceed to generate the essay
+                // Re-fetch selections or verify submission success
+                // Potentially additional logic here to confirm update success
+                setMissingCitations([]); // Clear missing citations to reflect success
+                handleSubmit(); // Attempt to generate the essay now
             } else {
                 console.error('Failed to update selections:', response.statusText);
             }
