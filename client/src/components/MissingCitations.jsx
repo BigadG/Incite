@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../styles/MissingCitations.css';
 
 function MissingCitations({ missing, onCitationChange, onSubmit }) {
@@ -6,6 +6,14 @@ function MissingCitations({ missing, onCitationChange, onSubmit }) {
         author: true,
         publicationDate: true,
     })));
+
+    useEffect(() => {
+        // Update validInputs state when missing citations change
+        setValidInputs(missing.map(() => ({
+            author: true,
+            publicationDate: true,
+        })));
+    }, [missing]);
 
     // Function to check the validity of all inputs
     const validateInputs = () => {
@@ -21,9 +29,9 @@ function MissingCitations({ missing, onCitationChange, onSubmit }) {
 
     // Handle form submission
     const handleFormSubmit = (e) => {
-        e.preventDefault(); // Prevent form submission to check for validation
+        e.preventDefault(); // Prevent default form submission
         if (validateInputs()) {
-            onSubmit(); // Only proceed with submission if all inputs are valid
+            onSubmit(); // Proceed with submission if all inputs are valid
         }
     };
 
@@ -33,7 +41,7 @@ function MissingCitations({ missing, onCitationChange, onSubmit }) {
             <h3>Missing Citation Information</h3>
             {missing.map((citation, index) => (
                 <div key={`citation-${index}`} className="citation-section">
-                    <label className="citation-title">{`INFO FOR: ${citation.title}`}</label>
+                    <label className="citation-title">{`${citation.title}`}</label>
                     <div className="input-container">
                         {citation.missingFields.author && (
                             <div className="input-pair">

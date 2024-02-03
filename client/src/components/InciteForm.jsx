@@ -14,7 +14,7 @@ function InciteForm() {
     const [isLoading, setIsLoading] = useState(false);
     const [loadingText, setLoadingText] = useState('Loading...');
     const [missingCitations, setMissingCitations] = useState([]);
-    const [isPageVisible, setIsPageVisible] = useState(true);  // State for tracking page visibility
+    const [isPageVisible, setIsPageVisible] = useState(true);
 
     const handleChange = (index) => (event) => {
         const newInputs = [...inputs];
@@ -55,20 +55,17 @@ function InciteForm() {
         }
     }, []);
 
+    // Handle visibility change
     useEffect(() => {
-        // Event handler for page visibility change
         const handleVisibilityChange = () => {
             setIsPageVisible(document.visibilityState === 'visible');
         };
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
-        handleVisibilityChange(); // Set initial visibility state
-
-        return () => {
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
-        };
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
     }, []);
 
+    // Fetch selections when the page is visible
     useEffect(() => {
         if (isPageVisible) {
             fetchSelections();
@@ -85,13 +82,18 @@ function InciteForm() {
         });
 
         try {
-            await axios.post('http://localhost:3001/api/updateSelections', { updatedSelections, uuid }, {
+            const response = await axios.post('http://localhost:3001/api/updateSelections', { updatedSelections, uuid }, {
                 headers: {
                     'Authorization': `Bearer ${uuid}`
                 }
             });
 
-            handleSubmit(); // This will now generate the essay without missing citations.
+            if (response.status === 200) {
+                setMissingCitations([]); // Clear the missing citations after successful update
+                handleSubmit(); // Proceed to generate the essay
+            } else {
+                console.error('Failed to update selections:', response.statusText);
+            }
         } catch (error) {
             console.error('Error updating selections:', error);
         }
