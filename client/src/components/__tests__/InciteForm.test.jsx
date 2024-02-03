@@ -2,12 +2,12 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import InciteForm from '../InciteForm';
 import axios from 'axios';
-import { act } from '@testing-library/react';
+import { act } from 'react-dom/test-utils';
 
 jest.mock('query-string', () => ({
-    parse: jest.fn(() => ({ uuid: 'mock-uuid' })), // Simulates parsing the URL query to return a mock uuid
-    stringify: jest.fn(),
-  }));   
+  parse: jest.fn(() => ({ uuid: 'mock-uuid' })), // Simulates parsing the URL query to return a mock uuid
+  stringify: jest.fn(),
+}));
 
 jest.mock('axios');
 
@@ -25,20 +25,20 @@ describe('InciteForm Component', () => {
     axios.get.mockResolvedValue({ status: 200, data: mockSelections });
 
     await act(async () => {
-        render(<InciteForm />);
-      });
+      render(<InciteForm />);
+    });
 
     await waitFor(() => {
       expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('selections'), expect.any(Object));
-      mockSelections.forEach(selection => {
-        expect(screen.findByText(selection.url)).toBeInTheDocument();
+      mockSelections.forEach(async (selection) => {
+        expect(await screen.findByText(selection.url)).toBeInTheDocument();
       });
     });
   });
 
   test('submits form and generates essay', async () => {
     await act(async () => {
-        render(<InciteForm />);
+      render(<InciteForm />);
     });    
     const thesisInput = screen.getByLabelText('Thesis:');
     const bodyPremisesInput = screen.getByLabelText('Body Premises:');
@@ -62,4 +62,3 @@ describe('InciteForm Component', () => {
     });
   });
 });
-

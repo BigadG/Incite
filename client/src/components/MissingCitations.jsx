@@ -1,105 +1,88 @@
-import { useState, useEffect } from 'react';
-import '../styles/MissingCitations.css';
-import PropTypes from 'prop-types';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import MissingCitations from '../MissingCitations';
+import axios from 'axios';
+import { act } from 'react-dom/test-utils';
 
-function MissingCitations({ missing, onCitationChange, onSubmit }) {
-    const [validInputs, setValidInputs] = useState(missing.map(() => ({
+// Mock axios module for all tests in this file
+jest.mock('axios');
+
+describe('MissingCitations Component', () => {
+  const mockOnSubmit = jest.fn();
+  const mockOnCitationChange = jest.fn();
+  const missingCitationsData = [
+    {
+      title: "Sample Article",
+      url: "http://example.com",
+      missingFields: {
         author: true,
         publicationDate: true,
-    })));
+      },
+    },
+  ];
 
-    useEffect(() => {
-        // Update validInputs based on the current missing prop to reflect updates
-        setValidInputs(missing.map(() => ({
-            author: true,
-            publicationDate: true,
-        })));
-    }, [missing]);
+  beforeEach(() => {
+    // Clear all mocks before each test
+    jest.clearAllMocks();
+    render(<MissingCitations missing={missingCitationsData} onCitationChange={mockOnCitationChange} onSubmit={mockOnSubmit} />);
+  });
 
-    // Function to check the validity of all inputs
-    const validateInputs = () => {
-        const inputsValidity = missing.map((citation) => ({
-            author: !citation.missingFields.author || (citation.author && citation.author.trim() !== ''),
-            publicationDate: !citation.missingFields.publicationDate || (citation.publicationDate && citation.publicationDate.trim() !== ''),
-        }));
+  test('renders with initial state', () => {
+    expect(screen.getByText("Missing Citation Information")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Author's name")).toBeInTheDocument();
+    expect(screen.getByLabelText("Publication Date:")).toBeInTheDocument();
+  });
 
-        setValidInputs(inputsValidity);
+  test('validates input fields and does not submit with empty fields', async () => {
+    const submitButton = screen.getByRole('button', { name: /submit citations/i });
+    await userEvent.click(submitButton);
 
-        return inputsValidity.every(inputValidity => Object.values(inputValidity).every(isValid => isValid));
-    };
+    // Should not call onSubmit when inputs are invalid
+    expect(mockOnSubmit).not.toHaveBeenCalled();
 
-    // Handle form submission
-    const handleFormSubmit = (e) => {
-        e.preventDefault(); // Prevent default form submission
-        if (!validateInputs()) {
-            // If validation fails, proceed with showing invalid input styles
-            // This will already have been handled by validateInputs updating validInputs state
-        } else {
-            onSubmit(); // Proceed with submission if all inputs are valid
-        }
-    };
+    await waitFor(() => {
+      const invalidInputs = screen.getAllByRole('textbox').filter(input => input.className.includes('invalid-input'));
+      expect(invalidInputs.length).toBeGreaterThan(0);
+    });
+  });
 
-    return (
-        <div className="missing-citations">
-            <h3>Missing Citation Information</h3>
-            {missing.map((citation, index) => (
-                <div key={`citation-${index}`} className="citation-section">
-                    <label className="citation-title">{`${citation.title}`}</label>
-                    <div className="input-container">
-                        {citation.missingFields.author && (
-                            <div className="input-pair">
-                                <label htmlFor={`author-${index}`} className={`input-label ${!validInputs[index].author ? 'invalid-label' : ''}`}>
-                                    Author&apos;s name:
-                                </label>
-                                <input
-                                    id={`author-${index}`}
-                                    type="text"
-                                    onChange={(e) => {
-                                        onCitationChange(index, 'author', e.target.value);
-                                        setValidInputs(inputs => inputs.map((input, i) => i === index ? { ...input, author: e.target.value.trim() !== '' } : input));
-                                    }}
-                                    placeholder="Author's name"
-                                    value={citation.author || ''}
-                                    className={!validInputs[index].author ? 'invalid-input' : ''}
-                                />
-                            </div>
-                        )}
-                        {citation.missingFields.publicationDate && (
-                            <div className="input-pair">
-                                <label htmlFor={`publication-date-${index}`} className={`input-label ${!validInputs[index].publicationDate ? 'invalid-label' : ''}`}>
-                                    Publication Date:
-                                </label>
-                                <input
-                                    id={`publication-date-${index}`}
-                                    type="date"
-                                    onChange={(e) => {
-                                        onCitationChange(index, 'publicationDate', e.target.value);
-                                        setValidInputs(inputs => inputs.map((input, i) => i === index ? { ...input, publicationDate: e.target.value.trim() !== '' } : input));
-                                    }}
-                                    value={citation.publicationDate || ''}
-                                    className={!validInputs[index].publicationDate ? 'invalid-input' : ''}
-                                />
-                            </div>
-                        )}
-                    </div>
-                </div>
-            ))}
-            <button onClick={handleFormSubmit} className="formSubmit">Submit Citations</button>
-        </div>
-    );
-}
+  test('accepts input and validates correctly', async () => {
+    const authorInput = screen.getByPlaceholderText("Author's name");
+    const publicationDateInput = screen.getByLabelText("Publication Date:");
 
-MissingCitations.propTypes = {
-  missing: PropTypes.arrayOf(PropTypes.shape({
-    title: PropTypes.string.isRequired,
-    url: PropTypes.string.isRequired,
-    missingFields: PropTypes.object.isRequired,
-  })).isRequired,
-  onCitationChange: PropTypes.func.isRequired,
-  onSubmit: PropTypes.func.isRequired,
-};
+    // Simulate user typing an author name
+    await userEvent.type(authorInput, 'Jane Doe');
+    // Wait for all typing events to be processed
+    await waitFor(() => {
+      expect(mockOnCitationChange).toHaveBeenLastCalledWith(0, 'author', 'Jane Doe');
+    });
 
-export default MissingCitations;
+    // Simulate user adding a publication date
+    await userEvent.type(publicationDateInput, '2021-01-01');
+    // Ensure the publication date change is processed
+    await waitFor(() => {
+      expect(mockOnCitationChange).toHaveBeenLastCalledWith(0, 'publicationDate', '2021-01-01');
+    });
+  });
+
+  test('submits when all inputs are valid and sends data to the server', async () => {
+    const authorInput = screen.getByPlaceholderText("Author's name");
+    const publicationDateInput = screen.getByLabelText("Publication Date:");
+    const submitButton = screen.getByRole('button', { name: /submit citations/i });
+
+    axios.post.mockResolvedValue({ status: 200 });
+
+    // Simulate user input
+    await userEvent.type(authorInput, 'Jane Doe');
+    await userEvent.type(publicationDateInput, '2021-01-01');
+    userEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith('http://localhost:3001/api/updateSelections', expect.any(Object), expect.any(Object));
+      expect(mockOnSubmit).toHaveBeenCalled();
+    });
+  });
+});
 
 
 
