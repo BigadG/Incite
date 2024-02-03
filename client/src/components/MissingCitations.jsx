@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import '../styles/MissingCitations.css';
+import PropTypes from 'prop-types';
 
 function MissingCitations({ missing, onCitationChange, onSubmit }) {
     const [validInputs, setValidInputs] = useState(missing.map(() => ({
@@ -17,7 +18,7 @@ function MissingCitations({ missing, onCitationChange, onSubmit }) {
 
     // Function to check the validity of all inputs
     const validateInputs = () => {
-        const inputsValidity = missing.map((citation, index) => ({
+        const inputsValidity = missing.map((citation) => ({
             author: !citation.missingFields.author || (citation.author && citation.author.trim() !== ''),
             publicationDate: !citation.missingFields.publicationDate || (citation.publicationDate && citation.publicationDate.trim() !== ''),
         }));
@@ -48,7 +49,7 @@ function MissingCitations({ missing, onCitationChange, onSubmit }) {
                         {citation.missingFields.author && (
                             <div className="input-pair">
                                 <label htmlFor={`author-${index}`} className={`input-label ${!validInputs[index].author ? 'invalid-label' : ''}`}>
-                                    Author's name:
+                                    Author&apos;s name:
                                 </label>
                                 <input
                                     id={`author-${index}`}
@@ -88,10 +89,6 @@ function MissingCitations({ missing, onCitationChange, onSubmit }) {
     );
 }
 
-export default MissingCitations;
-
-import PropTypes from 'prop-types';
-
 MissingCitations.propTypes = {
   missing: PropTypes.arrayOf(PropTypes.shape({
     title: PropTypes.string.isRequired,
@@ -102,6 +99,7 @@ MissingCitations.propTypes = {
   onSubmit: PropTypes.func.isRequired,
 };
 
+export default MissingCitations;
 
 
 
