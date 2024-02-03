@@ -89,6 +89,7 @@
     width: 800px;
 }
 
-.invalid-input {
+.missing-citations .input-container .input-pair .invalid-input {
     border: 2px solid red;
 }
+

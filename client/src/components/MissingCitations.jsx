@@ -32,7 +32,7 @@ function MissingCitations({ missing, onCitationChange, onSubmit }) {
             <h3>Missing Citation Information</h3>
             {missing.map((citation, index) => (
                 <div key={`citation-${index}`} className="citation-section">
-                    <label className="citation-title">{`INFO FOR: ${citation.title}`}</label>
+                    <label className="citation-title">{`${citation.title}`}</label>
                     <div className="input-container">  
                         {citation.missingFields.author && (
                             <div className="input-pair">
