@@ -30,7 +30,10 @@ function MissingCitations({ missing, onCitationChange, onSubmit }) {
     // Handle form submission
     const handleFormSubmit = (e) => {
         e.preventDefault(); // Prevent default form submission
-        if (validateInputs()) {
+        if (!validateInputs()) {
+            // If validation fails, proceed with showing invalid input styles
+            // This will already have been handled by validateInputs updating validInputs state
+        } else {
             onSubmit(); // Proceed with submission if all inputs are valid
         }
     };
@@ -52,17 +55,7 @@ function MissingCitations({ missing, onCitationChange, onSubmit }) {
                                     type="text"
                                     onChange={(e) => {
                                         onCitationChange(index, 'author', e.target.value);
-                                        // Immediately validate the specific field on change
                                         setValidInputs(inputs => inputs.map((input, i) => i === index ? { ...input, author: e.target.value.trim() !== '' } : input));
-                                    }}
-                                    onFocus={(e) => {
-                                        // Prevent the removal of validation styles on focus if the input is already invalid
-                                        if (e.target.value.trim() === '') {
-                                            e.target.classList.add('invalid-input');
-                                        }
-                                    }}
-                                    onBlur={(e) => {
-                                        // Optionally re-validate on blur or leave as is for submission-time validation
                                     }}
                                     placeholder="Author's name"
                                     value={citation.author || ''}
@@ -80,17 +73,7 @@ function MissingCitations({ missing, onCitationChange, onSubmit }) {
                                     type="date"
                                     onChange={(e) => {
                                         onCitationChange(index, 'publicationDate', e.target.value);
-                                        // Immediately validate the specific field on change
                                         setValidInputs(inputs => inputs.map((input, i) => i === index ? { ...input, publicationDate: e.target.value.trim() !== '' } : input));
-                                    }}
-                                    onFocus={(e) => {
-                                        // Prevent the removal of validation styles on focus if the input is already invalid
-                                        if (e.target.value.trim() === '') {
-                                            e.target.classList.add('invalid-input');
-                                        }
-                                    }}
-                                    onBlur={(e) => {
-                                        // Optionally re-validate on blur or leave as is for submission-time validation
                                     }}
                                     value={citation.publicationDate || ''}
                                     className={!validInputs[index].publicationDate ? 'invalid-input' : ''}
