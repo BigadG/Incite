@@ -32,11 +32,13 @@ function MissingCitations({ missing, onCitationChange, onSubmit }) {
             <h3>Missing Citation Information</h3>
             {missing.map((citation, index) => (
                 <div key={`citation-${index}`} className="citation-section">
-                    <label className="citation-title">{`${citation.title}`}</label>
+                    <label className="citation-title">{`INFO FOR: ${citation.title}`}</label>
                     <div className="input-container">  
                         {citation.missingFields.author && (
                             <div className="input-pair">
-                                <label className="input-label">Author's name:</label>
+                                <label className={`input-label ${!validInputs[index].author ? 'invalid-label' : ''}`}>
+                                    Author's name:
+                                </label>
                                 <input
                                     type="text"
                                     onChange={(e) => onCitationChange(index, 'author', e.target.value)}
@@ -48,7 +50,9 @@ function MissingCitations({ missing, onCitationChange, onSubmit }) {
                         )}
                         {citation.missingFields.publicationDate && (
                             <div className="input-pair">
-                                <label htmlFor={`publication-date-${index}`} className="input-label">Publication Date:</label>
+                                <label htmlFor={`publication-date-${index}`} className={`input-label ${!validInputs[index].publicationDate ? 'invalid-label' : ''}`}>
+                                    Publication Date:
+                                </label>
                                 <input
                                     id={`publication-date-${index}`}
                                     type="date"
@@ -67,6 +71,7 @@ function MissingCitations({ missing, onCitationChange, onSubmit }) {
 }
 
 export default MissingCitations;
+
 
 
 
