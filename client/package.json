@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "jest --passWithNoTests",
+    "test:clearCache": "jest --clearCache",
     "lint": "eslint 'src/**/*.{js,jsx}' --fix",
     "dev": "vite",
     "build": "vite build",
