@@ -31,14 +31,14 @@ describe('InciteForm Component', () => {
     await waitFor(() => {
       expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('selections'), expect.any(Object));
       mockSelections.forEach(selection => {
-        expect(screen.getByText(selection.url)).toBeInTheDocument();
+        expect(screen.findByText(selection.url)).toBeInTheDocument();
       });
     });
   });
 
   test('submits form and generates essay', async () => {
     await act(async () => {
-    render(<InciteForm />);
+        render(<InciteForm />);
     });    
     const thesisInput = screen.getByLabelText('Thesis:');
     const bodyPremisesInput = screen.getByLabelText('Body Premises:');
@@ -58,7 +58,7 @@ describe('InciteForm Component', () => {
         expect.any(Object),
         expect.any(Object)
       );
-      expect(screen.getByText('Generated Essay')).toBeInTheDocument();
+      expect(screen.findByText('Generated Essay')).toBeInTheDocument();
     });
   });
 });
