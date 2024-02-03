@@ -1,6 +1,5 @@
-// InciteForm.test.js
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import InciteForm from '../InciteForm';
 import axios from 'axios';
@@ -9,7 +8,6 @@ jest.mock('axios');
 
 describe('InciteForm Component', () => {
   beforeEach(() => {
-    // Clear all mocks before each test
     jest.clearAllMocks();
   });
 
@@ -32,21 +30,28 @@ describe('InciteForm Component', () => {
   });
 
   test('submits form and generates essay', async () => {
+    render(<InciteForm />);
+    
     const thesisInput = screen.getByLabelText('Thesis:');
     const bodyPremisesInput = screen.getByLabelText('Body Premises:');
-    const submitButton = screen.getByText('Sum It!');
+    const submitButton = screen.getByRole('button', { name: 'Sum It!' });
 
     // Mock the axios post request for essay generation
     axios.post.mockResolvedValueOnce({ status: 200, data: { essay: 'Generated Essay' } });
 
     // Simulate user input
-    userEvent.type(thesisInput, 'This is a test thesis');
-    userEvent.type(bodyPremisesInput, 'This is a test premise');
+    await userEvent.type(thesisInput, 'This is a test thesis');
+    await userEvent.type(bodyPremisesInput, 'This is a test premise');
     userEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(axios.post).toHaveBeenCalledWith('http://localhost:3001/api/generateEssayWithSelections', expect.any(Object), expect.any(Object));
+      expect(axios.post).toHaveBeenCalledWith(
+        'http://localhost:3001/api/generateEssayWithSelections',
+        expect.any(Object),
+        expect.any(Object)
+      );
       expect(screen.getByText('Generated Essay')).toBeInTheDocument();
     });
   });
 });
+
