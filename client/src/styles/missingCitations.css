@@ -92,3 +92,7 @@
 .input-label-missing {
     color: rgb(180, 0, 0);
 }
+
+.input-error {
+    border: 2px solid rgb(180, 0, 0); /* Similar shade of red as your .input-label-missing class */
+  }
