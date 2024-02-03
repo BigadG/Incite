@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import InciteForm from '../InciteForm';
 import axios from 'axios';
+import { act } from '@testing-library/react';
 
 jest.mock('query-string', () => ({
     parse: jest.fn(() => ({ uuid: 'mock-uuid' })), // Simulates parsing the URL query to return a mock uuid
@@ -23,7 +24,9 @@ describe('InciteForm Component', () => {
 
     axios.get.mockResolvedValue({ status: 200, data: mockSelections });
 
-    render(<InciteForm />);
+    await act(async () => {
+        render(<InciteForm />);
+      });
 
     await waitFor(() => {
       expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('selections'), expect.any(Object));
@@ -34,8 +37,9 @@ describe('InciteForm Component', () => {
   });
 
   test('submits form and generates essay', async () => {
+    await act(async () => {
     render(<InciteForm />);
-    
+    });    
     const thesisInput = screen.getByLabelText('Thesis:');
     const bodyPremisesInput = screen.getByLabelText('Body Premises:');
     const submitButton = screen.getByRole('button', { name: 'Sum It!' });
