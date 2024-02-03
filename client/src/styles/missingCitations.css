@@ -89,12 +89,14 @@
     width: 800px;
 }
 
-.missing-citations .input-container .input-pair input.invalid-input {
+.missing-citations .input-container .input-pair input.invalid-input,
+.missing-citations .input-container .input-pair input.invalid-input:focus {
     border: 2px solid red;
 }
 
 .missing-citations .input-container .input-pair label.invalid-label {
     color: red;
 }
+
 
 
