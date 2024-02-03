@@ -88,3 +88,7 @@
     padding-left: 20px;
     width: 800px;
 }
+
+.input-error {
+    border: 2px solid rgb(180, 0, 0);
+}
