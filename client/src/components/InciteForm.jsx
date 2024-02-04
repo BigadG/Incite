@@ -1,184 +1,203 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import queryString from 'query-string';
+import InputField from './InputField';
+import ResultTextArea from './ResultTextArea';
+import MissingCitations from './MissingCitations';
 import '../styles/inciteStyles.css';
 
 function InciteForm() {
-  const [inputs, setInputs] = useState(['', '', '']);
-  const [result, setResult] = useState('');
-  const [urls, setUrls] = useState([]);
-  const [uuid, setUUID] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadingText, setLoadingText] = useState('Loading');
-  const [isPageVisible, setIsPageVisible] = useState(true);
+    const [inputs, setInputs] = useState(['', '', '']);
+    const [result, setResult] = useState('');
+    const [urls, setUrls] = useState([]);
+    const [uuid, setUUID] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [loadingText, setLoadingText] = useState('Loading...');
+    const [missingCitations, setMissingCitations] = useState([]);
+    const [isPageVisible, setIsPageVisible] = useState(true);
 
-  const handleChange = (index) => (event) => {
-    const newInputs = [...inputs];
-    newInputs[index] = event.target.value;
-    setInputs(newInputs);
-  };
+    const handleChange = (index) => (event) => {
+        const newInputs = [...inputs];
+        newInputs[index] = event.target.value;
+        setInputs(newInputs);
+    };
 
-  const addInput = () => {
-    if (inputs.length < 10) {
-      setInputs([...inputs, '']);
-    }
-  };
+    const handleCitationChange = (index, field, value) => {
+        const updatedCitations = [...missingCitations];
+        updatedCitations[index] = { ...updatedCitations[index], [field]: value };
+        setMissingCitations(updatedCitations);
+    };
 
-
-  const fetchSelections = useCallback(async () => {
-    try {
-      const queryParams = queryString.parse(window.location.search);
-      if (queryParams.uuid) {
-        setUUID(queryParams.uuid);
-        const response = await axios.get(`http://localhost:3001/api/selections`, {
-          headers: {
-            'Authorization': `Bearer ${queryParams.uuid}`
-          }
-        });
-        if (response.status === 200) {
-          setUrls(response.data.map(sel => sel.url));
-        } else {
-          console.log('Fetched URLs:', urls);
-          throw new Error('Failed to fetch selections');
+    const addInput = () => {
+        if (inputs.length < 10) {
+            setInputs([...inputs, '']);
         }
-      }
-    } catch (error) {
-      console.error('Error fetching selections:', error);
-    }
-  }, [urls]); 
-
-  // Polling function
-  useEffect(() => {
-    let intervalId;
-
-    const startPolling = () => {
-      if (!intervalId) {
-        intervalId = setInterval(fetchSelections, 5000); // Poll every 5 seconds
-      }
     };
 
-    const stopPolling = () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-        intervalId = null;
-      }
-    };
-
-    // Handle the visibility change event
-    const handleVisibilityChange = () => {
-      const isVisible = document.visibilityState === 'visible';
-      setIsPageVisible(isVisible);
-      if (isVisible) {
-        startPolling();
-      } else {
-        stopPolling();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    // Start polling
-    if (isPageVisible) {
-      startPolling();
-    }
-
-    // Cleanup function
-    return () => {
-      stopPolling();
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [isPageVisible, fetchSelections]);
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setIsLoading(true);
-    try {
-      const response = await axios.get(`http://localhost:3001/api/selections`, {
-        headers: {
-            'Authorization': `Bearer ${uuid}`
+    const fetchSelections = useCallback(async () => {
+        try {
+            const queryParams = queryString.parse(window.location.search);
+            if (queryParams.uuid) {
+                setUUID(queryParams.uuid);
+                const response = await axios.get(`http://localhost:3001/api/selections`, {
+                    headers: {
+                        'Authorization': `Bearer ${queryParams.uuid}`
+                    }
+                });
+                if (response.status === 200) {
+                    setUrls(response.data.map(sel => sel.url));
+                } else {
+                    throw new Error('Failed to fetch selections');
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching selections:', error);
         }
-      });
-  
-      if (response.status !== 200) {
-        throw new Error('Failed to fetch latest selections');
-      }
-  
-      const latestSelections = response.data;
-      console.log('Saved selections:', latestSelections); // Add this line to log the selections
-      const updatedUrls = latestSelections.map(sel => sel.url);
-  
-      const serverUrl = 'http://localhost:3001/api/generateEssayWithSelections';
-      const dataToSend = {
-        premises: inputs.filter(input => input.trim() !== ''),
-        urls: updatedUrls // Directly using the updated URLs
-      };
-      const essayResponse = await axios.post(serverUrl, dataToSend);
-      setResult(essayResponse.data.essay);
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Error generating essay:', error);
-      setResult('Error generating essay with latest selections');
-      setIsLoading(false);
-    }
-  };  
+    }, []);
 
-  useEffect(() => {
-    let loadingInterval;
-    if (isLoading) {
-      let dotsCount = 1; // Initialize dot count
-      loadingInterval = setInterval(() => {
-        setLoadingText(`Loading${'.'.repeat(dotsCount)}`);
-        dotsCount = (dotsCount % 3) + 1; // Cycle through 1, 2, 3
-      }, 500); // Update every 500ms
-    } else {
-      setLoadingText('Loading'); // Reset text when not loading
-    }
-  
-    return () => clearInterval(loadingInterval); // Cleanup on effect unmount
-  }, [isLoading]);
+    useEffect(() => {
+        // Handle visibility change to fetch selections when the page is visible
+        const handleVisibilityChange = () => {
+            setIsPageVisible(document.visibilityState === 'visible');
+        };
 
-  return (
-    <main>
-      <h1>INCITE</h1>
-      <form onSubmit={handleSubmit}>
-        {inputs.map((input, index) => (
-          <div key={`input-wrapper-${index}`}>
-            {index === 0 ? (
-              <label htmlFor="premise">Essay Premise:</label>
-            ) : index === 1 ? (
-              <label htmlFor={`input${index}-Id`}>Body Premises:</label>
-            ) : null}
-            <input
-              type="text"
-              className="textbox"
-              name={index === 0 ? "premise" : `prompt${index}`}
-              id={index === 0 ? "premise" : `input${index}-Id`}
-              placeholder={index === 0 ? "Essay Premise" : `Body ${index}`}
-              value={input}
-              onChange={handleChange(index)}
-            />
-          </div>
-        ))}
-        {inputs.length < 10 && (
-          <button type="button" onClick={addInput} className="add-button">
-            +
-          </button>
-        )}
-        <textarea
-          name="result"
-          className="textbox"
-          id="result"
-          placeholder={isLoading ? '' : 'Result'}
-          value={isLoading ? loadingText : result}
-          readOnly
-        />
-        <br />
-        <button type="submit" className="submit">Sum It!</button>
-      </form>
-    </main>
-  );
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }, []);
+
+    useEffect(() => {
+        if (isPageVisible) {
+            fetchSelections();
+        }
+    }, [isPageVisible, fetchSelections]);
+
+    const handleMissingCitationSubmit = async () => {
+        const updatedSelections = missingCitations.map(citation => ({
+            url: citation.url,
+            author: citation.author,
+            publicationDate: citation.publicationDate,
+        }));
+
+        try {
+            const response = await axios.post('http://localhost:3001/api/updateSelections', { updatedSelections, uuid }, {
+                headers: {
+                    'Authorization': `Bearer ${uuid}`
+                }
+            });
+
+            if (response.status === 200) {
+                // Re-fetch selections or verify submission success
+                // Potentially additional logic here to confirm update success
+                setMissingCitations([]); // Clear missing citations to reflect success
+                handleSubmit(); // Attempt to generate the essay now
+            } else {
+                console.error('Failed to update selections:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error updating selections:', error);
+        }
+    };
+
+    const handleSubmit = async (event) => {
+        if (event) event.preventDefault();
+        setIsLoading(true);
+
+        const dataToSend = {
+            thesis: inputs[0].trim(),
+            bodyPremises: inputs.slice(1).filter(input => input.trim() !== ''),
+            urls: urls,
+        };
+
+        console.log('Submitting data to generate essay:', dataToSend);
+
+        try {
+            const response = await axios.post('http://localhost:3001/api/generateEssayWithSelections', dataToSend, {
+                headers: {
+                    'Authorization': `Bearer ${uuid}`
+                }
+            });
+
+            console.log('Response received from generateEssayWithSelections:', response.data);
+
+            if (response.data.missingCitations && response.data.missingCitations.length > 0) {
+                setMissingCitations(response.data.missingCitations);
+            } else {
+                setResult(response.data.essay);
+                setMissingCitations([]);
+            }
+        } catch (error) {
+            console.error('Error submitting essay:', error);
+            setResult('Error generating essay with latest selections');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        let loadingInterval;
+
+        if (isLoading) {
+            let dotsCount = 1;
+            loadingInterval = setInterval(() => {
+                setLoadingText(`Loading${'.'.repeat(dotsCount)}`);
+                dotsCount = (dotsCount % 3) + 1;
+            }, 500);
+        }
+
+        return () => {
+            if (loadingInterval) {
+                clearInterval(loadingInterval);
+            }
+        };
+    }, [isLoading]);
+
+    useEffect(() => {
+      console.log('Updated missingCitations state:', missingCitations);
+  }, [missingCitations]);
+  
+    return (
+        <main>
+            <h1>INCITE</h1>
+            <form onSubmit={handleSubmit}>
+                <InputField
+                    key={`input-0`}
+                    index={0}
+                    value={inputs[0]}
+                    handleChange={handleChange}
+                />
+                <label htmlFor={`input1-Id`}>Body Premises:</label>
+                {inputs.slice(1).map((input, index) => (
+                    <InputField
+                        key={`input-${index + 1}`}
+                        index={index + 1}
+                        value={input}
+                        handleChange={handleChange}
+                    />
+                ))}
+                {inputs.length < 10 && (
+                    <button type="button" onClick={addInput} className="add-button">
+                        +
+                    </button>
+                )}
+                {missingCitations.length > 0 && (
+                    <MissingCitations
+                        missing={missingCitations}
+                        onCitationChange={handleCitationChange}
+                        onSubmit={handleMissingCitationSubmit}
+                    />
+                )}
+                <ResultTextArea
+                    isLoading={isLoading}
+                    loadingText={loadingText}
+                    result={result}
+                />
+                <br />
+                <button type="submit" className="submit">Sum It!</button>
+            </form>
+        </main>
+    );
 }
-          
+
 export default InciteForm;
 
 

@@ -29,11 +29,26 @@ jest.mock('../database', () => ({
 }));
 
 describe('User Selections', () => {
-  let server;
+  test('It should add a selection', async () => {
+    const response = await request(app)
+      .post('/api/addSelection')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({ userId: authToken, title: 'Test Title', url: 'http://test.com' });
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe('Selection added');
+  });
 
-  beforeAll(() => {
-    // Listen on a random port
-    server = testApp.listen();
+  test('It should retrieve selections', async () => {
+    await request(app)
+      .post('/api/addSelection')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({ userId: authToken, title: 'Test Title', url: 'http://test.com' });
+
+    const response = await request(app)
+      .get('/api/selections')
+      .set('Authorization', `Bearer ${authToken}`);
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(expect.arrayContaining([expect.objectContaining({ title: 'Test Title', url: 'http://test.com' })]));
   });
 
   afterAll((done) => {
