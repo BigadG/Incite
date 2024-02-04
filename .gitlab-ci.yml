@@ -15,6 +15,10 @@ variables:
 
 test_server: 
   stage: test
+  services:
+    - mongo:latest
+  variables:
+    MONGO_URL: "mongodb://mongo:27017/InciteDB"
   script:
     - cd server
     - npm ci
@@ -22,6 +26,7 @@ test_server:
   only:
     - main
     - /^feature\/.*$/ # Enable tests for feature branches
+
 
 test_client:
   stage: test
