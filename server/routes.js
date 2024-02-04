@@ -10,6 +10,35 @@ const createDOMPurify = require('dompurify');
 
 const router = express.Router();
 
+// In your route handler for '/updateSelections'
+router.post('/updateSelections', async (req, res) => {
+  try {
+      const db = await connect();
+      const { updatedSelections, uuid } = req.body;
+
+      // Process each updated selection
+      updatedSelections.forEach(async (selection) => {
+          const updateFields = {};
+          if (selection.author !== undefined) {
+              updateFields['selections.$.author'] = selection.author;
+          }
+          if (selection.publicationDate !== undefined) {
+              updateFields['selections.$.publicationDate'] = selection.publicationDate;
+          }
+
+          await db.collection('Users').updateOne(
+              { uuid, 'selections.url': selection.url },
+              { $set: updateFields }
+          );
+      });
+
+      res.status(200).json({ message: 'Selections updated successfully' });
+  } catch (error) {
+      console.error('Update Selections Error:', error);
+      res.status(500).json({ message: 'Error updating selections', error });
+  }
+});
+
 const MAX_WORDS = 5000; // Maximum number of words I want to extract in total
 
 async function fetchAndProcessPage(url, maxWordCount) {
@@ -52,53 +81,72 @@ async function fetchAndProcessPage(url, maxWordCount) {
   }
 }
 
-const generateEssay = async (req, res) => {
-  if (!req.body || typeof req.body !== 'object' || !req.body.prompts) {
-    console.error('Invalid request body:', req.body);
-    return res.status(400).json({ message: 'Invalid request body' });
-  }
-  try {
-    // The `prompts` should be passed here, not the entire `req.body`
-    const essay = await generateEssayContent(req.body.prompts);
-    res.status(200).json({ essay });
-  } catch (error) {
-    console.error('GPT API Call Error:', error.message);
-    res.status(500).json({ message: 'Error calling GPT API', error: error.message });
-  }
-};
-
 const generateEssayWithSelections = async (req, res) => {
   try {
-    const { urls } = req.body; // Extract only urls from req.body
+    const { urls, thesis, bodyPremises, missingCitations } = req.body;
 
-    if (!Array.isArray(urls)) {
-      console.error('URLs provided are not an array:', urls);
-      return res.status(400).json({ message: 'URLs must be an array' });
+    if (!Array.isArray(urls) || !thesis || !Array.isArray(bodyPremises)) {
+      console.error('Invalid input:', req.body);
+      return res.status(400).json({ message: 'Invalid input' });
     }
-    
-    const totalMaxWords = MAX_WORDS < 700 ? 700 : MAX_WORDS;
+
+    // Calculate max words per selection
+    const totalMaxWords = MAX_WORDS;
     const maxWordCountPerSelection = Math.floor(totalMaxWords / urls.length);
-    const contentFromPages = await Promise.allSettled(urls.map(url => fetchAndProcessPage(url, maxWordCountPerSelection)))
-      .then(results => results.filter(result => result.status === 'fulfilled').map(result => result.value));
 
-    if (contentFromPages.some(content => content === '')) {
-      console.error('One or more pages returned no content:', contentFromPages);
-      return res.status(400).json({ message: 'One or more pages could not be processed' });
+    const contentFromPages = await Promise.all(urls.map(url => fetchAndProcessPage(url, maxWordCountPerSelection)))
+      .then(results => results.join("\n\n"));
+
+    const db = await connect();
+    const uuid = req.userId;
+    const user = await db.collection('Users').findOne({ uuid });
+
+    if (!user) {
+      console.error('User not found:', uuid);
+      return res.status(404).json({ message: 'User not found' });
     }
-    
-    // Directly use req.body.premises in the forEach loop
-    const prompts = {};
-    req.body.premises.forEach((premise, index) => {
-      prompts[`prompt${index + 1}`] = premise;
-    });
-    
-    const essay = await generateEssayContent(prompts, contentFromPages.join("\n\n"));
-    res.status(200).json({ essay });
+
+    let selections = user.selections.filter(selection => urls.includes(selection.url));
+    console.log('User selections retrieved:', selections);
+
+    // Handle missing citations
+    if (missingCitations && missingCitations.length > 0) {
+      missingCitations.forEach(missing => {
+        const index = selections.findIndex(sel => sel.url === missing.url);
+        if (index !== -1) {
+          selections[index] = { ...selections[index], ...missing };
+        }
+      });
+      console.log('Updated selections with user-provided citations:', selections);
+    }
+
+    // Check for missing citation information in selections
+    let missingCitationsResponse = selections.map(sel => {
+      return {
+        title: sel.title, // Include the title in the response
+        url: sel.url,
+        missingFields: {
+          author: !sel.author || sel.author === 'Unknown',
+          publicationDate: !sel.publicationDate,
+        }
+      };
+    }).filter(sel => sel.missingFields.author || sel.missingFields.publicationDate);
+
+    if (missingCitationsResponse.length > 0) {
+      // Respond with missing citation information
+      console.log('Missing citation information identified, sending to client:', missingCitationsResponse);
+      return res.status(200).json({ missingCitations: missingCitationsResponse });
+    }
+
+    // Generate the essay content
+    const essayContentResult = await generateEssayContent({ thesis, bodyPremises }, contentFromPages, selections);
+    res.status(200).json({ essay: essayContentResult });
   } catch (error) {
     console.error('Error generating essay with selections:', error);
     res.status(500).json({ message: 'Error generating essay with selections', error: error.toString() });
   }
 };
+
 
 const register = async (req, res) => {
   try {
@@ -122,12 +170,12 @@ router.use(authMiddleware);
 router.post('/addSelection', async (req, res) => {
   try {
     const db = await connect();
-    const { title, url } = req.body;
-    const uuid = req.userId; // Now using the UUID provided by the middleware
+    const { title, url, author, publicationDate } = req.body; // Extract author and publicationDate from the request body
+    const uuid = req.userId;
 
     const result = await db.collection('Users').updateOne(
       { uuid },
-      { $push: { selections: { title, url, pageId: new ObjectId(), timestamp: new Date() } } },
+      { $push: { selections: { title, url, author, publicationDate, pageId: new ObjectId(), timestamp: new Date() } } }, // Store author and publicationDate
       { upsert: true }
     );
     res.status(200).json({ message: 'Selection added', result });
@@ -188,10 +236,4 @@ router.delete('/deleteSelection/:pageId', async (req, res) => {
 
 router.post('/generateEssayWithSelections', generateEssayWithSelections);
 
-module.exports = { router, register, generateEssay, fetchAndProcessPage, generateEssayWithSelections };
-
-
-
-
-
-
+module.exports = { router, register, fetchAndProcessPage, generateEssayWithSelections };

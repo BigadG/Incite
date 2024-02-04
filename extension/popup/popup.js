@@ -57,30 +57,54 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  async function addSelection(url, title) {
-    try {
+  async function fetchMetadata() {
+    return new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage({ action: 'executeContentScript' }, (response) => {
+        if (response.error) {
+          reject(response.error);
+        } else {
+          resolve(response.data);
+        }
+      });
+    });
+  }
+
+async function addSelection(url, title) {
+  try {
+      if (url.startsWith('chrome://')) {
+          // Ignore chrome URLs
+          return;
+      }
+
+      const metadata = await fetchMetadata(); // Fetch additional metadata
       const uuid = await getUUID();
       const response = await fetch(`${serverUrl}/addSelection`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${uuid}`
-        },
-        body: JSON.stringify({ url, title }),
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${uuid}`
+          },
+          body: JSON.stringify({ 
+              url: url, 
+              title: title, 
+              author: metadata.author, 
+              publicationDate: metadata.publicationDate 
+          }), // Include author and publicationDate
       });
 
       if (response.ok) {
+        const newSelection = { title, url, ...metadata };
         const currentSelections = await getFromStorage('selections');
-        const newSelections = [...currentSelections, { title, url }];
-        await setToStorage('selections', newSelections);
+        const newSelections = [...currentSelections, newSelection];
+        await setToStorage('selections', newSelections); // Update local storage immediately
       } else {
         console.error('Failed to add selection to server. Status:', response.status);
       }
-    } catch (error) {
+  } catch (error) {
       console.error('Error in addSelection:', error);
-    }
   }
-  
+}
+
   function createListElement(title, url, pageId) {
     const selectionBox = document.createElement('div');
     selectionBox.classList.add('selectionBox');
@@ -225,12 +249,19 @@ document.addEventListener('DOMContentLoaded', function () {
     showSelections();
     toggleDropdown();
   });
-  
+
   createButton.addEventListener('click', async function() {
     const selections = await getSelections();
+    if (selections.length === 0) {
+        console.log('No selections to generate essay');
+        return;
+    }
     const uuid = await getUUID();
     const selectionUrls = selections.map(selection => encodeURIComponent(selection.url)).join(',');
+
     const inciteAppUrl = `http://localhost:5173/?uuid=${uuid}&selections=${selectionUrls}`;
+
+    console.log(`Opening React app with URL: ${inciteAppUrl}`);
     chrome.tabs.create({ url: inciteAppUrl });
   });
 });

@@ -1,55 +1,55 @@
 const request = require('supertest');
 const app = require('../server');
 
-// Enhanced Mock for node-fetch
 jest.mock('node-fetch', () => {
-  const fetchMock = jest.fn((url) =>
+  const fetchMock = jest.fn(() =>
     Promise.resolve({
       status: 200,
       headers: {
-        get: jest.fn((header) => {
-          if (header === 'content-type') {
-            return 'text/html';
-          }
-        }),
+        get: () => 'text/html',
+        // Mock function to simulate the Headers.entries method
+        entries: () => [['content-type', 'text/html']],
       },
-      text: () => Promise.resolve('<html><body><p>Fake article content for ' + url + '</p></body></html>'),
+      text: () => Promise.resolve('<html><body><p>Fake content for testing</p></body></html>'),
     })
   );
   return fetchMock;
 });
 
-// Mock authMiddleware
 jest.mock('../authMiddleware', () => {
-  return jest.fn((req, res, next) => {
-    req.userId = 'mock-uuid'; // Assign a mock userId for the test cases
+  return (req, res, next) => {
+    req.userId = 'mock-uuid';
     next();
-  });
+  };
 });
 
-// Mock openaiService
+jest.mock('../database', () => ({
+  connect: () => Promise.resolve({
+    collection: () => ({
+      findOne: () => Promise.resolve({ uuid: 'mock-uuid', selections: [] }),
+      updateOne: () => Promise.resolve({ modifiedCount: 1 }),
+      createIndex: () => Promise.resolve({}),
+    }),
+  }),
+}));
+
 jest.mock('../openaiService', () => ({
   generateEssayContent: jest.fn().mockResolvedValue('Mocked essay content')
 }));
 
 describe('Content Extraction for Essay Generation', () => {
   test('should generate an essay with provided URLs', async () => {
-    // Change this to an array of strings
-    const mockPremises = ['This is a test premise for the essay.'];
-
-    const mockUrls = ['https://example.com/article1', 'https://example.com/article2'];
-
     const response = await request(app)
       .post('/api/generateEssayWithSelections')
-      .send({ premises: mockPremises, urls: mockUrls });
+      .send({
+        urls: ['https://example.com/article1', 'https://example.com/article2'],
+        thesis: 'This is a thesis statement',
+        bodyPremises: ['This is a test premise for the essay.'],
+        missingCitations: []
+      });
 
-    // The rest of your test assertions
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('essay');
     expect(response.body.essay).toBe('Mocked essay content');
   }, 30000);
 });
-
-
-
-
