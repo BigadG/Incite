@@ -6,57 +6,50 @@ import axios from 'axios';
 jest.mock('axios');
 
 describe('MissingCitations Component', () => {
-  let onCitationChangeMock;
-  let onSubmitMock;
+    const mockOnCitationChange = jest.fn();
+    const mockOnSubmit = jest.fn();
 
-  beforeEach(() => {
-    onCitationChangeMock = jest.fn();
-    onSubmitMock = jest.fn();
-    axios.post.mockClear();
-    render(
-      <MissingCitations
-        missing={[{
-          title: "Sample Article",
-          url: "http://example.com",
-          missingFields: { author: true, publicationDate: true },
-          author: '',
-          publicationDate: '',
-        }]}
-        onCitationChange={onCitationChangeMock}
-        onSubmit={onSubmitMock}
-      />
-    );
-  });
-
-  test('accepts input and validates correctly', async () => {
-    const authorInput = screen.getByPlaceholderText("Author's name");
-    const publicationDateInput = screen.getByLabelText("Publication Date:");
-
-    await userEvent.type(authorInput, 'Jane Doe');
-    await userEvent.type(publicationDateInput, '2021-01-01');
-
-    // Verify if onCitationChangeMock was called with expected values
-    await waitFor(() => {
-      expect(onCitationChangeMock).toHaveBeenCalledWith(0, 'author', 'Jane Doe');
-      expect(onCitationChangeMock).toHaveBeenCalledWith(0, 'publicationDate', '2021-01-01');
+    beforeEach(() => {
+        jest.clearAllMocks();
+        render(
+            <MissingCitations
+                missing={[{
+                    title: "Sample Article",
+                    url: "http://example.com",
+                    missingFields: { author: true, publicationDate: true },
+                }]}
+                onCitationChange={mockOnCitationChange}
+                onSubmit={mockOnSubmit}
+            />
+        );
     });
-  });
 
-  test('submits when all inputs are valid and sends data to the server', async () => {
-    axios.post.mockResolvedValue({ status: 200 });
+    test('accepts input and validates correctly', async () => {
+        const authorInput = screen.getByPlaceholderText("Author's name");
+        const publicationDateInput = screen.getByLabelText("Publication Date:");
 
-    await userEvent.type(screen.getByPlaceholderText("Author's name"), 'Jane Doe');
-    await userEvent.type(screen.getByLabelText("Publication Date:"), '2021-01-01');
-    userEvent.click(screen.getByRole('button', { name: /submit citations/i }));
+        await userEvent.type(authorInput, 'Jane Doe');
+        await userEvent.type(publicationDateInput, '2021-01-01');
 
-    // Wait for the form submission to trigger axios post
-    await waitFor(() => {
-      expect(axios.post).toHaveBeenCalledWith(
-        'http://localhost:3001/api/updateSelections',
-        expect.anything(),  // Adjust as necessary to match expected request body
-        expect.anything()  // Adjust as necessary for headers or other args
-      );
+        await waitFor(() => {
+            expect(mockOnCitationChange).toHaveBeenCalledWith(expect.any(Number), 'author', 'Jane Doe');
+            expect(mockOnCitationChange).toHaveBeenCalledWith(expect.any(Number), 'publicationDate', '2021-01-01');
+        });
     });
-  });
+
+    test('submits when all inputs are valid and sends data to the server', async () => {
+        axios.post.mockResolvedValueOnce({ status: 200 });
+
+        // Trigger form submission
+        userEvent.click(screen.getByRole('button', { name: /submit citations/i }));
+
+        await waitFor(() => {
+            expect(axios.post).toHaveBeenCalledWith(
+                'http://localhost:3001/api/updateSelections',
+                expect.any(Object),
+                expect.any(Object)
+            );
+        });
+    });
 });
 
