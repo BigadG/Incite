@@ -1,46 +1,42 @@
 const request = require('supertest');
 const app = require('../server');
 
-// Enhanced Mock for node-fetch
 jest.mock('node-fetch', () => {
-  const fetchMock = jest.fn((url) =>
-    Promise.resolve({
-      status: 200,
-      headers: {
-        get: jest.fn((header) => {
-          if (header === 'content-type') {
-            return 'text/html';
-          }
-        }),
-      },
-      text: () => Promise.resolve('<html><body><p>Fake article content for ' + url + '</p></body></html>'),
-    })
-  );
-  return fetchMock;
+  return jest.fn(() => Promise.resolve({
+    status: 200,
+    headers: {
+      get: () => 'text/html'
+    },
+    text: () => Promise.resolve('<html><body><p>Fake content for testing</p></body></html>')
+  }));
 });
 
-// Mock authMiddleware
 jest.mock('../authMiddleware', () => {
-  return jest.fn((req, res, next) => {
-    req.userId = 'mock-uuid'; // Assign a mock userId for the test cases
+  return (req, res, next) => {
+    req.userId = 'mock-uuid';
     next();
-  });
+  };
 });
 
-// Mock openaiService
-jest.mock('../openaiService', () => ({
-  generateEssayContent: jest.fn().mockResolvedValue('Mocked essay content')
+jest.mock('../database', () => ({
+  connect: () => Promise.resolve({
+    collection: () => ({
+      findOne: () => Promise.resolve({ uuid: 'mock-uuid', selections: [] }),
+      updateOne: () => Promise.resolve({}),
+      createIndex: () => Promise.resolve({}),
+    }),
+  }),
 }));
 
 describe('Content Extraction for Essay Generation', () => {
   test('should generate an essay with provided URLs', async () => {
     const response = await request(app)
       .post('/api/generateEssayWithSelections')
-      .send({ 
+      .send({
         urls: ['https://example.com/article1', 'https://example.com/article2'],
         thesis: 'This is a thesis statement',
         bodyPremises: ['This is a test premise for the essay.'],
-        missingCitations: [] // Assuming implementation can handle an empty array
+        missingCitations: []
       });
 
     expect(response.statusCode).toBe(200);
@@ -48,8 +44,3 @@ describe('Content Extraction for Essay Generation', () => {
     expect(response.body.essay).toBe('Mocked essay content');
   }, 30000);
 });
-
-
-
-
-
