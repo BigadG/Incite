@@ -1,7 +1,7 @@
 require('dotenv').config();
 const request = require('supertest');
 const express = require('express');
-const { router, register, fetchAndProcessPage, generateEssayWithSelections } = require('../routes');
+const { router } = require('../routes');
 const authMiddleware = require('../authMiddleware');
 const bodyParser = require('body-parser');
 
@@ -49,6 +49,3 @@ describe('User Selections', () => {
     expect(response.body.message).toBe('Selection added');
   });
 });
-
-
-
