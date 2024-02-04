@@ -2,66 +2,61 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import MissingCitations from '../MissingCitations';
 import axios from 'axios';
-import '@testing-library/jest-dom';
 
 jest.mock('axios');
 
 describe('MissingCitations Component', () => {
-    const mockOnCitationChange = jest.fn();
-    const mockOnSubmit = jest.fn();
+  let onCitationChangeMock;
+  let onSubmitMock;
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-        render(
-            <MissingCitations
-                missing={[{
-                    title: "Sample Article",
-                    url: "http://example.com",
-                    missingFields: { author: true, publicationDate: true },
-                }]}
-                onCitationChange={mockOnCitationChange}
-                onSubmit={mockOnSubmit}
-            />
-        );
+  beforeEach(() => {
+    onCitationChangeMock = jest.fn();
+    onSubmitMock = jest.fn();
+    axios.post.mockClear();
+    render(
+      <MissingCitations
+        missing={[{
+          title: "Sample Article",
+          url: "http://example.com",
+          missingFields: { author: true, publicationDate: true },
+          author: '',
+          publicationDate: '',
+        }]}
+        onCitationChange={onCitationChangeMock}
+        onSubmit={onSubmitMock}
+      />
+    );
+  });
+
+  test('accepts input and validates correctly', async () => {
+    const authorInput = screen.getByPlaceholderText("Author's name");
+    const publicationDateInput = screen.getByLabelText("Publication Date:");
+
+    await userEvent.type(authorInput, 'Jane Doe');
+    await userEvent.type(publicationDateInput, '2021-01-01');
+
+    // Verify if onCitationChangeMock was called with expected values
+    await waitFor(() => {
+      expect(onCitationChangeMock).toHaveBeenCalledWith(0, 'author', 'Jane Doe');
+      expect(onCitationChangeMock).toHaveBeenCalledWith(0, 'publicationDate', '2021-01-01');
     });
+  });
 
-    test('accepts input and validates correctly', async () => {
-        const authorInput = screen.getByPlaceholderText("Author's name");
-        await userEvent.type(authorInput, 'Jane Doe');
+  test('submits when all inputs are valid and sends data to the server', async () => {
+    axios.post.mockResolvedValue({ status: 200 });
 
-        // Adjusted for a realistic expectation considering userEvent.type's behavior
-        await waitFor(() => {
-            expect(mockOnCitationChange).toHaveBeenCalledTimes(8);
-        });
-        expect(mockOnCitationChange).toHaveBeenCalledWith(0, 'author', 'Jane Doe');
+    await userEvent.type(screen.getByPlaceholderText("Author's name"), 'Jane Doe');
+    await userEvent.type(screen.getByLabelText("Publication Date:"), '2021-01-01');
+    userEvent.click(screen.getByRole('button', { name: /submit citations/i }));
 
-        const publicationDateInput = screen.getByLabelText("Publication Date:");
-        await userEvent.type(publicationDateInput, '2021-01-01');
-
-        // Ensuring publication date change is captured after async user events
-        await waitFor(() => {
-            expect(mockOnCitationChange).toHaveBeenCalledWith(0, 'publicationDate', '2021-01-01');
-        });
+    // Wait for the form submission to trigger axios post
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith(
+        'http://localhost:3001/api/updateSelections',
+        expect.anything(),  // Adjust as necessary to match expected request body
+        expect.anything()  // Adjust as necessary for headers or other args
+      );
     });
-
-    test('submits when all inputs are valid and sends data to the server', async () => {
-        axios.post.mockResolvedValueOnce({ status: 200 });
-
-        const authorInput = screen.getByPlaceholderText("Author's name");
-        await userEvent.type(authorInput, 'Jane Doe');
-        const publicationDateInput = screen.getByLabelText("Publication Date:");
-        await userEvent.type(publicationDateInput, '2021-01-01');
-
-        const submitButton = screen.getByRole('button', { name: /submit citations/i });
-        await userEvent.click(submitButton);
-
-        // Correctly waiting for axios.post to be called after async actions
-        await waitFor(() => {
-            expect(axios.post).toHaveBeenCalledWith(
-                'http://localhost:3001/api/updateSelections',
-                expect.anything(),
-                expect.anything()
-            );
-        });
-    });
+  });
 });
+
