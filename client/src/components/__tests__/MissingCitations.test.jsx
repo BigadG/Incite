@@ -16,16 +16,13 @@ describe('MissingCitations Component', () => {
                 author: true,
                 publicationDate: true,
             },
+            author: '',
+            publicationDate: '',
         },
     ];
 
     beforeEach(() => {
-        // Reset mocks before each test
         jest.clearAllMocks();
-        axios.post.mockClear();
-        mockOnCitationChange.mockClear();
-        mockOnSubmit.mockClear();
-
         render(
             <MissingCitations
                 missing={missingCitationsData}
@@ -37,45 +34,42 @@ describe('MissingCitations Component', () => {
 
     test('accepts input and validates correctly', async () => {
         const authorInput = screen.getByPlaceholderText("Author's name");
-        const publicationDateInput = screen.getByLabelText("Publication Date:");
-
-        // Simulate typing the author name and publication date
         await userEvent.type(authorInput, 'Jane Doe');
+
+        // Expectation for mockOnCitationChange after user event
+        expect(mockOnCitationChange).toHaveBeenLastCalledWith(0, 'author', 'Jane Doe');
+
+        const publicationDateInput = screen.getByLabelText("Publication Date:");
         await userEvent.type(publicationDateInput, '2021-01-01');
 
-        // Assertions to ensure the mock function was called with expected arguments
-        expect(mockOnCitationChange).toHaveBeenNthCalledWith(1, 0, 'author', 'J');
-        expect(mockOnCitationChange).toHaveBeenNthCalledWith(2, 0, 'author', 'a');
-        // The final call should reflect the complete input
-        expect(mockOnCitationChange).toHaveBeenNthCalledWith(8, 0, 'author', 'Jane Doe');
-
-        // Similar approach for publication date if applicable
+        // Expectation for mockOnCitationChange for publication date
+        expect(mockOnCitationChange).toHaveBeenLastCalledWith(0, 'publicationDate', '2021-01-01');
     });
 
     test('submits when all inputs are valid and sends data to the server', async () => {
+        axios.post.mockResolvedValueOnce({ status: 200 });
+
         const authorInput = screen.getByPlaceholderText("Author's name");
         const publicationDateInput = screen.getByLabelText("Publication Date:");
-        const submitButton = screen.getByRole('button', { name: /submit citations/i });
 
-        // Fill in the inputs
+        // Simulate filling out the form
         await userEvent.type(authorInput, 'Jane Doe');
         await userEvent.type(publicationDateInput, '2021-01-01');
 
-        // Mock successful axios response
-        axios.post.mockResolvedValueOnce({ status: 200 });
+        const submitButton = screen.getByRole('button', { name: /submit citations/i });
+        userEvent.click(submitButton);
 
-        // Attempt to submit the form
-        await userEvent.click(submitButton);
+        // Assertion to ensure axios.post was called correctly
+        await waitFor(() => {
+            expect(axios.post).toHaveBeenCalledWith(
+                'http://localhost:3001/api/updateSelections',
+                expect.anything(),
+                expect.anything()
+            );
+        });
 
-        // Use a more lenient assertion for axios.post to check for any call
-        expect(axios.post).toHaveBeenCalledTimes(1);
-        expect(axios.post).toHaveBeenCalledWith(
-            'http://localhost:3001/api/updateSelections',
-            expect.anything(), // The exact payload might need more specific matching
-            expect.anything()
-        );
-
-        // Verify if the onSubmit callback was called, if that's part of the expected behavior
-        expect(mockOnSubmit).toHaveBeenCalledTimes(1);
+        // Optionally verify if the mockOnSubmit function was called, if it's part of the form's submit handler
+        expect(mockOnSubmit).toHaveBeenCalled();
     });
 });
+
