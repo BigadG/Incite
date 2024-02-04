@@ -33,29 +33,48 @@ describe('MissingCitations Component', () => {
         await userEvent.type(authorInput, 'Jane Doe');
         await userEvent.type(publicationDateInput, '2021-01-01');
 
-        // Corrected to check if the mock function was called with expected values at any time
         await waitFor(() => {
-            const authorCalled = mockOnCitationChange.mock.calls.some(call => call.includes('Jane Doe'));
-            const publicationDateCalled = mockOnCitationChange.mock.calls.some(call => call.includes('2021-01-01'));
-            expect(authorCalled).toBeTruthy();
-            expect(publicationDateCalled).toBeTruthy();
+            expect(mockOnCitationChange).toHaveBeenNthCalledWith(1, 0, 'author', 'J');
+            expect(mockOnCitationChange).toHaveBeenNthCalledWith(2, 0, 'author', 'Ja');
+            expect(mockOnCitationChange).toHaveBeenNthCalledWith(3, 0, 'author', 'Jan');
+            expect(mockOnCitationChange).toHaveBeenNthCalledWith(4, 0, 'author', 'Jane');
+            expect(mockOnCitationChange).toHaveBeenNthCalledWith(5, 0, 'author', 'Jane ');
+            expect(mockOnCitationChange).toHaveBeenNthCalledWith(6, 0, 'author', 'Jane D');
+            expect(mockOnCitationChange).toHaveBeenNthCalledWith(7, 0, 'author', 'Jane Do');
+            expect(mockOnCitationChange).toHaveBeenNthCalledWith(8, 0, 'author', 'Jane Doe');
+            expect(mockOnCitationChange).toHaveBeenNthCalledWith(9, 0, 'publicationDate', '2021-01-01');
         });
     });
 
     test('submits when all inputs are valid and sends data to the server', async () => {
         axios.post.mockResolvedValue({ status: 200 });
 
-        // Corrected to trigger the form submission logic within the component
+        const authorInput = screen.getByPlaceholderText("Author's name");
+        const publicationDateInput = screen.getByLabelText("Publication Date:");
         const submitButton = screen.getByRole('button', { name: /submit citations/i });
 
-        await userEvent.click(submitButton);
+        await userEvent.type(authorInput, 'Jane Doe');
+        await userEvent.type(publicationDateInput, '2021-01-01');
+        userEvent.click(submitButton);
 
         await waitFor(() => {
+            expect(mockOnSubmit).toHaveBeenCalled();
             expect(axios.post).toHaveBeenCalledWith(
                 'http://localhost:3001/api/updateSelections',
-                expect.any(Object),  // Corrected to match the expected call
-                expect.any(Object)
+                {
+                    updatedSelections: expect.arrayContaining([
+                        expect.objectContaining({ author: 'Jane Doe', publicationDate: '2021-01-01' })
+                    ]),
+                    uuid: expect.any(String),
+                },
+                expect.objectContaining({
+                    headers: expect.objectContaining({
+                        Authorization: expect.stringContaining('Bearer')
+                    })
+                })
             );
         });
     });
 });
+
+
