@@ -1,6 +1,6 @@
 const request = require('supertest');
 const express = require('express');
-const { generateEssay } = require('../routes');
+const { generateEssayWithSelections } = require('../routes');
 const bodyParser = require('body-parser');
 
 jest.mock('../openaiService', () => ({
@@ -10,19 +10,25 @@ jest.mock('../openaiService', () => ({
 const app = express();
 app.use(bodyParser.json());
 
-app.post('/api/generateEssay', generateEssay);
+app.post('/api/generateEssayWithSelections', generateEssayWithSelections);
 
 describe('GPT API Integration', () => {
   it('should generate an essay based on prompts', async () => {
     const response = await request(app)
-      .post('/api/generateEssay')
-      .send({ prompts: { prompt1: 'Prompt 1', prompt2: 'Prompt 2', prompt3: 'Prompt 3' } });
+      .post('/api/generateEssayWithSelections')
+      .send({ 
+        urls: ['https://example.com/article1', 'https://example.com/article2'],
+        thesis: 'This is a thesis statement',
+        bodyPremises: ['This is a test premise for the essay.'],
+        missingCitations: [] // Assuming implementation can handle an empty array
+      });
   
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('essay');
     expect(response.body.essay).toBe('Mocked essay content');
   });
 });
+
 
 
 

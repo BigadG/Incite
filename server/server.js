@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { router, register, generateEssay } = require('./routes');
+const { router, register } = require('./routes');
 const authMiddleware = require('./authMiddleware');
 
 const app = express();

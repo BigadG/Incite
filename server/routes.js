@@ -10,8 +10,6 @@ const createDOMPurify = require('dompurify');
 
 const router = express.Router();
 
-const MAX_WORDS = 5000; // Maximum number of words I want to extract in total
-
 // In your route handler for '/updateSelections'
 router.post('/updateSelections', async (req, res) => {
   try {
@@ -40,6 +38,8 @@ router.post('/updateSelections', async (req, res) => {
       res.status(500).json({ message: 'Error updating selections', error });
   }
 });
+
+const MAX_WORDS = 5000; // Maximum number of words I want to extract in total
 
 async function fetchAndProcessPage(url, maxWordCount) {
   try {
@@ -81,21 +81,6 @@ async function fetchAndProcessPage(url, maxWordCount) {
   }
 }
 
-const generateEssay = async (req, res) => {
-  if (!req.body || typeof req.body !== 'object' || !req.body.prompts) {
-    console.error('Invalid request body:', req.body);
-    return res.status(400).json({ message: 'Invalid request body' });
-  }
-  try {
-    // The `prompts` should be passed here, not the entire `req.body`
-    const essay = await generateEssayContent(req.body.prompts);
-    res.status(200).json({ essay });
-  } catch (error) {
-    console.error('GPT API Call Error:', error.message);
-    res.status(500).json({ message: 'Error calling GPT API', error: error.message });
-  }
-};
-
 const generateEssayWithSelections = async (req, res) => {
   try {
     const { urls, thesis, bodyPremises, missingCitations } = req.body;
@@ -104,6 +89,13 @@ const generateEssayWithSelections = async (req, res) => {
       console.error('Invalid input:', req.body);
       return res.status(400).json({ message: 'Invalid input' });
     }
+
+    // Calculate max words per selection
+    const totalMaxWords = MAX_WORDS;
+    const maxWordCountPerSelection = Math.floor(totalMaxWords / urls.length);
+
+    const contentFromPages = await Promise.all(urls.map(url => fetchAndProcessPage(url, maxWordCountPerSelection)))
+      .then(results => results.join("\n\n"));
 
     const db = await connect();
     const uuid = req.userId;
@@ -146,20 +138,15 @@ const generateEssayWithSelections = async (req, res) => {
       return res.status(200).json({ missingCitations: missingCitationsResponse });
     }
 
-    // Assuming contentFromPages is generated here or earlier in the function
-    const contentFromPages = await Promise.all(urls.map(url => fetchAndProcessPage(url)))
-      .then(results => results.filter(result => result.status === 'fulfilled').map(result => result.value).join("\n\n"));
-
     // Generate the essay content
     const essayContentResult = await generateEssayContent({ thesis, bodyPremises }, contentFromPages, selections);
-
-    // If an essay was generated successfully, send it back to the client
     res.status(200).json({ essay: essayContentResult });
   } catch (error) {
     console.error('Error generating essay with selections:', error);
     res.status(500).json({ message: 'Error generating essay with selections', error: error.toString() });
   }
 };
+
 
 const register = async (req, res) => {
   try {
@@ -249,4 +236,4 @@ router.delete('/deleteSelection/:pageId', async (req, res) => {
 
 router.post('/generateEssayWithSelections', generateEssayWithSelections);
 
-module.exports = { router, register, generateEssay, fetchAndProcessPage, generateEssayWithSelections };
+module.exports = { router, register, fetchAndProcessPage, generateEssayWithSelections };

@@ -34,21 +34,21 @@ jest.mock('../openaiService', () => ({
 
 describe('Content Extraction for Essay Generation', () => {
   test('should generate an essay with provided URLs', async () => {
-    // Change this to an array of strings
-    const mockPremises = ['This is a test premise for the essay.'];
-
-    const mockUrls = ['https://example.com/article1', 'https://example.com/article2'];
-
     const response = await request(app)
       .post('/api/generateEssayWithSelections')
-      .send({ premises: mockPremises, urls: mockUrls });
+      .send({ 
+        urls: ['https://example.com/article1', 'https://example.com/article2'],
+        thesis: 'This is a thesis statement',
+        bodyPremises: ['This is a test premise for the essay.'],
+        missingCitations: [] // Assuming implementation can handle an empty array
+      });
 
-    // The rest of your test assertions
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('essay');
     expect(response.body.essay).toBe('Mocked essay content');
   }, 30000);
 });
+
 
 
 
