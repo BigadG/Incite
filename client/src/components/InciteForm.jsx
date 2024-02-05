@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import queryString from 'query-string';
 import InputField from './InputField';
@@ -56,7 +56,6 @@ function InciteForm() {
     }, []);
 
     useEffect(() => {
-        // Handle visibility change to fetch selections when the page is visible
         const handleVisibilityChange = () => {
             setIsPageVisible(document.visibilityState === 'visible');
         };
@@ -121,10 +120,12 @@ function InciteForm() {
 
             if (response.data.missingCitations && response.data.missingCitations.length > 0) {
                 setMissingCitations(response.data.missingCitations);
-            } else {
+              } else {
                 setResult(response.data.essay);
                 setMissingCitations([]);
-            }
+                // Save the essay and selections
+                await saveEssay(response.data.essay, urls); // This function should call /api/saveRecentEssay
+              }
         } catch (error) {
             console.error('Error submitting essay:', error);
             setResult('Error generating essay with latest selections');
@@ -134,6 +135,30 @@ function InciteForm() {
     };
 
     useEffect(() => {
+        const fetchSavedEssay = async () => {
+          try {
+            const response = await axios.get('http://localhost:3001/api/getRecentEssay', {
+              headers: {
+                'Authorization': `Bearer ${uuid}`
+              }
+            });
+            if (response.status === 200) {
+              setResult(response.data.essay);
+              // Assuming that the selections are an array of URLs
+              setUrls(response.data.selections.map(sel => sel.url));
+            }
+          } catch (error) {
+            console.error('Error fetching saved essay:', error);
+          }
+        };
+      
+        if (uuid) {
+          fetchSavedEssay();
+        }
+      }, [uuid]);      
+
+    useEffect(() => {
+        
         let loadingInterval;
 
         if (isLoading) {
@@ -199,5 +224,3 @@ function InciteForm() {
 }
 
 export default InciteForm;
-
-
