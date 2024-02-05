@@ -16,6 +16,23 @@ function InciteForm() {
     const [missingCitations, setMissingCitations] = useState([]);
     const [isPageVisible, setIsPageVisible] = useState(true);
 
+    const saveEssay = async (essay) => {
+        try {
+          await axios.post('http://localhost:3001/api/saveRecentEssay', {
+            uuid,
+            essay,
+            selections: urls.map(url => ({ url })),
+          }, {
+            headers: {
+              'Authorization': `Bearer ${uuid}`
+            }
+          });
+        } catch (error) {
+          console.error('Error saving essay:', error);
+          // Handle the error appropriately
+        }
+      };
+    
     const handleChange = (index) => (event) => {
         const newInputs = [...inputs];
         newInputs[index] = event.target.value;
@@ -100,39 +117,35 @@ function InciteForm() {
     const handleSubmit = async (event) => {
         if (event) event.preventDefault();
         setIsLoading(true);
-
+    
         const dataToSend = {
-            thesis: inputs[0].trim(),
-            bodyPremises: inputs.slice(1).filter(input => input.trim() !== ''),
-            urls: urls,
+          thesis: inputs[0].trim(),
+          bodyPremises: inputs.slice(1).filter(input => input.trim() !== ''),
+          urls: urls,
         };
-
-        console.log('Submitting data to generate essay:', dataToSend);
-
+    
         try {
-            const response = await axios.post('http://localhost:3001/api/generateEssayWithSelections', dataToSend, {
-                headers: {
-                    'Authorization': `Bearer ${uuid}`
-                }
-            });
-
-            console.log('Response received from generateEssayWithSelections:', response.data);
-
-            if (response.data.missingCitations && response.data.missingCitations.length > 0) {
-                setMissingCitations(response.data.missingCitations);
-              } else {
-                setResult(response.data.essay);
-                setMissingCitations([]);
-                // Save the essay and selections
-                await saveEssay(response.data.essay, urls); // This function should call /api/saveRecentEssay
-              }
+          const response = await axios.post('http://localhost:3001/api/generateEssayWithSelections', dataToSend, {
+            headers: {
+              'Authorization': `Bearer ${uuid}`
+            }
+          });
+    
+          if (response.data.missingCitations && response.data.missingCitations.length > 0) {
+            setMissingCitations(response.data.missingCitations);
+          } else {
+            setResult(response.data.essay);
+            setMissingCitations([]);
+            // Save the essay using the saveEssay function
+            await saveEssay(response.data.essay);
+          }
         } catch (error) {
-            console.error('Error submitting essay:', error);
-            setResult('Error generating essay with latest selections');
+          console.error('Error submitting essay:', error);
+          setResult('Error generating essay with latest selections');
         } finally {
-            setIsLoading(false);
+          setIsLoading(false);
         }
-    };
+      };    
 
     useEffect(() => {
         const fetchSavedEssay = async () => {
