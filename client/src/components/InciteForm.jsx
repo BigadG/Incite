@@ -16,22 +16,23 @@ function InciteForm() {
     const [missingCitations, setMissingCitations] = useState([]);
     const [isPageVisible, setIsPageVisible] = useState(true);
 
-    const saveEssay = async (essay) => {
-        try {
-          await axios.post('http://localhost:3001/api/saveRecentEssay', {
-            uuid,
-            essay,
-            selections: urls.map(url => ({ url })),
-          }, {
-            headers: {
-              'Authorization': `Bearer ${uuid}`
-            }
-          });
-        } catch (error) {
-          console.error('Error saving essay:', error);
-          // Handle the error appropriately
+  // Modify saveEssay to include premises
+  const saveEssay = async (essay) => {
+    try {
+      await axios.post('http://localhost:3001/api/saveRecentEssay', {
+        uuid,
+        essay,
+        selections: urls.map(url => ({ url })),
+        premises: inputs.slice(1) // Assume the first input is the thesis, and the rest are premises
+      }, {
+        headers: {
+          'Authorization': `Bearer ${uuid}`
         }
-      };
+      });
+    } catch (error) {
+      console.error('Error saving essay and premises:', error);
+    }
+  };
     
     const handleChange = (index) => (event) => {
         const newInputs = [...inputs];
@@ -147,7 +148,7 @@ function InciteForm() {
         }
       };    
 
-    useEffect(() => {
+      useEffect(() => {
         const fetchSavedEssay = async () => {
           try {
             const response = await axios.get('http://localhost:3001/api/getRecentEssay', {
@@ -156,19 +157,21 @@ function InciteForm() {
               }
             });
             if (response.status === 200) {
-              setResult(response.data.essay);
-              // Assuming that the selections are an array of URLs
-              setUrls(response.data.selections.map(sel => sel.url));
+              const { essay, selections, premises } = response.data;
+              setResult(essay);
+              setUrls(selections.map(sel => sel.url));
+              // Update the state to include the premises
+              setInputs([inputs[0], ...premises]);
             }
           } catch (error) {
-            console.error('Error fetching saved essay:', error);
+            console.error('Error fetching saved essay and premises:', error);
           }
         };
-      
+    
         if (uuid) {
           fetchSavedEssay();
         }
-      }, [uuid]);      
+      }, [uuid]);
 
     useEffect(() => {
         
