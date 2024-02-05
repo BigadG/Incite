@@ -5,7 +5,6 @@ import axios from 'axios';
 
 jest.mock('query-string', () => ({
   parse: jest.fn(() => ({ uuid: 'mock-uuid' })),
-  stringify: jest.fn(),
 }));
 
 jest.mock('axios');
@@ -31,7 +30,7 @@ describe('InciteForm Component', () => {
         expect(await screen.findByText(selection.url)).toBeInTheDocument();
       });
     });
-  }, 10000); // Increase timeout if necessary
+  });
 
   test('submits form and generates essay', async () => {
     axios.post.mockResolvedValueOnce({ status: 200, data: { essay: 'Generated Essay' } });
@@ -39,8 +38,8 @@ describe('InciteForm Component', () => {
     render(<InciteForm />);
 
     const thesisInput = screen.getByLabelText(/Essay Premise:/i);
-    const bodyPremisesInput = screen.getAllByLabelText(/Body Premises:/i)[0]; // If there are multiple inputs, get the first
-    const submitButton = screen.getByRole('button', { name: /Sum It!/i });
+    const bodyPremisesInput = screen.getAllByRole('textbox')[1]; // Assuming the second textbox is for body premises
+    const submitButton = screen.getByRole('button', { name: /sum it!/i });
 
     await userEvent.type(thesisInput, 'This is a test thesis');
     await userEvent.type(bodyPremisesInput, 'This is a test premise');
@@ -48,11 +47,17 @@ describe('InciteForm Component', () => {
 
     await waitFor(() => {
       expect(axios.post).toHaveBeenCalledWith(
-        'http://localhost:3001/api/generateEssayWithSelections',
-        expect.any(Object),
+        expect.stringContaining('/api/generateEssayWithSelections'),
+        expect.objectContaining({
+          thesis: 'This is a test thesis',
+          bodyPremises: expect.arrayContaining(['This is a test premise']),
+        }),
         expect.any(Object)
       );
+    });
+
+    await waitFor(() => {
       expect(screen.getByText('Generated Essay')).toBeInTheDocument();
-    }, 10000); // Increase timeout if necessary
+    });
   });
 });

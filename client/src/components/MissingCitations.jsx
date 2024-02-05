@@ -113,7 +113,3 @@ MissingCitations.propTypes = {
 };
 
 export default MissingCitations;
-
-
-
-
