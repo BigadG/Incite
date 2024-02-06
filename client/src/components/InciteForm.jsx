@@ -168,45 +168,44 @@ function InciteForm() {
 
       useEffect(() => {
         const fetchSavedEssay = async () => {
-            try {
-                const response = await axios.get('http://localhost:3001/api/getRecentEssay', {
-                    headers: {
-                        'Authorization': `Bearer ${uuid}`
-                    }
-                });
-                if (response.status === 200 && response.data) {
-                    const { essay, selections, thesis, premises } = response.data;
-              
-                    // Check if selections are not empty before setting the state
-                    if (selections && selections.length > 0) {
-                      setUrls(selections.map(sel => sel.url));
-                      setResult(essay);
-                      setInputs([thesis, ...premises]);
-                    } else {
-                      // If selections are empty, clear the essay, thesis, and premises
-                      setUrls([]);
-                      setResult('');
-                      setInputs(['', '', '']);
-                    }
-                  } else {
-                    // Handle case where no recent essay is found or selections are empty
-                    console.log('No recent essay found or selections are empty');
-                    setUrls([]);
+          try {
+            const response = await axios.get('http://localhost:3001/api/getRecentEssay', {
+                headers: {
+                    'Authorization': `Bearer ${uuid}`
+                }
+            });
+            if (response.status === 200 && response.data) {
+                const { essay, selections, thesis, premises } = response.data;
+      
+                // Safely process selections if available
+                const processedSelections = selections ? selections.map(sel => sel.url) : [];
+                setUrls(processedSelections);
+        
+                // Check and set the essay, thesis, and premises
+                if (essay !== undefined) setResult(essay);
+                if (thesis && premises) {
+                    setInputs([thesis, ...premises]);
+                } else {
+                    // Handle missing thesis and premises by clearing inputs
                     setInputs(['', '', '']);
-                    setResult('');
-                  }
-            } catch (error) {
-                console.error('Error fetching saved essay and premises:', error);
+                }
+            } else {
+                // Handle case where no recent essay is found
+                console.log('No recent essay found');
                 setInputs(['', '', '']);
                 setResult('');
             }
+          } catch (error) {
+            console.error('Error fetching saved essay and premises:', error);
+            setInputs(['', '', '']);
+            setResult('');
+          }
         };
-    
+      
         if (uuid) {
-            fetchSavedEssay();
+          fetchSavedEssay();
         }
-    }, [uuid]);
-     
+      }, [uuid]);      
       
     useEffect(() => {
         let loadingInterval;
@@ -227,20 +226,19 @@ function InciteForm() {
     }, [isLoading]);
 
     useEffect(() => {
-        // This effect listens for a flag that indicates the data should be cleared
-        const clearDataFlag = sessionStorage.getItem('clearDataFlag');
-        if (clearDataFlag === 'true') {
-          // Clear the sessionStorage items related to the essay, thesis, and premises
-          sessionStorage.removeItem('recentEssayData');
-          sessionStorage.removeItem('clearDataFlag');
-    
-          // Reset state variables to clear the displayed data
+        // This effect listens for a flag that indicates the essay data should be cleared
+        const clearEssayDataFlag = sessionStorage.getItem('clearEssayDataFlag');
+        if (clearEssayDataFlag === 'true') {
+          // Clear the sessionStorage item related to the clear flag
+          sessionStorage.removeItem('clearEssayDataFlag');
+        
+          // Reset state variables to clear the displayed essay data
           setResult('');
-          setInputs(['', '', '']); // Assuming three inputs for thesis and two premises
-          setUrls([]); // Clear the URLs state as well
+          setInputs(['', '', '']); // Clear the inputs for thesis and premises
+          setUrls([]); // Clear the URLs
           setMissingCitations([]); // Clear any missing citations
         }
-      }, []);
+      }, []);           
 
     useEffect(() => {
       console.log('Updated missingCitations state:', missingCitations);

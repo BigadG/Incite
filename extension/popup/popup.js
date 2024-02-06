@@ -269,27 +269,31 @@ async function addSelection(url, title) {
   clearButton.addEventListener('click', async function() {
     // Clear selections in storage
     await setToStorage('selections', []);
-
+  
     // Clear the displayed list in the popup
     listContainer.innerHTML = '';
-
+  
     // Send a request to the server to clear selections for this user
     try {
       const uuid = await getUUID();
-      await fetch(`${serverUrl}/clearSelections`, {
+      const response = await fetch(`${serverUrl}/clearSelections`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${uuid}`
         }
       });
-
-      // Clear any displayed thesis, premises, and essay in the React app.
-      // Since the React app uses sessionStorage, we can signal it to clear by setting a flag.
-      sessionStorage.setItem('clearDataFlag', 'true');
-      console.log('Selections cleared');
+  
+      if (response.ok) {
+        // Clear any displayed thesis, premises, and essay in the React app.
+        // Since the React app uses sessionStorage, we can signal it to clear by setting a flag.
+        sessionStorage.setItem('clearEssayDataFlag', 'true');
+        console.log('Selections cleared');
+      } else {
+        throw new Error('Failed to clear selections on the server');
+      }
     } catch (error) {
       console.error('Error clearing selections:', error);
     }
   });
-});
+});  
