@@ -28,11 +28,10 @@ function InciteForm() {
                     'Authorization': `Bearer ${uuid}`
                 }
             });
-            sessionStorage.setItem('recentEssayData', JSON.stringify({ thesis: inputs[0], premises: inputs.slice(1) }));
-            sessionStorage.setItem('recentEssayContent', essay); // Store essay content separately
+            sessionStorage.setItem('recentEssayData', JSON.stringify({ thesis: inputs[0], premises: inputs.slice(1), essay }));
         } catch (error) {
             console.error('Error saving essay, thesis, and premises:', error);
-        }  
+        }
     };
 
     const handleChange = (index) => (event) => {
@@ -90,20 +89,20 @@ function InciteForm() {
     }, [isPageVisible, fetchSelections]);
 
     useEffect(() => {
-        // Attempt to load thesis and premises from sessionStorage
-        const recentEssayData = sessionStorage.getItem('recentEssayData');
-        if (recentEssayData) {
-            const { thesis, premises } = JSON.parse(recentEssayData);
-            setInputs([thesis, ...premises]);
-        }
-    
-        // Attempt to load essay content separately
-        const savedEssayContent = sessionStorage.getItem('recentEssayContent');
-        if (savedEssayContent) {
-            setResult(savedEssayContent);
+        const sessionStartFlag = sessionStorage.getItem('sessionStartFlag');
+
+        if (!sessionStartFlag) {
+            sessionStorage.clear(); // Clear all sessionStorage
+            sessionStorage.setItem('sessionStartFlag', 'true');
+            setResult(''); // Explicitly clear the essay content
+            setInputs(['', '', '']); // Reset inputs
         } else {
-            // Explicitly clear the essay content if not found in sessionStorage
-            setResult('');
+            const recentEssayData = sessionStorage.getItem('recentEssayData');
+            if (recentEssayData) {
+                const { thesis, premises, essay } = JSON.parse(recentEssayData);
+                setInputs([thesis, ...premises]);
+                setResult(essay);
+            }
         }
     }, []);
 
@@ -169,34 +168,47 @@ function InciteForm() {
 
       useEffect(() => {
         const fetchSavedEssay = async () => {
-          try {
-            const response = await axios.get('http://localhost:3001/api/getRecentEssay', {
-              headers: {
-                'Authorization': `Bearer ${uuid}`
-              }
-            });
-            if (response.status === 200) {
-              const { essay, selections, thesis, premises } = response.data;
-              setResult(essay);
-              setUrls(selections.map(sel => sel.url));
-      
-              // Correctly update the inputs to include thesis and premises
-              // The response should already include the thesis and premises separately
-              // Make sure the thesis is the first item in the inputs array
-              setInputs([thesis, ...premises]);
+            try {
+                const response = await axios.get('http://localhost:3001/api/getRecentEssay', {
+                    headers: {
+                        'Authorization': `Bearer ${uuid}`
+                    }
+                });
+                if (response.status === 200 && response.data) {
+                    const { essay, selections, thesis, premises } = response.data;
+    
+                    // Safely process selections if available
+                    const processedSelections = selections ? selections.map(sel => sel.url) : [];
+                    setUrls(processedSelections);
+    
+                    // Check and set the essay, thesis, and premises
+                    if (essay !== undefined) setResult(essay);
+                    if (thesis && premises) {
+                        setInputs([thesis, ...premises]);
+                    } else {
+                        // Handle missing thesis and premises by clearing inputs
+                        setInputs(['', '', '']);
+                    }
+                } else {
+                    // Handle case where no recent essay is found
+                    console.log('No recent essay found');
+                    setInputs(['', '', '']);
+                    setResult('');
+                }
+            } catch (error) {
+                console.error('Error fetching saved essay and premises:', error);
+                setInputs(['', '', '']);
+                setResult('');
             }
-          } catch (error) {
-            console.error('Error fetching saved essay and premises:', error);
-          }
         };
-      
+    
         if (uuid) {
-          fetchSavedEssay();
+            fetchSavedEssay();
         }
-      }, [uuid]);      
+    }, [uuid]);
+     
       
     useEffect(() => {
-        
         let loadingInterval;
 
         if (isLoading) {
@@ -213,6 +225,22 @@ function InciteForm() {
             }
         };
     }, [isLoading]);
+
+    useEffect(() => {
+        // This effect listens for a flag that indicates the data should be cleared
+        const clearDataFlag = sessionStorage.getItem('clearDataFlag');
+        if (clearDataFlag === 'true') {
+          // Clear the sessionStorage items related to the essay, thesis, and premises
+          sessionStorage.removeItem('recentEssayData');
+          sessionStorage.removeItem('clearDataFlag');
+    
+          // Reset state variables to clear the displayed data
+          setResult('');
+          setInputs(['', '', '']); // Assuming three inputs for thesis and two premises
+          setUrls([]); // Clear the URLs state as well
+          setMissingCitations([]); // Clear any missing citations
+        }
+      }, []);
 
     useEffect(() => {
       console.log('Updated missingCitations state:', missingCitations);
