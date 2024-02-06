@@ -16,25 +16,24 @@ function InciteForm() {
     const [missingCitations, setMissingCitations] = useState([]);
     const [isPageVisible, setIsPageVisible] = useState(true);
 
-    // Modified to use sessionStorage
     const saveEssay = async (essay) => {
         try {
             await axios.post('http://localhost:3001/api/saveRecentEssay', {
                 uuid,
                 essay,
-                thesis: inputs[0], // Sending thesis separately
-                premises: inputs.slice(1) // Sending premises separately
+                thesis: inputs[0],
+                premises: inputs.slice(1)
             }, {
                 headers: {
                     'Authorization': `Bearer ${uuid}`
                 }
             });
-            // Store essay data in sessionStorage
+            // Update sessionStorage to include the essay content
             sessionStorage.setItem('recentEssayData', JSON.stringify({ essay, thesis: inputs[0], premises: inputs.slice(1) }));
         } catch (error) {
             console.error('Error saving essay, thesis, and premises:', error);
         }
-    };
+    };    
 
     const handleChange = (index) => (event) => {
         const newInputs = [...inputs];
@@ -91,15 +90,17 @@ function InciteForm() {
     }, [isPageVisible, fetchSelections]);
 
     useEffect(() => {
-        // Attempt to load saved essay data from sessionStorage
         const recentEssayData = sessionStorage.getItem('recentEssayData');
         if (recentEssayData) {
             const { essay, thesis, premises } = JSON.parse(recentEssayData);
-            setResult(essay);
+            setResult(essay); // Set the essay content from sessionStorage
             setInputs([thesis, ...premises]);
+        } else {
+            // Clear the result as well to ensure essay content is not shown on fresh page loads
+            setResult('');
         }
     }, []);
-    
+
     const handleMissingCitationSubmit = async () => {
         const updatedSelections = missingCitations.map(citation => ({
             url: citation.url,
