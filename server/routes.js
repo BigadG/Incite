@@ -243,13 +243,24 @@ router.post('/clearSelections', async (req, res) => {
     const db = await connect();
     const uuid = req.userId;
 
+    // Update the user document to clear the selections and the recent essay data
     const result = await db.collection('Users').updateOne(
       { uuid },
-      { $set: { selections: [] } }
+      { 
+        $set: { 
+          selections: [],
+          recentEssay: { essay: "", thesis: "", premises: [], selections: null } // Reset the essay-related fields
+        } 
+      }
     );
-    res.status(200).json({ message: 'Selections cleared', result });
+    
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ message: 'User not found or no changes made' });
+    }
+
+    res.status(200).json({ message: 'Selections and essay data cleared', result });
   } catch (error) {
-    res.status(500).json({ message: 'Error clearing selections', error });
+    res.status(500).json({ message: 'Error clearing selections and essay data', error });
   }
 });
 

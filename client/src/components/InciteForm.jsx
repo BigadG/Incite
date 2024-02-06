@@ -176,25 +176,25 @@ function InciteForm() {
                 });
                 if (response.status === 200 && response.data) {
                     const { essay, selections, thesis, premises } = response.data;
-    
-                    // Safely process selections if available
-                    const processedSelections = selections ? selections.map(sel => sel.url) : [];
-                    setUrls(processedSelections);
-    
-                    // Check and set the essay, thesis, and premises
-                    if (essay !== undefined) setResult(essay);
-                    if (thesis && premises) {
-                        setInputs([thesis, ...premises]);
+              
+                    // Check if selections are not empty before setting the state
+                    if (selections && selections.length > 0) {
+                      setUrls(selections.map(sel => sel.url));
+                      setResult(essay);
+                      setInputs([thesis, ...premises]);
                     } else {
-                        // Handle missing thesis and premises by clearing inputs
-                        setInputs(['', '', '']);
+                      // If selections are empty, clear the essay, thesis, and premises
+                      setUrls([]);
+                      setResult('');
+                      setInputs(['', '', '']);
                     }
-                } else {
-                    // Handle case where no recent essay is found
-                    console.log('No recent essay found');
+                  } else {
+                    // Handle case where no recent essay is found or selections are empty
+                    console.log('No recent essay found or selections are empty');
+                    setUrls([]);
                     setInputs(['', '', '']);
                     setResult('');
-                }
+                  }
             } catch (error) {
                 console.error('Error fetching saved essay and premises:', error);
                 setInputs(['', '', '']);

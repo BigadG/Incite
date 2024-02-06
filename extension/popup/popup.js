@@ -265,31 +265,31 @@ async function addSelection(url, title) {
     console.log(`Opening React app with URL: ${inciteAppUrl}`);
     chrome.tabs.create({ url: inciteAppUrl });
   });
-});
 
-clearButton.addEventListener('click', async function() {
-  // Clear selections in storage
-  await setToStorage('selections', []);
+  clearButton.addEventListener('click', async function() {
+    // Clear selections in storage
+    await setToStorage('selections', []);
 
-  // Clear the displayed list in the popup
-  listContainer.innerHTML = '';
+    // Clear the displayed list in the popup
+    listContainer.innerHTML = '';
 
-  // Send a request to the server to clear selections for this user
-  try {
-    const uuid = await getUUID();
-    await fetch(`${serverUrl}/clearSelections`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${uuid}`
-      }
-    });
+    // Send a request to the server to clear selections for this user
+    try {
+      const uuid = await getUUID();
+      await fetch(`${serverUrl}/clearSelections`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${uuid}`
+        }
+      });
 
-    // Clear any displayed thesis, premises, and essay in the React app.
-    // Since the React app uses sessionStorage, we can signal it to clear by setting a flag.
-    sessionStorage.setItem('clearDataFlag', 'true');
-    console.log('Selections cleared');
-  } catch (error) {
-    console.error('Error clearing selections:', error);
-  }
+      // Clear any displayed thesis, premises, and essay in the React app.
+      // Since the React app uses sessionStorage, we can signal it to clear by setting a flag.
+      sessionStorage.setItem('clearDataFlag', 'true');
+      console.log('Selections cleared');
+    } catch (error) {
+      console.error('Error clearing selections:', error);
+    }
+  });
 });
