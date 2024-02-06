@@ -28,12 +28,12 @@ function InciteForm() {
                     'Authorization': `Bearer ${uuid}`
                 }
             });
-            // Update sessionStorage to include the essay content
-            sessionStorage.setItem('recentEssayData', JSON.stringify({ essay, thesis: inputs[0], premises: inputs.slice(1) }));
+            sessionStorage.setItem('recentEssayData', JSON.stringify({ thesis: inputs[0], premises: inputs.slice(1) }));
+            sessionStorage.setItem('recentEssayContent', essay); // Store essay content separately
         } catch (error) {
             console.error('Error saving essay, thesis, and premises:', error);
-        }
-    };    
+        }  
+    };
 
     const handleChange = (index) => (event) => {
         const newInputs = [...inputs];
@@ -90,13 +90,19 @@ function InciteForm() {
     }, [isPageVisible, fetchSelections]);
 
     useEffect(() => {
+        // Attempt to load thesis and premises from sessionStorage
         const recentEssayData = sessionStorage.getItem('recentEssayData');
         if (recentEssayData) {
-            const { essay, thesis, premises } = JSON.parse(recentEssayData);
-            setResult(essay); // Set the essay content from sessionStorage
+            const { thesis, premises } = JSON.parse(recentEssayData);
             setInputs([thesis, ...premises]);
+        }
+    
+        // Attempt to load essay content separately
+        const savedEssayContent = sessionStorage.getItem('recentEssayContent');
+        if (savedEssayContent) {
+            setResult(savedEssayContent);
         } else {
-            // Clear the result as well to ensure essay content is not shown on fresh page loads
+            // Explicitly clear the essay content if not found in sessionStorage
             setResult('');
         }
     }, []);
