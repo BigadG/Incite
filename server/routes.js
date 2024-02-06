@@ -10,25 +10,30 @@ const createDOMPurify = require('dompurify');
 
 const router = express.Router();
 
-// Update the /saveRecentEssay route to include premises
 router.post('/saveRecentEssay', async (req, res) => {
+  console.log(req.body);
   try {
     const db = await connect();
-    const { uuid, essay, selections, premises } = req.body; // Include premises in the request body
+    const { uuid, essay, selections, thesis, premises } = req.body; // Explicitly extract thesis here
 
+    // Make sure thesis is correctly extracted and utilized
+    if (!thesis) { // Add a check to ensure thesis is defined
+      return res.status(400).json({ message: 'Thesis is not defined' });
+    }
+
+    // Proceed with saving the essay, selections, thesis, and premises
     await db.collection('Users').updateOne(
       { uuid },
-      { $set: { recentEssay: { essay, selections, premises } } } // Save premises along with the essay and selections
+      { $set: { recentEssay: { essay, selections, thesis, premises } } }
     );
 
-    res.status(200).json({ message: 'Recent essay, selections, and premises saved successfully' });
+    res.status(200).json({ message: 'Recent essay, selections, thesis, and premises saved successfully' });
   } catch (error) {
     console.error('Save Recent Essay Error:', error);
-    res.status(500).json({ message: 'Error saving recent essay, selections, and premises', error });
+    res.status(500).json({ message: 'Error saving recent essay, selections, thesis, and premises', error });
   }
 });
 
-// Update the /getRecentEssay route to include premises
 router.get('/getRecentEssay', async (req, res) => {
   try {
     const db = await connect();
@@ -40,11 +45,10 @@ router.get('/getRecentEssay', async (req, res) => {
       return res.status(404).json({ message: 'No recent essay found' });
     }
 
-    // Return the premises along with the essay and selections
     res.status(200).json(user.recentEssay);
   } catch (error) {
     console.error('Get Recent Essay Error:', error);
-    res.status(500).json({ message: 'Error retrieving recent essay and premises', error });
+    res.status(500).json({ message: 'Error retrieving recent essay', error });
   }
 });
 

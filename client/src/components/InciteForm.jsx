@@ -16,24 +16,26 @@ function InciteForm() {
     const [missingCitations, setMissingCitations] = useState([]);
     const [isPageVisible, setIsPageVisible] = useState(true);
 
-  // Modify saveEssay to include premises
-  const saveEssay = async (essay) => {
-    try {
-      await axios.post('http://localhost:3001/api/saveRecentEssay', {
-        uuid,
-        essay,
-        selections: urls.map(url => ({ url })),
-        premises: inputs.slice(1) // Assume the first input is the thesis, and the rest are premises
-      }, {
-        headers: {
-          'Authorization': `Bearer ${uuid}`
+    // Modified to use sessionStorage
+    const saveEssay = async (essay) => {
+        try {
+            await axios.post('http://localhost:3001/api/saveRecentEssay', {
+                uuid,
+                essay,
+                thesis: inputs[0], // Sending thesis separately
+                premises: inputs.slice(1) // Sending premises separately
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${uuid}`
+                }
+            });
+            // Store essay data in sessionStorage
+            sessionStorage.setItem('recentEssayData', JSON.stringify({ essay, thesis: inputs[0], premises: inputs.slice(1) }));
+        } catch (error) {
+            console.error('Error saving essay, thesis, and premises:', error);
         }
-      });
-    } catch (error) {
-      console.error('Error saving essay and premises:', error);
-    }
-  };
-    
+    };
+
     const handleChange = (index) => (event) => {
         const newInputs = [...inputs];
         newInputs[index] = event.target.value;
@@ -88,6 +90,16 @@ function InciteForm() {
         }
     }, [isPageVisible, fetchSelections]);
 
+    useEffect(() => {
+        // Attempt to load saved essay data from sessionStorage
+        const recentEssayData = sessionStorage.getItem('recentEssayData');
+        if (recentEssayData) {
+            const { essay, thesis, premises } = JSON.parse(recentEssayData);
+            setResult(essay);
+            setInputs([thesis, ...premises]);
+        }
+    }, []);
+    
     const handleMissingCitationSubmit = async () => {
         const updatedSelections = missingCitations.map(citation => ({
             url: citation.url,
@@ -157,22 +169,25 @@ function InciteForm() {
               }
             });
             if (response.status === 200) {
-              const { essay, selections, premises } = response.data;
+              const { essay, selections, thesis, premises } = response.data;
               setResult(essay);
               setUrls(selections.map(sel => sel.url));
-              // Update the state to include the premises
-              setInputs([inputs[0], ...premises]);
+      
+              // Correctly update the inputs to include thesis and premises
+              // The response should already include the thesis and premises separately
+              // Make sure the thesis is the first item in the inputs array
+              setInputs([thesis, ...premises]);
             }
           } catch (error) {
             console.error('Error fetching saved essay and premises:', error);
           }
         };
-    
+      
         if (uuid) {
           fetchSavedEssay();
         }
-      }, [uuid]);
-
+      }, [uuid]);      
+      
     useEffect(() => {
         
         let loadingInterval;
@@ -233,7 +248,7 @@ function InciteForm() {
                     result={result}
                 />
                 <br />
-                <button type="submit" className="submit">Sum It!</button>
+                <button type="submit" className="submit">Generate</button>
             </form>
         </main>
     );
