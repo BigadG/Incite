@@ -122,3 +122,21 @@ button:hover {
   display: none;
   padding-top: 0;
 }
+
+#clearButton {
+  color: red;
+  font-size: 15px;
+  background: none;
+  border: none;
+  width: 45vw;
+  padding: 0px;
+  margin: 0px;
+}
+
+#clearButton:hover {
+  color: rgb(179, 0, 0);
+}
+
+#clearButton:focus {
+  color: red;
+}

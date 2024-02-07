@@ -16,6 +16,24 @@ function InciteForm() {
     const [missingCitations, setMissingCitations] = useState([]);
     const [isPageVisible, setIsPageVisible] = useState(true);
 
+    const saveEssay = async (essay) => {
+        try {
+            await axios.post('http://localhost:3001/api/saveRecentEssay', {
+                uuid,
+                essay,
+                thesis: inputs[0],
+                premises: inputs.slice(1)
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${uuid}`
+                }
+            });
+            sessionStorage.setItem('recentEssayData', JSON.stringify({ thesis: inputs[0], premises: inputs.slice(1), essay }));
+        } catch (error) {
+            console.error('Error saving essay, thesis, and premises:', error);
+        }
+    };
+
     const handleChange = (index) => (event) => {
         const newInputs = [...inputs];
         newInputs[index] = event.target.value;
@@ -56,7 +74,6 @@ function InciteForm() {
     }, []);
 
     useEffect(() => {
-        // Handle visibility change to fetch selections when the page is visible
         const handleVisibilityChange = () => {
             setIsPageVisible(document.visibilityState === 'visible');
         };
@@ -70,6 +87,24 @@ function InciteForm() {
             fetchSelections();
         }
     }, [isPageVisible, fetchSelections]);
+
+    useEffect(() => {
+        const sessionStartFlag = sessionStorage.getItem('sessionStartFlag');
+
+        if (!sessionStartFlag) {
+            sessionStorage.clear(); // Clear all sessionStorage
+            sessionStorage.setItem('sessionStartFlag', 'true');
+            setResult(''); // Explicitly clear the essay content
+            setInputs(['', '', '']); // Reset inputs
+        } else {
+            const recentEssayData = sessionStorage.getItem('recentEssayData');
+            if (recentEssayData) {
+                const { thesis, premises, essay } = JSON.parse(recentEssayData);
+                setInputs([thesis, ...premises]);
+                setResult(essay);
+            }
+        }
+    }, []);
 
     const handleMissingCitationSubmit = async () => {
         const updatedSelections = missingCitations.map(citation => ({
@@ -101,38 +136,77 @@ function InciteForm() {
     const handleSubmit = async (event) => {
         if (event) event.preventDefault();
         setIsLoading(true);
-
+    
         const dataToSend = {
-            thesis: inputs[0].trim(),
-            bodyPremises: inputs.slice(1).filter(input => input.trim() !== ''),
-            urls: urls,
+          thesis: inputs[0].trim(),
+          bodyPremises: inputs.slice(1).filter(input => input.trim() !== ''),
+          urls: urls,
         };
-
-        console.log('Submitting data to generate essay:', dataToSend);
-
+    
         try {
-            const response = await axios.post('http://localhost:3001/api/generateEssayWithSelections', dataToSend, {
+          const response = await axios.post('http://localhost:3001/api/generateEssayWithSelections', dataToSend, {
+            headers: {
+              'Authorization': `Bearer ${uuid}`
+            }
+          });
+    
+          if (response.data.missingCitations && response.data.missingCitations.length > 0) {
+            setMissingCitations(response.data.missingCitations);
+          } else {
+            setResult(response.data.essay);
+            setMissingCitations([]);
+            // Save the essay using the saveEssay function
+            await saveEssay(response.data.essay);
+          }
+        } catch (error) {
+          console.error('Error submitting essay:', error);
+          setResult('Error generating essay with latest selections');
+        } finally {
+          setIsLoading(false);
+        }
+      };    
+
+      useEffect(() => {
+        const fetchSavedEssay = async () => {
+          try {
+            const response = await axios.get('http://localhost:3001/api/getRecentEssay', {
                 headers: {
                     'Authorization': `Bearer ${uuid}`
                 }
             });
-
-            console.log('Response received from generateEssayWithSelections:', response.data);
-
-            if (response.data.missingCitations && response.data.missingCitations.length > 0) {
-                setMissingCitations(response.data.missingCitations);
+            if (response.status === 200 && response.data) {
+                const { essay, selections, thesis, premises } = response.data;
+      
+                // Safely process selections if available
+                const processedSelections = selections ? selections.map(sel => sel.url) : [];
+                setUrls(processedSelections);
+        
+                // Check and set the essay, thesis, and premises
+                if (essay !== undefined) setResult(essay);
+                if (thesis && premises) {
+                    setInputs([thesis, ...premises]);
+                } else {
+                    // Handle missing thesis and premises by clearing inputs
+                    setInputs(['', '', '']);
+                }
             } else {
-                setResult(response.data.essay);
-                setMissingCitations([]);
+                // Handle case where no recent essay is found
+                console.log('No recent essay found');
+                setInputs(['', '', '']);
+                setResult('');
             }
-        } catch (error) {
-            console.error('Error submitting essay:', error);
-            setResult('Error generating essay with latest selections');
-        } finally {
-            setIsLoading(false);
+          } catch (error) {
+            console.error('Error fetching saved essay and premises:', error);
+            setInputs(['', '', '']);
+            setResult('');
+          }
+        };
+      
+        if (uuid) {
+          fetchSavedEssay();
         }
-    };
-
+      }, [uuid]);      
+      
     useEffect(() => {
         let loadingInterval;
 
@@ -150,6 +224,21 @@ function InciteForm() {
             }
         };
     }, [isLoading]);
+
+    useEffect(() => {
+        // This effect listens for a flag that indicates the essay data should be cleared
+        const clearEssayDataFlag = sessionStorage.getItem('clearEssayDataFlag');
+        if (clearEssayDataFlag === 'true') {
+          // Clear the sessionStorage item related to the clear flag
+          sessionStorage.removeItem('clearEssayDataFlag');
+        
+          // Reset state variables to clear the displayed essay data
+          setResult('');
+          setInputs(['', '', '']); // Clear the inputs for thesis and premises
+          setUrls([]); // Clear the URLs
+          setMissingCitations([]); // Clear any missing citations
+        }
+      }, []);           
 
     useEffect(() => {
       console.log('Updated missingCitations state:', missingCitations);
@@ -192,12 +281,10 @@ function InciteForm() {
                     result={result}
                 />
                 <br />
-                <button type="submit" className="submit">Sum It!</button>
+                <button type="submit" className="submit">Generate</button>
             </form>
         </main>
     );
 }
 
 export default InciteForm;
-
-

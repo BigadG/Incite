@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const dropdown = document.getElementById('dropdown');
   const listContainer = document.getElementById('listContainer');
   const createButton = document.getElementById('createButton');
+  const clearButton = document.getElementById('clearButton');
 
   async function getUUID() {
     return new Promise((resolve, reject) => {
@@ -264,4 +265,35 @@ async function addSelection(url, title) {
     console.log(`Opening React app with URL: ${inciteAppUrl}`);
     chrome.tabs.create({ url: inciteAppUrl });
   });
-});
+
+  clearButton.addEventListener('click', async function() {
+    // Clear selections in storage
+    await setToStorage('selections', []);
+  
+    // Clear the displayed list in the popup
+    listContainer.innerHTML = '';
+  
+    // Send a request to the server to clear selections for this user
+    try {
+      const uuid = await getUUID();
+      const response = await fetch(`${serverUrl}/clearSelections`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${uuid}`
+        }
+      });
+  
+      if (response.ok) {
+        // Clear any displayed thesis, premises, and essay in the React app.
+        // Since the React app uses sessionStorage, we can signal it to clear by setting a flag.
+        sessionStorage.setItem('clearEssayDataFlag', 'true');
+        console.log('Selections cleared');
+      } else {
+        throw new Error('Failed to clear selections on the server');
+      }
+    } catch (error) {
+      console.error('Error clearing selections:', error);
+    }
+  });
+});  
