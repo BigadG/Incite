@@ -1,4 +1,3 @@
-// routes.test.js
 const request = require('supertest');
 const express = require('express');
 const { ObjectId } = require('mongodb');
@@ -10,16 +9,27 @@ const authMiddleware = require('../authMiddleware');
 jest.mock('../authMiddleware', () => (req, res, next) => next());
 
 // Mock the database connection and methods
-jest.mock('../database', () => ({
-  connect: () => ({
-    collection: jest.fn(() => ({
-      updateOne: jest.fn(),
-      findOne: jest.fn(),
-      insertOne: jest.fn(),
-      deleteOne: jest.fn(),
-    })),
-  }),
-}));
+jest.mock('../database', () => {
+  const updateOne = jest.fn();
+  const findOne = jest.fn();
+  const insertOne = jest.fn();
+  const deleteOne = jest.fn();
+  
+  return {
+    connect: () => ({
+      collection: () => ({
+        updateOne,
+        findOne,
+        insertOne,
+        deleteOne,
+      }),
+    }),
+    updateOne,
+    findOne,
+    insertOne,
+    deleteOne,
+  };
+});
 
 // Create an instance of express and use the router under test
 const app = express();
@@ -46,7 +56,7 @@ describe('API routes', () => {
 
   test('/getRecentEssay retrieves essay data', async () => {
     const mockEssayData = { essay: 'Test Essay', thesis: 'Test Thesis', premises: ['Test Premise'], selections: [] };
-    mockFindOne.mockResolvedValue({ recentEssay: mockEssayData });
+    connect().collection().findOne.mockResolvedValue({ recentEssay: mockEssayData });
 
     const response = await request(app)
       .get('/api/getRecentEssay')
@@ -54,11 +64,11 @@ describe('API routes', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual(mockEssayData);
-    expect(mockFindOne).toHaveBeenCalled();
+    expect(connect().collection().findOne).toHaveBeenCalled();
   });
 
   test('/clearSelections clears essay data', async () => {
-    mockUpdateOne.mockResolvedValue({ result: { nModified: 1 } });
+    connect().collection().updateOne.mockResolvedValue({ result: { nModified: 1 } });
 
     const response = await request(app)
       .post('/api/clearSelections')
@@ -66,7 +76,7 @@ describe('API routes', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.body.message).toContain('cleared');
-    expect(mockUpdateOne).toHaveBeenCalled();
+    expect(connect().collection().updateOne).toHaveBeenCalled();
   });
 });
 
