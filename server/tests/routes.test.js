@@ -1,9 +1,7 @@
 const request = require('supertest');
 const express = require('express');
-const { ObjectId } = require('mongodb');
 const { router } = require('../routes');
 const { connect } = require('../database');
-const authMiddleware = require('../authMiddleware');
 
 // Mock the authMiddleware to always pass
 jest.mock('../authMiddleware', () => (req, res, next) => next());
