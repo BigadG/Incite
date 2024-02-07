@@ -1,3 +1,4 @@
+// server.js
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -27,7 +28,7 @@ if (process.env.NODE_ENV !== 'test') {
     });
 }
 
-module.exports = app;
+module.exports = { app }; // Export the app
 
 
  
