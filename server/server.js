@@ -1,4 +1,3 @@
-// server.js
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -20,7 +19,6 @@ app.get('/', (req, res) => {
     res.send('Incite Server is running!');
 });
 
-// Only listen on PORT when not running in test environment
 if (process.env.NODE_ENV !== 'test') {
     const port = process.env.PORT || 3001;
     app.listen(port, () => {
@@ -28,7 +26,4 @@ if (process.env.NODE_ENV !== 'test') {
     });
 }
 
-module.exports = { app }; // Export the app
-
-
- 
+module.exports = app;
