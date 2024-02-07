@@ -1,19 +1,30 @@
 const request = require('supertest');
-const { app } = require('./server');
-const { connect } = require('./database');
+const { app } = require('../server');
 
-jest.mock('./database', () => ({
+// Mock functions to simulate database operations
+const mockUpdateOne = jest.fn();
+const mockFindOne = jest.fn();
+
+// Mock the database module
+jest.mock('../database', () => ({
   connect: jest.fn().mockResolvedValue({
-    collection: jest.fn().mockReturnThis(),
-    updateOne: jest.fn(),
-    findOne: jest.fn(),
+    collection: jest.fn(() => ({
+      updateOne: mockUpdateOne,
+      findOne: mockFindOne,
+    })),
   }),
 }));
 
 describe('API routes', () => {
+  beforeEach(() => {
+    // Clear mock implementations before each test
+    mockUpdateOne.mockReset();
+    mockFindOne.mockReset();
+  });
+
   test('/saveRecentEssay saves essay data', async () => {
     const mockEssayData = { essay: 'Test Essay', thesis: 'Test Thesis', premises: ['Test Premise'], selections: [] };
-    connect().collection().updateOne.mockResolvedValue({ result: { nModified: 1 } });
+    mockUpdateOne.mockResolvedValue({ result: { nModified: 1 } });
 
     const response = await request(app)
       .post('/api/saveRecentEssay')
@@ -21,11 +32,12 @@ describe('API routes', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.body.message).toContain('saved successfully');
+    expect(mockUpdateOne).toHaveBeenCalled();
   });
 
   test('/getRecentEssay retrieves essay data', async () => {
     const mockEssayData = { essay: 'Test Essay', thesis: 'Test Thesis', premises: ['Test Premise'], selections: [] };
-    connect().collection().findOne.mockResolvedValue({ recentEssay: mockEssayData });
+    mockFindOne.mockResolvedValue({ recentEssay: mockEssayData });
 
     const response = await request(app)
       .get('/api/getRecentEssay')
@@ -33,10 +45,11 @@ describe('API routes', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual(mockEssayData);
+    expect(mockFindOne).toHaveBeenCalled();
   });
 
   test('/clearSelections clears essay data', async () => {
-    connect().collection().updateOne.mockResolvedValue({ result: { nModified: 1 } });
+    mockUpdateOne.mockResolvedValue({ result: { nModified: 1 } });
 
     const response = await request(app)
       .post('/api/clearSelections')
@@ -44,5 +57,6 @@ describe('API routes', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.body.message).toContain('cleared');
+    expect(mockUpdateOne).toHaveBeenCalled();
   });
 });
