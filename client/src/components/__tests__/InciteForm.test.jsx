@@ -11,6 +11,7 @@ jest.mock('axios');
 
 describe('InciteForm Component', () => {
   beforeEach(() => {
+    sessionStorage.clear();
     jest.clearAllMocks();
   });
 
@@ -37,15 +38,13 @@ describe('InciteForm Component', () => {
 
     const thesisInput = screen.getByLabelText(/Essay Premise:/i);
     const bodyPremisesInputs = screen.getAllByRole('textbox');
-    const submitButton = screen.getByRole('button', { name: /sum it!/i });
+    const submitButton = screen.getByRole('button', { name: /generate/i });
 
     await userEvent.type(thesisInput, 'This is a test thesis');
-    // Assuming the first body premise input follows the thesis input
     await userEvent.type(bodyPremisesInputs[1], 'This is a test premise');
-    userEvent.click(submitButton);
+    await userEvent.click(submitButton);
 
     await waitFor(() => {
-      // Validate that a post request was made with expected data
       expect(axios.post).toHaveBeenCalledWith(
         expect.stringContaining('/api/generateEssayWithSelections'),
         expect.objectContaining({
@@ -56,9 +55,66 @@ describe('InciteForm Component', () => {
       );
     });
 
-    // Instead of checking for URLs in the DOM, we check for the generated essay text
     await waitFor(() => {
       expect(screen.getByText(mockResponse.essay)).toBeInTheDocument();
     });
+  });
+
+  test('essay should be saved to the database after generation', async () => {
+    const mockSaveResponse = { data: { message: 'Essay saved successfully' } };
+    axios.post.mockResolvedValueOnce(mockSaveResponse);
+
+    render(<InciteForm />);
+    // ... enter data into form fields and simulate form submission ...
+    const submitButton = screen.getByRole('button', { name: /generate/i });
+    await userEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith(
+        expect.stringContaining('/api/saveRecentEssay'),
+        expect.any(Object),
+        expect.any(Object)
+      );
+    });
+
+    // Check if the sessionStorage was called correctly
+    await waitFor(() => {
+      expect(sessionStorage.setItem).toHaveBeenCalledWith('recentEssayData', expect.any(String));
+    });
+  });
+
+  test('page content remains after reload', async () => {
+    const mockEssayData = { thesis: 'Test Thesis', premises: ['Test Premise 1', 'Test Premise 2'], essay: 'Test Essay' };
+    sessionStorage.setItem('recentEssayData', JSON.stringify(mockEssayData));
+
+    render(<InciteForm />);
+
+    // Assertions to check if the form inputs and essay content are populated with session data
+    await waitFor(() => {
+      expect(screen.getByLabelText(/Essay Premise:/i).value).toBe(mockEssayData.thesis);
+      // ... additional assertions for premises and essay content ...
+    });
+  });
+
+  test('clear selections button should clear saved selections in database and UI', async () => {
+    const mockClearResponse = { data: { message: 'Selections cleared successfully' } };
+    axios.post.mockResolvedValueOnce(mockClearResponse);
+
+    render(<InciteForm />);
+
+    // Simulate clicking the clear button
+    const clearButton = screen.getByRole('button', { name: /clear selections/i });
+    await userEvent.click(clearButton);
+
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith(
+        expect.stringContaining('/api/clearSelections'),
+        expect.any(Object),
+        expect.any(Object)
+      );
+    });
+
+    // Assert that UI updates occurred here
+    // ...
   });
 });
