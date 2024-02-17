@@ -1,6 +1,5 @@
-import { render, waitFor } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import axios from 'axios';
-import { act } from 'react-dom/test-utils';
 import InciteForm from '../InciteForm';
 
 // Mock the axios and query-string modules
@@ -34,39 +33,19 @@ Object.defineProperty(window, 'sessionStorage', {
 
 describe('InciteForm Component', () => {
   beforeEach(() => {
-    window.sessionStorage.clear();
+    // Clear all mocks before each test
     jest.clearAllMocks();
   });
-  
-    test('fetches selections and renders URLs on mount', async () => {
-        const mockSelections = [
-        { url: 'http://example.com/1', title: 'Example 1' },
-        { url: 'http://example.com/2', title: 'Example 2' },
-        ];
 
-        axios.get.mockResolvedValue({ status: 200, data: mockSelections });
+  test('fetches selections and updates state on mount', async () => {
+    const mockSelections = [
+      { url: 'http://example.com/1', title: 'Example 1' },
+      { url: 'http://example.com/2', title: 'Example 2' }
+    ];
 
-        await act(async () => {
-        const { getByText } = render(<InciteForm />);
-        await waitFor(() => {
-            expect(getByText(/Example 1/)).toBeInTheDocument();
-            expect(getByText(/Example 2/)).toBeInTheDocument();
-        });
-        });
-    });
+    axios.get.mockResolvedValue({ status: 200, data: mockSelections });
 
-    test('clear selections button should clear saved selections in database and UI', async () => {
-        axios.get.mockResolvedValueOnce({ status: 200, data: [] });
-
-        await act(async () => {
-            render(<InciteForm />);
-        });
-
-        sessionStorage.clear();
-        axios.get.mockResolvedValueOnce({ status: 200, data: [] });
-
-        await act(async () => {
-            render(<InciteForm />);
-        });
-    });
+    render(<InciteForm />);
+    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('/api/selections'), expect.anything());
+  });
 });

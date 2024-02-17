@@ -88,9 +88,9 @@ function InciteForm() {
 
     useEffect(() => {
         if (isPageVisible) {
-            fetchSelections();
+          fetchSelections();
         }
-    }, [isPageVisible, fetchSelections]);
+      }, [isPageVisible, fetchSelections]);      
 
     useEffect(() => {
         const sessionStartFlag = sessionStorage.getItem('sessionStartFlag');
