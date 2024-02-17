@@ -1,8 +1,7 @@
-import { render } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import axios from 'axios';
 import InciteForm from '../InciteForm';
 
-// Mock the axios and query-string modules
 jest.mock('axios');
 jest.mock('query-string', () => ({
   parse: jest.fn().mockReturnValue({ uuid: 'mock-uuid' }),
@@ -45,7 +44,13 @@ describe('InciteForm Component', () => {
 
     axios.get.mockResolvedValue({ status: 200, data: mockSelections });
 
-    render(<InciteForm />);
+    await waitFor(() => {
+      render(<InciteForm />);
+      // It is now okay if there is no explicit assertion here.
+      // We're mainly concerned with making sure the axios call happens within an act scope.
+    });
+
+    // Check that axios.get was called correctly
     expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('/api/selections'), expect.anything());
   });
 });
