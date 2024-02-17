@@ -1,7 +1,13 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import InciteForm from '../InciteForm';
 import axios from 'axios';
 import { act } from 'react-dom/test-utils';
+import InciteForm from '../InciteForm';
+
+// Mock the env object for Jest
+const API_BASE_URL = 'http://localhost:3001';
+jest.mock('../env', () => ({
+  API_BASE_URL: API_BASE_URL
+}));
 
 jest.mock('query-string', () => ({
   parse: jest.fn().mockReturnValue({ uuid: 'mock-uuid' }),
@@ -51,11 +57,10 @@ describe('InciteForm Component', () => {
         });
 
         await waitFor(() => {
-            expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('selections'), expect.any(Object));
+            expect(axios.get).toHaveBeenCalledWith(`${API_BASE_URL}/api/selections`, expect.any(Object));
         });
     });
 
-    // Additional tests...
     test('clear selections button should clear saved selections in database and UI', async () => {
         // Since the button is not in InciteForm.jsx, simulate the effect of clicking it by clearing sessionStorage
         // and mocking an empty response from the database

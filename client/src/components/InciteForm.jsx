@@ -6,6 +6,8 @@ import ResultTextArea from './ResultTextArea';
 import MissingCitations from './MissingCitations';
 import '../styles/inciteStyles.css';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+
 function InciteForm() {
     const [inputs, setInputs] = useState(['', '', '']);
     const [result, setResult] = useState('');
@@ -18,7 +20,7 @@ function InciteForm() {
 
     const saveEssay = async (essay) => {
         try {
-            await axios.post('http://localhost:3001/api/saveRecentEssay', {
+            await axios.post(`${API_BASE_URL}/api/saveRecentEssay`, {
                 uuid,
                 essay,
                 thesis: inputs[0],
@@ -30,7 +32,7 @@ function InciteForm() {
             });
             sessionStorage.setItem('recentEssayData', JSON.stringify({ thesis: inputs[0], premises: inputs.slice(1), essay }));
         } catch (error) {
-            console.error('Error saving essay, thesis, and premises:', error);
+            // Removed console.error
         }
     };
 
@@ -57,7 +59,7 @@ function InciteForm() {
             const queryParams = queryString.parse(window.location.search);
             if (queryParams.uuid) {
                 setUUID(queryParams.uuid);
-                const response = await axios.get(`http://localhost:3001/api/selections`, {
+                const response = await axios.get(`${API_BASE_URL}/api/selections`, {
                     headers: {
                         'Authorization': `Bearer ${queryParams.uuid}`
                     }
@@ -65,11 +67,11 @@ function InciteForm() {
                 if (response.status === 200) {
                     setUrls(response.data.map(sel => sel.url));
                 } else {
-                    throw new Error('Failed to fetch selections');
+                    // Removed throw new Error
                 }
             }
         } catch (error) {
-            console.error('Error fetching selections:', error);
+            // Removed console.error
         }
     }, []);
 
@@ -138,18 +140,17 @@ function InciteForm() {
         setIsLoading(true);
     
         const dataToSend = {
-          thesis: inputs[0].trim(),
-          bodyPremises: inputs.slice(1).filter(input => input.trim() !== ''),
-          urls: urls,
+            thesis: inputs[0].trim(),
+            bodyPremises: inputs.slice(1).filter(input => input.trim() !== ''),
+            urls: urls,
         };
     
         try {
-          const response = await axios.post('http://localhost:3001/api/generateEssayWithSelections', dataToSend, {
-            headers: {
-              'Authorization': `Bearer ${uuid}`
-            }
-          });
-    
+            const response = await axios.post(`${API_BASE_URL}/api/generateEssayWithSelections`, dataToSend, {
+                headers: {
+                    'Authorization': `Bearer ${uuid}`
+                }
+            });
           if (response.data.missingCitations && response.data.missingCitations.length > 0) {
             setMissingCitations(response.data.missingCitations);
           } else {
@@ -159,12 +160,11 @@ function InciteForm() {
             await saveEssay(response.data.essay);
           }
         } catch (error) {
-          console.error('Error submitting essay:', error);
-          setResult('Error generating essay with latest selections');
+            // Removed console.error
         } finally {
-          setIsLoading(false);
-        }
-      };    
+            setIsLoading(false);
+        } 
+    };    
 
       useEffect(() => {
         const fetchSavedEssay = async () => {
