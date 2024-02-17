@@ -6,8 +6,8 @@ import ResultTextArea from './ResultTextArea';
 import MissingCitations from './MissingCitations';
 import '../styles/inciteStyles.css';
 
-// Use the global API_BASE_URL or default to 'http://localhost:3001'
-const API_BASE_URL = global.API_BASE_URL || 'http://localhost:3001';
+// Use Vite's env variable or default to 'http://localhost:3001'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 
 function InciteForm() {
     const [inputs, setInputs] = useState(['', '', '']);
@@ -18,7 +18,7 @@ function InciteForm() {
     const [loadingText, setLoadingText] = useState('Loading...');
     const [missingCitations, setMissingCitations] = useState([]);
     const [isPageVisible, setIsPageVisible] = useState(true);
-    const [errorMessage, setErrorMessage] = useState(''); // State to handle error messages for the user
+    const [errorMessage, setErrorMessage] = useState('');
 
     const saveEssay = async (essay) => {
         try {
