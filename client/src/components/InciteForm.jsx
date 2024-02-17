@@ -6,7 +6,8 @@ import ResultTextArea from './ResultTextArea';
 import MissingCitations from './MissingCitations';
 import '../styles/inciteStyles.css';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+// Use the global API_BASE_URL or default to 'http://localhost:3001'
+const API_BASE_URL = global.API_BASE_URL || 'http://localhost:3001';
 
 function InciteForm() {
     const [inputs, setInputs] = useState(['', '', '']);
