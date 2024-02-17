@@ -61,7 +61,6 @@ function InciteForm() {
             if (queryParams.uuid) {
                 setUUID(queryParams.uuid);
                 const response = await axios.get(`${API_BASE_URL}/api/selections`, {
-                const response = await axios.get(`${API_BASE_URL}/api/selections`, {
                     headers: {
                         'Authorization': `Bearer ${queryParams.uuid}`
                     }

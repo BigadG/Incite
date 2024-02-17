@@ -1,19 +1,16 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import axios from 'axios';
 import { act } from 'react-dom/test-utils';
 import InciteForm from '../InciteForm';
-
-// Mock the env object for Jest
-const API_BASE_URL = 'http://localhost:3001';
-jest.mock('../env', () => ({
-  API_BASE_URL: API_BASE_URL
-}));
 
 jest.mock('query-string', () => ({
   parse: jest.fn().mockReturnValue({ uuid: 'mock-uuid' }),
 }));
 
 jest.mock('axios');
+
+// Directly set the environment variable for the test
+process.env.VITE_API_BASE_URL = 'http://localhost:3001';
 
 // Mock sessionStorage
 const mockedSessionStorage = (function() {
@@ -57,7 +54,7 @@ describe('InciteForm Component', () => {
         });
 
         await waitFor(() => {
-            expect(axios.get).toHaveBeenCalledWith(`${API_BASE_URL}/api/selections`, expect.any(Object));
+            expect(axios.get).toHaveBeenCalledWith(`${process.env.VITE_API_BASE_URL}/api/selections`, expect.any(Object));
         });
     });
 
