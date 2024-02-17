@@ -7,7 +7,7 @@ import MissingCitations from './MissingCitations';
 import '../styles/inciteStyles.css';
 
 // Use Vite's env variable or default to 'http://localhost:3001'
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+import { API_BASE_URL } from '../envConfig';
 
 function InciteForm() {
     const [inputs, setInputs] = useState(['', '', '']);
