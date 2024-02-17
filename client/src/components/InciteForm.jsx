@@ -6,8 +6,7 @@ import ResultTextArea from './ResultTextArea';
 import MissingCitations from './MissingCitations';
 import '../styles/inciteStyles.css';
 
-require('dotenv').config();
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
+const API_BASE_URL = (process.env && process.env.REACT_APP_API_BASE_URL) || 'http://localhost:3001';
 
 function InciteForm() {
     const [inputs, setInputs] = useState(['', '', '']);
@@ -177,38 +176,36 @@ function InciteForm() {
 
       useEffect(() => {
         const fetchSavedEssay = async () => {
-          try {
-            const response = await axios.get('http://localhost:3001/api/getRecentEssay', {
-                headers: {
-                    'Authorization': `Bearer ${uuid}`
-                }
-            });
-            if (response.status === 200 && response.data) {
-                const { essay, selections, thesis, premises } = response.data;
-      
-                // Safely process selections if available
-                const processedSelections = selections ? selections.map(sel => sel.url) : [];
-                setUrls(processedSelections);
+            try {
+                const response = await axios.get(`${API_BASE_URL}/api/getRecentEssay`, {
+                    headers: {
+                        'Authorization': `Bearer ${uuid}`
+                    }
+                });
+                if (response.status === 200 && response.data) {
+                    const { essay, selections, thesis, premises } = response.data;
         
-                // Check and set the essay, thesis, and premises
-                if (essay !== undefined) setResult(essay);
-                if (thesis && premises) {
-                    setInputs([thesis, ...premises]);
+                    // Safely process selections if available
+                    const processedSelections = selections ? selections.map(sel => sel.url) : [];
+                    setUrls(processedSelections);
+            
+                    // Check and set the essay, thesis, and premises
+                    if (essay !== undefined) setResult(essay);
+                    if (thesis && premises) {
+                        setInputs([thesis, ...premises]);
+                    } else {
+                        // Handle missing thesis and premises by clearing inputs
+                        setInputs(['', '', '']);
+                    }
                 } else {
-                    // Handle missing thesis and premises by clearing inputs
+                    // Handle case where no recent essay is found
+                    console.log('No recent essay found');
                     setInputs(['', '', '']);
+                    setResult('');
                 }
-            } else {
-                // Handle case where no recent essay is found
-                console.log('No recent essay found');
-                setInputs(['', '', '']);
-                setResult('');
-            }
-          } catch (error) {
-            console.error('Error fetching saved essay and premises:', error);
-            setInputs(['', '', '']);
-            setResult('');
-          }
+            } catch (error) {
+                setErrorMessage('Error fetching saved essay and premises. Please try again later.');
+            }    
         };
       
         if (uuid) {
@@ -277,6 +274,7 @@ function InciteForm() {
                         +
                     </button>
                 )}
+                {errorMessage && <div className="error-message">{errorMessage}</div>} {/* Display error messages */}
                 {missingCitations.length > 0 && (
                     <MissingCitations
                         missing={missingCitations}
