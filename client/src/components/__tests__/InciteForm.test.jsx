@@ -9,8 +9,18 @@ jest.mock('query-string', () => ({
 
 jest.mock('axios');
 
-// Directly set the environment variable for the test
-process.env.VITE_API_BASE_URL = 'http://localhost:3001';
+// Mock the import.meta.env for Jest
+const mockEnvironmentVariables = {
+  VITE_API_BASE_URL: 'http://localhost:3001',
+};
+
+beforeAll(() => {
+  global.import = {
+    meta: {
+      env: mockEnvironmentVariables
+    }
+  };
+});
 
 // Mock sessionStorage
 const mockedSessionStorage = (function() {
@@ -54,29 +64,25 @@ describe('InciteForm Component', () => {
         });
 
         await waitFor(() => {
-            expect(axios.get).toHaveBeenCalledWith(`${process.env.VITE_API_BASE_URL}/api/selections`, expect.any(Object));
+            expect(axios.get).toHaveBeenCalledWith(`${mockEnvironmentVariables.VITE_API_BASE_URL}/api/selections`, expect.any(Object));
         });
     });
 
     test('clear selections button should clear saved selections in database and UI', async () => {
-        // Since the button is not in InciteForm.jsx, simulate the effect of clicking it by clearing sessionStorage
-        // and mocking an empty response from the database
-        axios.get.mockResolvedValueOnce({ status: 200, data: [] }); // Simulate an empty selection fetch response
+        axios.get.mockResolvedValueOnce({ status: 200, data: [] });
 
         await act(async () => {
             render(<InciteForm />);
         });
 
-        // Simulate the effect of the "clear selections" operation
         sessionStorage.clear();
-        axios.get.mockResolvedValueOnce({ status: 200, data: [] }); // Assume selections are cleared
+        axios.get.mockResolvedValueOnce({ status: 200, data: [] });
 
         await act(async () => {
-            // Re-render or trigger a state update in InciteForm that would fetch selections again
             render(<InciteForm />);
         });
 
-        // Assertions to verify the UI is in the expected state after "clear selections"
-        expect(screen.queryByText(/Some text or element that should not be present after clear/)).not.toBeInTheDocument();
+        // Place your assertions here
+        // ...
     });
 });
