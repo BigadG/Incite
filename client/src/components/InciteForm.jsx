@@ -6,6 +6,9 @@ import ResultTextArea from './ResultTextArea';
 import MissingCitations from './MissingCitations';
 import '../styles/inciteStyles.css';
 
+require('dotenv').config();
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
+
 function InciteForm() {
     const [inputs, setInputs] = useState(['', '', '']);
     const [result, setResult] = useState('');
@@ -15,10 +18,11 @@ function InciteForm() {
     const [loadingText, setLoadingText] = useState('Loading...');
     const [missingCitations, setMissingCitations] = useState([]);
     const [isPageVisible, setIsPageVisible] = useState(true);
+    const [errorMessage, setErrorMessage] = useState(''); // State to handle error messages for the user
 
     const saveEssay = async (essay) => {
         try {
-            await axios.post('http://localhost:3001/api/saveRecentEssay', {
+            await axios.post(`${API_BASE_URL}/api/saveRecentEssay`, {
                 uuid,
                 essay,
                 thesis: inputs[0],
@@ -30,7 +34,8 @@ function InciteForm() {
             });
             sessionStorage.setItem('recentEssayData', JSON.stringify({ thesis: inputs[0], premises: inputs.slice(1), essay }));
         } catch (error) {
-            console.error('Error saving essay, thesis, and premises:', error);
+            // Handle errors in a user-friendly way
+            setErrorMessage('Failed to save essay. Please try again later.');
         }
     };
 
@@ -57,7 +62,7 @@ function InciteForm() {
             const queryParams = queryString.parse(window.location.search);
             if (queryParams.uuid) {
                 setUUID(queryParams.uuid);
-                const response = await axios.get(`http://localhost:3001/api/selections`, {
+                const response = await axios.get(`${API_BASE_URL}/api/selections`, {
                     headers: {
                         'Authorization': `Bearer ${queryParams.uuid}`
                     }
@@ -69,7 +74,8 @@ function InciteForm() {
                 }
             }
         } catch (error) {
-            console.error('Error fetching selections:', error);
+            // Handle errors in a user-friendly way
+            setErrorMessage('Failed to fetch selections. Please refresh the page or try again later.');
         }
     }, []);
 
@@ -114,7 +120,7 @@ function InciteForm() {
         }));
 
         try {
-            const response = await axios.post('http://localhost:3001/api/updateSelections', { updatedSelections, uuid }, {
+            const response = await axios.post(`${API_BASE_URL}/api/generateEssayWithSelections`, dataToSend, {
                 headers: {
                     'Authorization': `Bearer ${uuid}`
                 }
@@ -126,16 +132,19 @@ function InciteForm() {
                 setMissingCitations([]); // Clear missing citations to reflect success
                 handleSubmit(); // Attempt to generate the essay now
             } else {
-                console.error('Failed to update selections:', response.statusText);
+                setErrorMessage('Error generating essay with latest selections. Please try again later.');
             }
         } catch (error) {
-            console.error('Error updating selections:', error);
+            setErrorMessage('Error generating essay with latest selections. Please try again later.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
     const handleSubmit = async (event) => {
         if (event) event.preventDefault();
         setIsLoading(true);
+        setErrorMessage(''); // Clear previous error messages
     
         const dataToSend = {
           thesis: inputs[0].trim(),
@@ -144,11 +153,11 @@ function InciteForm() {
         };
     
         try {
-          const response = await axios.post('http://localhost:3001/api/generateEssayWithSelections', dataToSend, {
-            headers: {
-              'Authorization': `Bearer ${uuid}`
-            }
-          });
+            const response = await axios.post(`${API_BASE_URL}/api/generateEssayWithSelections`, dataToSend, {
+                headers: {
+                    'Authorization': `Bearer ${uuid}`
+                }
+            });
     
           if (response.data.missingCitations && response.data.missingCitations.length > 0) {
             setMissingCitations(response.data.missingCitations);
@@ -275,6 +284,7 @@ function InciteForm() {
                         onSubmit={handleMissingCitationSubmit}
                     />
                 )}
+                {errorMessage && <div className="error-message">{errorMessage}</div>} {/* Display error messages */}
                 <ResultTextArea
                     isLoading={isLoading}
                     loadingText={loadingText}
