@@ -6,9 +6,7 @@ import ResultTextArea from './ResultTextArea';
 import MissingCitations from './MissingCitations';
 import '../styles/inciteStyles.css';
 
-// Removed direct import of API_BASE_URL
-
-function InciteForm({ apiBaseUrl }) { // Receive apiBaseUrl as a prop
+function InciteForm({ apiBaseUrl }) {
     const [inputs, setInputs] = useState(['', '', '']);
     const [result, setResult] = useState('');
     const [urls, setUrls] = useState([]);
@@ -19,9 +17,26 @@ function InciteForm({ apiBaseUrl }) { // Receive apiBaseUrl as a prop
     const [isPageVisible, setIsPageVisible] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
 
+    // Extract UUID from the URL query parameters and set it
+    useEffect(() => {
+        const queryParams = queryString.parse(window.location.search);
+        if (queryParams.uuid) {
+            setUUID(queryParams.uuid);
+        }
+    }, []);
+
     const saveEssay = async (essay) => {
         try {
-            await axios.post(`${apiBaseUrl}/api/saveRecentEssay`, { uuid, essay, thesis: inputs[0], premises: inputs.slice(1) }, { headers: { 'Authorization': `Bearer ${uuid}` } });
+            await axios.post(`${apiBaseUrl}/api/saveRecentEssay`, {
+                uuid,
+                essay,
+                thesis: inputs[0],
+                premises: inputs.slice(1),
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${uuid}`
+                }
+            });
             sessionStorage.setItem('recentEssayData', JSON.stringify({ thesis: inputs[0], premises: inputs.slice(1), essay }));
         } catch (error) {
             setErrorMessage('An error occurred while saving the essay.');
@@ -47,19 +62,23 @@ function InciteForm({ apiBaseUrl }) { // Receive apiBaseUrl as a prop
     };
 
     const fetchSelections = useCallback(async () => {
+        if (!uuid) return; // If UUID is not present, don't attempt the API call
+
+        setIsLoading(true); // Set loading state
         try {
-            const queryParams = queryString.parse(window.location.search);
-            if (queryParams.uuid) {
-                setUUID(queryParams.uuid);
-                const response = await axios.get(`${apiBaseUrl}/api/selections`, { headers: { 'Authorization': `Bearer ${queryParams.uuid}` } });
-                if (response.status === 200) {
-                    setUrls(response.data.map(sel => sel.url));
+            const response = await axios.get(`${apiBaseUrl}/api/selections`, {
+                headers: {
+                    'Authorization': `Bearer ${uuid}`
                 }
-            }
+            });
+            setUrls(response.data.map(sel => sel.url));
+            setErrorMessage(''); // Clear any previous error messages
         } catch (error) {
             setErrorMessage('An error occurred while fetching selections.');
+        } finally {
+            setIsLoading(false); // Clear loading state
         }
-    }, [apiBaseUrl]);
+    }, [apiBaseUrl, uuid]);
 
     useEffect(() => {
         const handleVisibilityChange = () => setIsPageVisible(document.visibilityState === 'visible');
@@ -68,8 +87,10 @@ function InciteForm({ apiBaseUrl }) { // Receive apiBaseUrl as a prop
     }, []);
 
     useEffect(() => {
-        if (isPageVisible) fetchSelections();
-    }, [isPageVisible, fetchSelections]);
+        if (isPageVisible) {
+            fetchSelections();
+        }
+    }, [isPageVisible, fetchSelections, uuid]);
 
     useEffect(() => {
         const sessionStartFlag = sessionStorage.getItem('sessionStartFlag');
@@ -89,6 +110,7 @@ function InciteForm({ apiBaseUrl }) { // Receive apiBaseUrl as a prop
     }, []);
 
     const handleMissingCitationSubmit = async () => {
+        setIsLoading(true); // Set loading state
         const updatedSelections = missingCitations.map(citation => ({
             url: citation.url,
             author: citation.author,
@@ -96,24 +118,31 @@ function InciteForm({ apiBaseUrl }) { // Receive apiBaseUrl as a prop
         }));
 
         try {
-            const response = await axios.post(`${API_BASE_URL}/api/generateEssayWithSelections`, dataToSend, {
+            // It's important to ensure that the data to send is defined within the scope of this function
+            const dataToSend = {
+                thesis: inputs[0].trim(),
+                bodyPremises: inputs.slice(1).filter(input => input.trim() !== ''),
+                urls: urls.concat(updatedSelections.map(sel => sel.url)), // Concatenate new URLs
+            };
+    
+            const response = await axios.post(`${apiBaseUrl}/api/generateEssayWithSelections`, dataToSend, {
                 headers: {
                     'Authorization': `Bearer ${uuid}`
                 }
             });
-
-            if (response.status === 200) {
-                // Re-fetch selections or verify submission success
-                // Potentially additional logic here to confirm update success
-                setMissingCitations([]); // Clear missing citations to reflect success
-                handleSubmit(); // Attempt to generate the essay now
+    
+            if (response.status === 200 && response.data.essay) {
+                setResult(response.data.essay); // Set the result to the generated essay
+                setMissingCitations([]); // Clear missing citations
+                setErrorMessage(''); // Clear any previous error messages
+                await saveEssay(response.data.essay); // Save the essay
             } else {
                 setErrorMessage('Error generating essay with latest selections. Please try again later.');
             }
         } catch (error) {
             setErrorMessage('Error generating essay with latest selections. Please try again later.');
         } finally {
-            setIsLoading(false);
+            setIsLoading(false); // Clear loading state
         }
     };
 
@@ -134,29 +163,33 @@ function InciteForm({ apiBaseUrl }) { // Receive apiBaseUrl as a prop
                     'Authorization': `Bearer ${uuid}`
                 }
             });
-          if (response.data.missingCitations && response.data.missingCitations.length > 0) {
-            setMissingCitations(response.data.missingCitations);
-          } else {
-            setResult(response.data.essay);
-            setMissingCitations([]);
-            // Save the essay using the saveEssay function
-            await saveEssay(response.data.essay);
-          }
+    
+            if (response.data.missingCitations && response.data.missingCitations.length > 0) {
+                setMissingCitations(response.data.missingCitations);
+            } else {
+                setResult(response.data.essay);
+                setMissingCitations([]);
+                await saveEssay(response.data.essay); // Save the essay
+            }
         } catch (error) {
-            // Removed console.error
+            setErrorMessage('Error generating essay with latest selections. Please try again later.');
         } finally {
             setIsLoading(false);
-        } 
-    };    
-
+        }
+    };
+    
     useEffect(() => {
         if (uuid) {
             const fetchSavedEssay = async () => {
                 try {
-                    const response = await axios.get(`${API_BASE_URL}/api/getRecentEssay`, { headers: { 'Authorization': `Bearer ${uuid}` } });
+                    const response = await axios.get(`${apiBaseUrl}/api/getRecentEssay`, {
+                        headers: {
+                            'Authorization': `Bearer ${uuid}`
+                        }
+                    });
                     if (response.status === 200 && response.data) {
                         const { essay, selections, thesis, premises } = response.data;
-                        const processedSelections = selections ? selections.map(sel => sel.url) : [];
+                        const processedSelections = selections.map(sel => sel.url);
                         setUrls(processedSelections);
                         if (essay !== undefined) setResult(essay);
                         if (thesis && premises) setInputs([thesis, ...premises]);
@@ -171,7 +204,7 @@ function InciteForm({ apiBaseUrl }) { // Receive apiBaseUrl as a prop
             };
             fetchSavedEssay();
         }
-    }, [uuid]);
+    }, [uuid, apiBaseUrl]);
 
     useEffect(() => {
         let loadingInterval;
@@ -182,11 +215,12 @@ function InciteForm({ apiBaseUrl }) { // Receive apiBaseUrl as a prop
                 dotsCount = (dotsCount % 3) + 1;
             }, 500);
         }
+    
         return () => {
             if (loadingInterval) clearInterval(loadingInterval);
         };
     }, [isLoading]);
-
+    
     useEffect(() => {
         const clearEssayDataFlag = sessionStorage.getItem('clearEssayDataFlag');
         if (clearEssayDataFlag === 'true') {
