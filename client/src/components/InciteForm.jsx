@@ -67,9 +67,8 @@ function InciteForm({ apiBaseUrl }) {
     };
 
     const fetchSelections = useCallback(async () => {
-        if (!uuid) return; // If UUID is not present, don't attempt the API call
-
-        setIsLoading(true); // Set loading state
+        if (!uuid) return;
+        setIsLoading(true);
         try {
             const response = await axios.get(`${apiBaseUrl}/api/selections`, {
                 headers: {
@@ -77,13 +76,14 @@ function InciteForm({ apiBaseUrl }) {
                 }
             });
             setUrls(response.data.map(sel => sel.url));
-            setErrorMessage(''); // Clear any previous error messages
+            // Reset error message upon successful fetch
+            setErrorMessage('');
         } catch (error) {
             setErrorMessage('An error occurred while fetching selections.');
         } finally {
-            setIsLoading(false); // Clear loading state
+            setIsLoading(false);
         }
-    }, [apiBaseUrl, uuid]);
+    }, [apiBaseUrl, uuid]);    
 
     useEffect(() => {
         const handleVisibilityChange = () => setIsPageVisible(document.visibilityState === 'visible');
@@ -152,32 +152,32 @@ function InciteForm({ apiBaseUrl }) {
         }
     };
     
-    // Adjust handleSubmit to be callable without an event
     const handleSubmit = async (event) => {
         if (event) event.preventDefault();
         setIsLoading(true);
-        setErrorMessage(''); // Clear previous error messages
-    
+        // Ensure errorMessage is reset at the beginning of the operation
+        setErrorMessage('');
+
         const dataToSend = {
             thesis: inputs[0].trim(),
             bodyPremises: inputs.slice(1).filter(input => input.trim() !== ''),
             urls: urls,
-            missingCitations: missingCitations, // Include missingCitations in the request
+            missingCitations: missingCitations,
         };
-    
+
         try {
             const response = await axios.post(`${apiBaseUrl}/api/generateEssayWithSelections`, dataToSend, {
                 headers: {
                     'Authorization': `Bearer ${uuid}`
                 }
             });
-    
+
             if (response.data.missingCitations && response.data.missingCitations.length > 0) {
                 setMissingCitations(response.data.missingCitations);
             } else {
                 setResult(response.data.essay);
                 setMissingCitations([]);
-                await saveEssay(response.data.essay); // Save the essay
+                await saveEssay(response.data.essay);
             }
         } catch (error) {
             console.error('Error submitting essay:', error);
@@ -185,11 +185,12 @@ function InciteForm({ apiBaseUrl }) {
         } finally {
             setIsLoading(false);
         }
-    };    
+    };
     
     useEffect(() => {
         if (uuid) {
             const fetchSavedEssay = async () => {
+                let fetchedData = false; // Flag to check if data was successfully fetched
                 try {
                     const response = await axios.get(`${apiBaseUrl}/api/getRecentEssay`, {
                         headers: {
@@ -198,22 +199,25 @@ function InciteForm({ apiBaseUrl }) {
                     });
                     if (response.status === 200 && response.data) {
                         const { essay, selections, thesis, premises } = response.data;
-                        const processedSelections = selections.map(sel => sel.url);
+                        // Ensure selections is an array before mapping
+                        const processedSelections = selections && Array.isArray(selections) ? selections.map(sel => sel.url) : [];
                         setUrls(processedSelections);
-                        if (essay !== undefined) setResult(essay);
-                        if (thesis && premises) setInputs([thesis, ...premises]);
-                        else setInputs(['', '', '']);
-                    } else {
-                        setInputs(['', '', '']);
+                        setResult(essay ?? '');
+                        // Ensure there are always 3 body premises inputs, even if fewer are fetched
+                        const newInputs = [thesis ?? '', ...premises ?? Array(3).fill('')].slice(0, 4);
+                        setInputs(newInputs.length >= 4 ? newInputs : [...newInputs, ...Array(4 - newInputs.length).fill('')]);
+                        fetchedData = true;
+                    }
+                } finally {
+                    if (!fetchedData) {
+                        setInputs(['', '', '', '']);
                         setResult('');
                     }
-                } catch (error) {
-                    setErrorMessage('An error occurred while fetching the saved essay and premises.');
                 }
             };
             fetchSavedEssay();
         }
-    }, [uuid, apiBaseUrl]);
+    }, [uuid, apiBaseUrl]);    
 
     useEffect(() => {
         let loadingInterval;
