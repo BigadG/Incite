@@ -110,19 +110,20 @@ function InciteForm({ apiBaseUrl }) {
     }, []);
 
     const handleMissingCitationSubmit = async () => {
-        setIsLoading(true); // Set loading state
+        setIsLoading(true);
         const updatedSelections = missingCitations.map(citation => ({
             url: citation.url,
             author: citation.author,
             publicationDate: citation.publicationDate,
         }));
-
-        try {
+    
+        try {    
             // It's important to ensure that the data to send is defined within the scope of this function
             const dataToSend = {
                 thesis: inputs[0].trim(),
                 bodyPremises: inputs.slice(1).filter(input => input.trim() !== ''),
-                urls: urls.concat(updatedSelections.map(sel => sel.url)), // Concatenate new URLs
+                urls: urls.concat(updatedSelections.map(sel => sel.url)),
+                missingCitations: updatedSelections, // Ensure this is sent to the server
             };
     
             const response = await axios.post(`${apiBaseUrl}/api/generateEssayWithSelections`, dataToSend, {
@@ -142,7 +143,7 @@ function InciteForm({ apiBaseUrl }) {
         } catch (error) {
             setErrorMessage('Error generating essay with latest selections. Please try again later.');
         } finally {
-            setIsLoading(false); // Clear loading state
+            setIsLoading(false);
         }
     };
 
