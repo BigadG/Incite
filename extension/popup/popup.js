@@ -1,8 +1,6 @@
-import config from './config';
-
 document.addEventListener('DOMContentLoaded', function () {
-  const serverUrl = config.SERVER_URL;
-  
+  const serverUrl = 'http://localhost:3001/api';
+
   const addButton = document.getElementById('addButton');
   const showButton = document.getElementById('showButton');
   const dropdown = document.getElementById('dropdown');
