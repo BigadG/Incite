@@ -188,31 +188,35 @@ function InciteForm({ apiBaseUrl }) {
     useEffect(() => {
         if (uuid) {
             const fetchSavedEssay = async () => {
-                let fetchedData = false; // Flag to check if data was successfully fetched
                 try {
                     const response = await axios.get(`${apiBaseUrl}/api/getRecentEssay`, {
                         headers: {
                             'Authorization': `Bearer ${uuid}`
                         }
                     });
-                    if (response.status === 200 && response.data) {
-                        const { essay, selections, thesis, premises } = response.data;
-                        // Ensure selections is an array before mapping
-                        const processedSelections = selections && Array.isArray(selections) ? selections.map(sel => sel.url) : [];
-                        setUrls(processedSelections);
-                        setResult(essay ?? '');
-                        // Ensure there are always 3 body premises inputs, even if fewer are fetched
-                        const newInputs = [thesis ?? '', ...premises ?? Array(3).fill('')].slice(0, 4);
-                        setInputs(newInputs.length >= 4 ? newInputs : [...newInputs, ...Array(4 - newInputs.length).fill('')]);
-                        fetchedData = true;
-                    }
-                } finally {
-                    if (!fetchedData) {
-                        setInputs(['', '', '', '']);
+            
+                    const { essay, selections, thesis, premises } = response.data;
+                    // Ensure selections is an array before mapping
+                    const processedSelections = selections && Array.isArray(selections) ? selections.map(sel => sel.url) : [];
+                    setUrls(processedSelections);
+                    setResult(essay ?? '');
+                    const newInputs = [thesis ?? '', ...premises ?? Array(3).fill('')].slice(0, 4);
+                    setInputs(newInputs.length >= 4 ? newInputs : [...newInputs, ...Array(4 - newInputs.length).fill('')]);
+                } catch (error) {
+                    if (error.response && error.response.status === 404) {
+                        // 404 is an expected response, indicating no recent essay was found
+                        // Set the state to reflect the "no data" state as appropriate for your application
+                        setUrls([]);
                         setResult('');
+                        setInputs(['', '', '', '']);
+                        // Do not set any error message, as this is an expected behavior
+                    } else {
+                        // For all other errors, set an error message
+                        console.error('Error fetching saved essay:', error);
+                        setErrorMessage('An unexpected error occurred while fetching the saved essay.');
                     }
                 }
-            };
+            };               
             fetchSavedEssay();
         }
     }, [uuid, apiBaseUrl]);    
