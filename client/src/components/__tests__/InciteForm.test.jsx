@@ -48,8 +48,11 @@ describe('InciteForm Component', () => {
 
     axios.get.mockResolvedValue({ status: 200, data: mockSelections });
 
+    // Use the mocked API_BASE_URL for the apiBaseUrl prop
+    const { API_BASE_URL } = require('../../envConfig');
+
     await waitFor(() => {
-      render(<InciteForm />);
+      render(<InciteForm apiBaseUrl={API_BASE_URL} />);
       // It is now okay if there is no explicit assertion here.
       // We're mainly concerned with making sure the axios call happens within an act scope.
     });
