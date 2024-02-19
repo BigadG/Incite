@@ -149,8 +149,9 @@ function InciteForm({ apiBaseUrl }) {
     
     const handleSubmit = async (event) => {
         if (event) event.preventDefault();
-        // Note: isLoading should already be true at this point, so no need to set it again here
+        setIsLoading(true); // Activate loading animation
         setErrorMessage(''); // Clear any previous error messages
+        setResult(''); // Clear the current essay to ensure only the loading animation is displayed
     
         const dataToSend = {
             thesis: inputs[0].trim(),
@@ -168,17 +169,17 @@ function InciteForm({ apiBaseUrl }) {
     
             if (response.data.missingCitations && response.data.missingCitations.length > 0) {
                 setMissingCitations(response.data.missingCitations);
-                setIsLoading(false); // Consider keeping the loader if further user action is required
+                // Consider if you want to keep the loader here or not based on your UX preference
             } else {
-                setResult(response.data.essay);
+                setResult(response.data.essay); // Display the new essay
                 setMissingCitations([]);
-                await saveEssay(response.data.essay);
+                await saveEssay(response.data.essay); // Optional: Save the essay as before
             }
         } catch (error) {
             console.error('Error submitting essay:', error);
             setErrorMessage('Error generating essay with latest selections. Please try again later.');
         } finally {
-            setIsLoading(false); // Ensure loading is stopped after essay generation or if an error occurs
+            setIsLoading(false); // Stop the loading animation once the process is complete or fails
         }
     };    
     
