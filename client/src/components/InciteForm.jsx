@@ -116,7 +116,7 @@ function InciteForm({ apiBaseUrl }) {
     }, []);
 
     const handleMissingCitationSubmit = async () => {
-        setIsLoading(true);
+        setIsLoading(true); // Start loading
         const updatedSelections = missingCitations.map(citation => ({
             url: citation.url,
             author: citation.author,
@@ -124,7 +124,6 @@ function InciteForm({ apiBaseUrl }) {
         }));
     
         try {
-            // Update the selections in the database
             const response = await axios.post(`${apiBaseUrl}/api/updateSelections`, {
                 uuid,
                 updatedSelections,
@@ -134,46 +133,42 @@ function InciteForm({ apiBaseUrl }) {
                 }
             });
     
-            // Assuming success, clear the local missingCitations state
             if (response.status === 200) {
                 setMissingCitations([]);
-    
-                // Now that citations are updated, generate the essay
-                handleSubmit(); // You may need to call this without an event argument or adjust its implementation
+                handleSubmit(); // Proceed to essay generation
             } else {
-                // Handle other potential success codes or throw an error
                 throw new Error(`Failed to update selections with status code: ${response.status}`);
             }
         } catch (error) {
             console.error('Error updating selections with citations:', error);
             setErrorMessage('Error updating citation information. Please try again.');
-        } finally {
-            setIsLoading(false);
+            setIsLoading(false); // Only stop loading if there's an error
         }
-    };
+        // Removed finally block to keep isLoading true until essay is generated
+    };    
     
     const handleSubmit = async (event) => {
         if (event) event.preventDefault();
-        setIsLoading(true);
-        // Ensure errorMessage is reset at the beginning of the operation
-        setErrorMessage('');
-
+        // Note: isLoading should already be true at this point, so no need to set it again here
+        setErrorMessage(''); // Clear any previous error messages
+    
         const dataToSend = {
             thesis: inputs[0].trim(),
             bodyPremises: inputs.slice(1).filter(input => input.trim() !== ''),
             urls: urls,
             missingCitations: missingCitations,
         };
-
+    
         try {
             const response = await axios.post(`${apiBaseUrl}/api/generateEssayWithSelections`, dataToSend, {
                 headers: {
                     'Authorization': `Bearer ${uuid}`
                 }
             });
-
+    
             if (response.data.missingCitations && response.data.missingCitations.length > 0) {
                 setMissingCitations(response.data.missingCitations);
+                setIsLoading(false); // Consider keeping the loader if further user action is required
             } else {
                 setResult(response.data.essay);
                 setMissingCitations([]);
@@ -183,9 +178,9 @@ function InciteForm({ apiBaseUrl }) {
             console.error('Error submitting essay:', error);
             setErrorMessage('Error generating essay with latest selections. Please try again later.');
         } finally {
-            setIsLoading(false);
+            setIsLoading(false); // Ensure loading is stopped after essay generation or if an error occurs
         }
-    };
+    };    
     
     useEffect(() => {
         if (uuid) {
