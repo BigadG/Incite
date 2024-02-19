@@ -117,36 +117,36 @@ function InciteForm({ apiBaseUrl }) {
             publicationDate: citation.publicationDate,
         }));
     
-        try {    
-            // It's important to ensure that the data to send is defined within the scope of this function
-            const dataToSend = {
-                thesis: inputs[0].trim(),
-                bodyPremises: inputs.slice(1).filter(input => input.trim() !== ''),
-                urls: urls.concat(updatedSelections.map(sel => sel.url)),
-                missingCitations: updatedSelections, // Ensure this is sent to the server
-            };
-    
-            const response = await axios.post(`${apiBaseUrl}/api/generateEssayWithSelections`, dataToSend, {
+        try {
+            // Update the selections in the database
+            const response = await axios.post(`${apiBaseUrl}/api/updateSelections`, {
+                uuid,
+                updatedSelections,
+            }, {
                 headers: {
                     'Authorization': `Bearer ${uuid}`
                 }
             });
     
-            if (response.status === 200 && response.data.essay) {
-                setResult(response.data.essay); // Set the result to the generated essay
-                setMissingCitations([]); // Clear missing citations
-                setErrorMessage(''); // Clear any previous error messages
-                await saveEssay(response.data.essay); // Save the essay
+            // Assuming success, clear the local missingCitations state
+            if (response.status === 200) {
+                setMissingCitations([]);
+    
+                // Now that citations are updated, generate the essay
+                handleSubmit(); // You may need to call this without an event argument or adjust its implementation
             } else {
-                setErrorMessage('Error generating essay with latest selections. Please try again later.');
+                // Handle other potential success codes or throw an error
+                throw new Error(`Failed to update selections with status code: ${response.status}`);
             }
         } catch (error) {
-            setErrorMessage('Error generating essay with latest selections. Please try again later.');
+            console.error('Error updating selections with citations:', error);
+            setErrorMessage('Error updating citation information. Please try again.');
         } finally {
             setIsLoading(false);
         }
     };
-
+    
+    // Adjust handleSubmit to be callable without an event
     const handleSubmit = async (event) => {
         if (event) event.preventDefault();
         setIsLoading(true);
@@ -156,6 +156,7 @@ function InciteForm({ apiBaseUrl }) {
             thesis: inputs[0].trim(),
             bodyPremises: inputs.slice(1).filter(input => input.trim() !== ''),
             urls: urls,
+            missingCitations: missingCitations, // Include missingCitations in the request
         };
     
         try {
@@ -173,11 +174,12 @@ function InciteForm({ apiBaseUrl }) {
                 await saveEssay(response.data.essay); // Save the essay
             }
         } catch (error) {
+            console.error('Error submitting essay:', error);
             setErrorMessage('Error generating essay with latest selections. Please try again later.');
         } finally {
             setIsLoading(false);
         }
-    };
+    };    
     
     useEffect(() => {
         if (uuid) {
