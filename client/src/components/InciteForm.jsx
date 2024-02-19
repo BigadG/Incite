@@ -5,6 +5,8 @@ import InputField from './InputField';
 import ResultTextArea from './ResultTextArea';
 import MissingCitations from './MissingCitations';
 import '../styles/inciteStyles.css';
+import PropTypes from 'prop-types'; // Import PropTypes
+
 
 function InciteForm({ apiBaseUrl }) {
     // Updated initial state to include 3 body premise inputs in addition to the thesis premise input
@@ -284,5 +286,10 @@ function InciteForm({ apiBaseUrl }) {
         </main>
     );
 }
+
+// Define prop types
+InciteForm.propTypes = {
+    apiBaseUrl: PropTypes.string.isRequired, // Define apiBaseUrl as a required string
+};
 
 export default InciteForm;
