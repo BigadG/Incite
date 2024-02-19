@@ -6,10 +6,9 @@ import ResultTextArea from './ResultTextArea';
 import MissingCitations from './MissingCitations';
 import '../styles/inciteStyles.css';
 
-// Use Vite's env variable or default to 'http://localhost:3001'
-import { API_BASE_URL } from '../envConfig';
+// Removed direct import of API_BASE_URL
 
-function InciteForm() {
+function InciteForm({ apiBaseUrl }) { // Receive apiBaseUrl as a prop
     const [inputs, setInputs] = useState(['', '', '']);
     const [result, setResult] = useState('');
     const [urls, setUrls] = useState([]);
@@ -22,7 +21,7 @@ function InciteForm() {
 
     const saveEssay = async (essay) => {
         try {
-            await axios.post(`${API_BASE_URL}/api/saveRecentEssay`, { uuid, essay, thesis: inputs[0], premises: inputs.slice(1) }, { headers: { 'Authorization': `Bearer ${uuid}` } });
+            await axios.post(`${apiBaseUrl}/api/saveRecentEssay`, { uuid, essay, thesis: inputs[0], premises: inputs.slice(1) }, { headers: { 'Authorization': `Bearer ${uuid}` } });
             sessionStorage.setItem('recentEssayData', JSON.stringify({ thesis: inputs[0], premises: inputs.slice(1), essay }));
         } catch (error) {
             setErrorMessage('An error occurred while saving the essay.');
@@ -52,7 +51,7 @@ function InciteForm() {
             const queryParams = queryString.parse(window.location.search);
             if (queryParams.uuid) {
                 setUUID(queryParams.uuid);
-                const response = await axios.get(`${API_BASE_URL}/api/selections`, { headers: { 'Authorization': `Bearer ${queryParams.uuid}` } });
+                const response = await axios.get(`${apiBaseUrl}/api/selections`, { headers: { 'Authorization': `Bearer ${queryParams.uuid}` } });
                 if (response.status === 200) {
                     setUrls(response.data.map(sel => sel.url));
                 }
@@ -60,7 +59,7 @@ function InciteForm() {
         } catch (error) {
             setErrorMessage('An error occurred while fetching selections.');
         }
-    }, []);
+    }, [apiBaseUrl]);
 
     useEffect(() => {
         const handleVisibilityChange = () => setIsPageVisible(document.visibilityState === 'visible');
@@ -130,7 +129,7 @@ function InciteForm() {
         };
     
         try {
-            const response = await axios.post(`${API_BASE_URL}/api/generateEssayWithSelections`, dataToSend, {
+            const response = await axios.post(`${apiBaseUrl}/api/generateEssayWithSelections`, dataToSend, {
                 headers: {
                     'Authorization': `Bearer ${uuid}`
                 }
@@ -223,7 +222,6 @@ function InciteForm() {
                         +
                     </button>
                 )}
-                {errorMessage && <div className="error-message">{errorMessage}</div>} {/* Display error messages */}
                 {missingCitations.length > 0 && (
                     <MissingCitations
                         missing={missingCitations}

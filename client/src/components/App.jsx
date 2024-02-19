@@ -1,7 +1,7 @@
 import InciteForm from './InciteForm';
 
 function App() {
-  return <InciteForm />;
+  return <InciteForm apiBaseUrl={API_BASE_URL} />
 }
 
 export default App;
