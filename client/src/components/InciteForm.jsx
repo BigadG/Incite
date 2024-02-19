@@ -7,7 +7,8 @@ import MissingCitations from './MissingCitations';
 import '../styles/inciteStyles.css';
 
 function InciteForm({ apiBaseUrl }) {
-    const [inputs, setInputs] = useState(['', '', '']);
+    // Updated initial state to include 3 body premise inputs in addition to the thesis premise input
+    const [inputs, setInputs] = useState(['', '', '', '']);
     const [result, setResult] = useState('');
     const [urls, setUrls] = useState([]);
     const [uuid, setUUID] = useState('');
@@ -17,12 +18,16 @@ function InciteForm({ apiBaseUrl }) {
     const [isPageVisible, setIsPageVisible] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
 
-    // Extract UUID from the URL query parameters and set it
     useEffect(() => {
         const queryParams = queryString.parse(window.location.search);
         if (queryParams.uuid) {
             setUUID(queryParams.uuid);
         }
+    }, []);
+
+    // Adjusted to not display the error message on initial render
+    useEffect(() => {
+        setErrorMessage('');
     }, []);
 
     const saveEssay = async (essay) => {
@@ -39,7 +44,7 @@ function InciteForm({ apiBaseUrl }) {
             });
             sessionStorage.setItem('recentEssayData', JSON.stringify({ thesis: inputs[0], premises: inputs.slice(1), essay }));
         } catch (error) {
-            setErrorMessage('An error occurred while saving the essay.');
+            if (!errorMessage) setErrorMessage('An error occurred while saving the essay.'); // Set error message only if there's an error
         }
     };
 
@@ -98,7 +103,8 @@ function InciteForm({ apiBaseUrl }) {
             sessionStorage.clear();
             sessionStorage.setItem('sessionStartFlag', 'true');
             setResult('');
-            setInputs(['', '', '']);
+            // Updated to reset to the correct number of inputs
+            setInputs(['', '', '', '']);
         } else {
             const recentEssayData = sessionStorage.getItem('recentEssayData');
             if (recentEssayData) {
@@ -266,7 +272,7 @@ function InciteForm({ apiBaseUrl }) {
                         onSubmit={handleMissingCitationSubmit}
                     />
                 )}
-                {errorMessage && <div className="error-message">{errorMessage}</div>} {/* Display error messages */}
+                {errorMessage && <div className="error-message">{errorMessage}</div>}
                 <ResultTextArea
                     isLoading={isLoading}
                     loadingText={loadingText}
