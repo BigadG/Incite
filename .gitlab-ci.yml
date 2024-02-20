@@ -72,7 +72,7 @@ deploy_server_to_heroku:
   image: node:16
   script:
     - npm ci --prefix server # Install server dependencies
-    - npm ci -g heroku # Install Heroku CLI globally
+    - curl https://cli-assets.heroku.com/install.sh | sh
     - heroku --version
     - echo $HEROKU_API_KEY | heroku auth:token --stdin # Authenticate with Heroku
     - heroku git:remote -a $HEROKU_APP_NAME --prefix server
@@ -80,6 +80,6 @@ deploy_server_to_heroku:
     - git config --global user.name "Bigad Gaber"
     - git add .
     - git commit -am "Deploy to Heroku"
-    - git subtree push --prefix server heroku master
+    - git subtree push --prefix server heroku main
   only:
     - main
