@@ -18,10 +18,7 @@ variables:
 
 test_server: 
   stage: test
-  services:
-    - mongo:latest
-  variables:
-    MONGO_URL: "mongodb://mongo:27017/InciteDB"
+  image: mongo:latest
   script:
     - cd server
     - npm ci
@@ -30,9 +27,9 @@ test_server:
     - main
     - /^feature\/.*$/ # Enable tests for feature branches
 
-
 test_client:
   stage: test
+  image: node:16
   script:
     - cd client
     - npm ci
@@ -43,12 +40,11 @@ test_client:
 
 eslint_job:
   stage: test
+  image: node:16
   script:
-    - echo "Linting Client..."
     - cd client
     - npm ci
     - npm run lint
-    - echo "Linting Server..."
     - cd ../server
     - npm ci
     - npm run lint
@@ -58,13 +54,14 @@ eslint_job:
 
 build_client:
   stage: build
+  image: node:16
   script:
     - cd client
     - npm ci
     - npm run build
   artifacts:
     paths:
-      - client/build/
+      - client/dist/
     expire_in: 1 week
   only:
     - main
@@ -72,18 +69,17 @@ build_client:
 
 deploy_server_to_heroku:
   stage: deploy
-  image: node:16 # Use Node.js version 16 since Heroku CLI expects it
+  image: node:16
   script:
-    - npm install heroku # Install Heroku CLI locally without needing sudo
-    - npx heroku --version
-    - echo $HEROKU_API_KEY | npx heroku auth:token --stdin # Authenticate with Heroku
-    - npx heroku git:remote -a $HEROKU_APP_NAME
-    - cd server
-    - git init
+    - npm ci --prefix server # Install server dependencies
+    - npm ci -g heroku # Install Heroku CLI globally
+    - heroku --version
+    - echo $HEROKU_API_KEY | heroku auth:token --stdin # Authenticate with Heroku
+    - heroku git:remote -a $HEROKU_APP_NAME --prefix server
     - git config --global user.email "bigadgaber@icloud.com"
     - git config --global user.name "Bigad Gaber"
     - git add .
     - git commit -am "Deploy to Heroku"
-    - git push --force heroku `git subtree split --prefix server HEAD`:master
+    - git subtree push --prefix server heroku master
   only:
     - main
