@@ -8,9 +8,11 @@ cache:
     - server/node_modules/
 
 variables:
+  HEROKU_APP_NAME: incite
+  HEROKU_API_KEY: $HEROKU_API_KEY
   MONGO_ATLAS_PASSWORD: $MONGO_ATLAS_PASSWORD
   JWT_SECRET: $JWT_SECRET
-  PORT: 3001
+  PORT: $PORT
   DB_NAME: InciteDB
 
 test_server: 
@@ -67,4 +69,21 @@ build_client:
     - main
     - /^feature\/.*$/
 
-# - Add deployment scripts when implementing cloud provider right before deployment
+deploy_server_to_heroku:
+  stage: deploy
+  image: node:latest # Using the latest Node.js image
+  script:
+    - apt-get update -qy && apt-get install -y git # Install Git
+    - npm install -g heroku # Install Heroku CLI globally
+    - heroku --version
+    - echo $HEROKU_API_KEY | heroku auth:token --stdin # Authenticate with Heroku
+    - heroku git:remote -a $HEROKU_APP_NAME
+    - cd server
+    - git init
+    - git config --global user.email "bigadgaber@icloud.com" # Use GitLab email
+    - git config --global user.name "Bigad Gaber"
+    - git add .
+    - git commit -am "Deploy to Heroku"
+    - git push heroku HEAD:master --force
+  only:
+    - main
