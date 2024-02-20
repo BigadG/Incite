@@ -72,19 +72,18 @@ build_client:
 
 deploy_server_to_heroku:
   stage: deploy
-  image: node:latest # Using the latest Node.js image
+  image: node:16 # Use Node.js version 16 since Heroku CLI expects it
   script:
-    - apt-get update -qy && apt-get install -y git # Install Git
-    - npm install -g heroku # Install Heroku CLI globally
-    - heroku --version
-    - echo $HEROKU_API_KEY | heroku auth:token --stdin # Authenticate with Heroku
-    - heroku git:remote -a $HEROKU_APP_NAME
+    - npm install heroku # Install Heroku CLI locally without needing sudo
+    - npx heroku --version
+    - echo $HEROKU_API_KEY | npx heroku auth:token --stdin # Authenticate with Heroku
+    - npx heroku git:remote -a $HEROKU_APP_NAME
     - cd server
     - git init
-    - git config --global user.email "bigadgaber@icloud.com" # Use GitLab email
+    - git config --global user.email "bigadgaber@icloud.com"
     - git config --global user.name "Bigad Gaber"
     - git add .
     - git commit -am "Deploy to Heroku"
-    - git push heroku HEAD:master --force
+    - git push --force heroku `git subtree split --prefix server HEAD`:master
   only:
     - main
