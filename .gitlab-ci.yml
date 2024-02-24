@@ -16,6 +16,11 @@ variables:
   PORT: $PORT
   DB_NAME: InciteDB
 
+before_script:
+  - apt-get update -qy
+  - apt-get install -y nodejs npm
+  - npm install -g heroku
+
 test_server: 
   stage: test
   image: mongo:latest
@@ -68,20 +73,23 @@ build_client:
     - /^feature\/.*$/
 
 deploy_server_to_heroku:
-  stage: deploy
   image: node:16
-  before_script:
-    - npm install -g heroku # Install Heroku CLI globally
+  stage: deploy
   script:
-    - npm ci --prefix server # Install server dependencies
     - heroku --version
-    - echo "$HEROKU_API_KEY" | heroku auth:token
+    - echo $HEROKU_API_KEY | heroku auth:token --stdin
     - heroku git:remote -a $HEROKU_APP_NAME
+    - cd server
+    - git init
     - git config --global user.email "bigadgaber@icloud.com"
     - git config --global user.name "Bigad Gaber"
-    - git checkout main || true
-    - git add -A || true # Add all changes from the repo root
-    - git commit -am "Deploy to Heroku" || true
-    - git push heroku `git subtree split --prefix server main`:main --force # Deploy server directory to Heroku
+    - git add .
+    - |
+      if git diff-index --quiet HEAD --; then
+        echo "No changes to deploy"
+      else
+        git commit -am "Deploy to Heroku"
+        git push heroku master
+      fi
   only:
     - main
