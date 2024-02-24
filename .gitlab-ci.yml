@@ -16,16 +16,22 @@ variables:
   PORT: $PORT
   DB_NAME: InciteDB
 
+services:
+  - mongo:latest
+
 test_server: 
   stage: test
-  image: mongo:latest
+  image: node:16 # Use an image with Node.js
   script:
     - cd server
     - npm ci
     - npm test
   only:
     - main
-    - /^feature\/.*$/ # Enable tests for feature branches
+    - /^feature\/.*$/
+  services:
+    - name: mongo:latest
+      alias: mongodb
 
 test_client:
   stage: test
@@ -69,17 +75,19 @@ build_client:
 
 deploy_server_to_heroku:
   stage: deploy
-  image: node:16
+  image: node:16 # Use an image with Node.js
+  before_script:
+    - apk add --update git # If necessary, install git on the Alpine image
   script:
-    - npm ci --prefix server # Install server dependencies
-    - curl https://cli-assets.heroku.com/install.sh | sh # Install Heroku CLI
+    - npm ci --prefix server
+    - curl https://cli-assets.heroku.com/install.sh | sh
     - heroku --version
-    - heroku login -i # Authenticate with Heroku
+    - heroku login -i
     - heroku git:remote -a $HEROKU_APP_NAME
     - git config --global user.email "bigadgaber@icloud.com"
     - git config --global user.name "Bigad Gaber"
-    - git add -A || true # Add all changes from the repo root
+    - git add -A || true
     - git commit -m "Deploy to Heroku" || true
-    - git push heroku `git subtree split --prefix server main`:main --force # Deploy server directory to Heroku
+    - git push heroku `git subtree split --prefix server main`:main --force
   only:
     - main
