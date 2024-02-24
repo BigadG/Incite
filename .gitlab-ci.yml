@@ -16,22 +16,16 @@ variables:
   PORT: $PORT
   DB_NAME: InciteDB
 
-services:
-  - mongo:latest
-
 test_server: 
   stage: test
-  image: node:16 # Use an image with Node.js
+  image: mongo:latest
   script:
     - cd server
     - npm ci
     - npm test
   only:
     - main
-    - /^feature\/.*$/
-  services:
-    - name: mongo:latest
-      alias: mongodb
+    - /^feature\/.*$/ # Enable tests for feature branches
 
 test_client:
   stage: test
@@ -67,7 +61,7 @@ build_client:
     - npm run build
   artifacts:
     paths:
-      - client/dist/
+      - client/build/ # Changed from dist to build if you are using Create React App
     expire_in: 1 week
   only:
     - main
@@ -75,19 +69,19 @@ build_client:
 
 deploy_server_to_heroku:
   stage: deploy
-  image: node:16 # Use an image with Node.js
+  image: node:16
   before_script:
-    - apk add --update git # If necessary, install git on the Alpine image
+    - npm install -g heroku # Install Heroku CLI globally
   script:
-    - npm ci --prefix server
-    - curl https://cli-assets.heroku.com/install.sh | sh
+    - npm ci --prefix server # Install server dependencies
     - heroku --version
-    - heroku login -i
+    - echo "$HEROKU_API_KEY" | heroku auth:token
     - heroku git:remote -a $HEROKU_APP_NAME
     - git config --global user.email "bigadgaber@icloud.com"
     - git config --global user.name "Bigad Gaber"
-    - git add -A || true
-    - git commit -m "Deploy to Heroku" || true
-    - git push heroku `git subtree split --prefix server main`:main --force
+    - git checkout main || true
+    - git add -A || true # Add all changes from the repo root
+    - git commit -am "Deploy to Heroku" || true
+    - git push heroku `git subtree split --prefix server main`:main --force # Deploy server directory to Heroku
   only:
     - main
