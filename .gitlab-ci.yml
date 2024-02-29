@@ -66,7 +66,7 @@ build_client:
     - npm run build
   artifacts:
     paths:
-      - client/build/ # Changed from dist to build if you are using Create React App
+      - client/dist/ # Changed back to dist for Vite
     expire_in: 1 week
   only:
     - main
@@ -85,8 +85,9 @@ deploy_server_to_heroku:
     - git config --global user.name "Bigad Gaber"
     - git add .
     - |
-      if git diff-index --quiet HEAD --; then
-        echo "No changes to deploy"
+      if git diff --cached --quiet; then
+        echo "No changes to deploy. Exiting gracefully."
+        exit 0
       else
         git commit -am "Deploy to Heroku"
         git push heroku master
