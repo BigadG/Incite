@@ -1,22 +1,24 @@
-stages: 
+stages:
   - test
   - build
   - deploy
 
-cache:
-  paths:
-    - client/node_modules/
-    - server/node_modules/
+services:
+  - docker:dind
 
 variables:
+  DOCKER_DRIVER: overlay2
   HEROKU_APP_NAME: incite
   HEROKU_API_KEY: $HEROKU_API_KEY
   MONGO_ATLAS_PASSWORD: $MONGO_ATLAS_PASSWORD
   JWT_SECRET: $JWT_SECRET
   PORT: $PORT
   DB_NAME: InciteDB
-  # Increase memory limit for Node.js processes
-  NODE_OPTIONS: "--max_old_space_size=4096"
+  # Define Docker image to use for building the client
+  CLIENT_BUILD_IMAGE: node:18.17.1
+
+before_script:
+  - docker info
 
 test_server:
   image: node:16
@@ -60,15 +62,15 @@ eslint_job:
 
 build_client:
   stage: build
-  image: node:18.17.1 # Use the specific Node.js version that works locally
+  image: docker:latest
+  services:
+    - docker:dind
   script:
-    - export NODE_OPTIONS=--max_old_space_size=4096
-    - cd client
-    - npm ci
-    - npm run build --verbose # Or the equivalent verbose flag for your build tool
+    - docker run --rm -v $(pwd)/client:/app -w /app $CLIENT_BUILD_IMAGE /bin/sh -c "npm ci && npm run build"
+    - mv client/dist/* public/ # Adjust this line according to where you want to move your build artifacts
   artifacts:
     paths:
-      - client/dist/
+      - public/
     expire_in: 1 week
   only:
     - main
@@ -87,13 +89,6 @@ deploy_server_to_heroku:
     - git config --global user.email "bigadgaber@icloud.com"
     - git config --global user.name "Bigad Gaber"
     - git add .
-    - |
-      if git diff --cached --quiet; then
-        echo "No changes to deploy. Exiting gracefully."
-        exit 0
-      else
-        git commit -am "Deploy to Heroku"
-        git push heroku master
-      fi
+    - if git diff --cached --quiet; then echo "No changes to deploy. Exiting gracefully."; exit 0; else git commit -am "Deploy to Heroku"; git push heroku master; fi
   only:
     - main
