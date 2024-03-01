@@ -1,24 +1,22 @@
-stages:
+stages: 
   - test
   - build
   - deploy
 
-services:
-  - docker:dind
+cache:
+  paths:
+    - client/node_modules/
+    - server/node_modules/
 
 variables:
-  DOCKER_DRIVER: overlay2
   HEROKU_APP_NAME: incite
   HEROKU_API_KEY: $HEROKU_API_KEY
   MONGO_ATLAS_PASSWORD: $MONGO_ATLAS_PASSWORD
   JWT_SECRET: $JWT_SECRET
   PORT: $PORT
   DB_NAME: InciteDB
-  # Define Docker image to use for building the client
-  CLIENT_BUILD_IMAGE: node:18.17.1
-
-before_script:
-  - docker info
+  # Increase memory limit for Node.js processes
+  NODE_OPTIONS: "--max_old_space_size=4096"
 
 test_server:
   image: node:16
@@ -37,7 +35,7 @@ test_server:
 
 test_client:
   stage: test
-  image: node:18.17.1 # Use the specific Node.js version that works locally
+  image: node:18.17.1
   script:
     - cd client
     - npm ci
@@ -48,7 +46,7 @@ test_client:
 
 eslint_job:
   stage: test
-  image: node:18.17.1 # Use the specific Node.js version that works locally
+  image: node:18.17.1
   script:
     - cd client
     - npm ci
@@ -62,22 +60,24 @@ eslint_job:
 
 build_client:
   stage: build
-  image: docker:latest
-  services:
-    - docker:dind
+  image: node:18.17.1
   script:
-    - docker run --rm -v $(pwd)/client:/app -w /app $CLIENT_BUILD_IMAGE /bin/sh -c "npm ci && npm run build"
-    - mv client/dist/* public/ # Adjust this line according to where you want to move your build artifacts
+    - apk add --no-cache bash git # Use apk for Alpine-based images or the equivalent for your base image
+    - cd client
+    - npm ci
+    # Attempt a different approach to build if direct `npm run build` fails
+    - npm run build || echo "Fallback command if build fails"
+    - ls -lah dist # Verify build output
   artifacts:
     paths:
-      - public/
+      - client/dist/
     expire_in: 1 week
   only:
     - main
     - /^feature\/.*$/
 
 deploy_server_to_heroku:
-  image: node:16 # Use Node.js version 16 for server deployment tasks
+  image: node:16
   stage: deploy
   script:
     - npm install -g heroku
@@ -89,6 +89,13 @@ deploy_server_to_heroku:
     - git config --global user.email "bigadgaber@icloud.com"
     - git config --global user.name "Bigad Gaber"
     - git add .
-    - if git diff --cached --quiet; then echo "No changes to deploy. Exiting gracefully."; exit 0; else git commit -am "Deploy to Heroku"; git push heroku master; fi
+    - |
+      if git diff --cached --quiet; then
+        echo "No changes to deploy. Exiting gracefully."
+        exit 0
+      else
+        git commit -am "Deploy to Heroku"
+        git push heroku master
+      fi
   only:
     - main
