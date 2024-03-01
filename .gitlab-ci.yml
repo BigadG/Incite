@@ -20,6 +20,7 @@ test_server:
   stage: test
   image: mongo:latest
   script:
+    - apt-get update -qy && apt-get install -y nodejs npm
     - cd server
     - npm ci
     - npm test
@@ -31,6 +32,7 @@ test_client:
   stage: test
   image: node:16
   script:
+    - apt-get update -qy && apt-get install -y nodejs npm
     - cd client
     - npm ci
     - npm test
@@ -42,6 +44,7 @@ eslint_job:
   stage: test
   image: node:16
   script:
+    - apt-get update -qy && apt-get install -y nodejs npm
     - cd client
     - npm ci
     - npm run lint
@@ -56,32 +59,39 @@ build_client:
   stage: build
   image: node:16
   script:
+    - apt-get update -qy && apt-get install -y nodejs npm
     - cd client
     - npm ci
     - npm run build
   artifacts:
     paths:
-      - client/build/ # Changed from dist to build if you are using Create React App
+      - client/dist/ # Changed back to dist for Vite
     expire_in: 1 week
   only:
     - main
     - /^feature\/.*$/
 
 deploy_server_to_heroku:
-  stage: deploy
   image: node:16
-  before_script:
-    - npm install -g heroku # Install Heroku CLI globally
+  stage: deploy
   script:
-    - npm ci --prefix server # Install server dependencies
+    - apt-get update -qy && apt-get install -y nodejs npm
+    - npm install -g heroku
     - heroku --version
-    - echo "$HEROKU_API_KEY" | heroku auth:token
+    - echo $HEROKU_API_KEY | heroku auth:token --stdin
     - heroku git:remote -a $HEROKU_APP_NAME
+    - cd server
+    - git init
     - git config --global user.email "bigadgaber@icloud.com"
     - git config --global user.name "Bigad Gaber"
-    - git checkout main || true
-    - git add -A || true # Add all changes from the repo root
-    - git commit -am "Deploy to Heroku" || true
-    - git push heroku `git subtree split --prefix server main`:main --force # Deploy server directory to Heroku
+    - git add .
+    - |
+      if git diff --cached --quiet; then
+        echo "No changes to deploy. Exiting gracefully."
+        exit 0
+      else
+        git commit -am "Deploy to Heroku"
+        git push heroku master
+      fi
   only:
     - main
