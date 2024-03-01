@@ -17,7 +17,7 @@ variables:
   DB_NAME: InciteDB
 
 test_server:
-  image: node:16
+  image: node:18 # Upgrade to Node.js 18
   stage: test
   services:
     - mongo:latest
@@ -33,7 +33,7 @@ test_server:
 
 test_client:
   stage: test
-  image: node:16
+  image: node:18 # Upgrade to Node.js 18
   script:
     - cd client
     - npm ci
@@ -44,7 +44,7 @@ test_client:
 
 eslint_job:
   stage: test
-  image: node:16
+  image: node:18 # Upgrade to Node.js 18
   script:
     - cd client
     - npm ci
@@ -58,7 +58,7 @@ eslint_job:
 
 build_client:
   stage: build
-  image: node:16
+  image: node:18 # Upgrade to Node.js 18
   script:
     - cd client
     - npm ci
@@ -72,7 +72,7 @@ build_client:
     - /^feature\/.*$/
 
 deploy_server_to_heroku:
-  image: node:16
+  image: node:18 # Upgrade to Node.js 18
   stage: deploy
   script:
     - npm install -g heroku
