@@ -16,23 +16,25 @@ variables:
   PORT: $PORT
   DB_NAME: InciteDB
 
-test_server: 
+test_server:
+  image: node:16
   stage: test
-  image: mongo:latest
+  services:
+    - mongo:latest
+  variables:
+    MONGO_URL: "mongodb://mongo:27017/test"
   script:
-    - apt-get update -qy && apt-get install -y nodejs npm
     - cd server
     - npm ci
     - npm test
   only:
     - main
-    - /^feature\/.*$/ # Enable tests for feature branches
+    - /^feature\/.*$/
 
 test_client:
   stage: test
   image: node:16
   script:
-    - apt-get update -qy && apt-get install -y nodejs npm
     - cd client
     - npm ci
     - npm test
@@ -44,7 +46,6 @@ eslint_job:
   stage: test
   image: node:16
   script:
-    - apt-get update -qy && apt-get install -y nodejs npm
     - cd client
     - npm ci
     - npm run lint
@@ -59,13 +60,12 @@ build_client:
   stage: build
   image: node:16
   script:
-    - apt-get update -qy && apt-get install -y nodejs npm
     - cd client
     - npm ci
     - npm run build
   artifacts:
     paths:
-      - client/dist/ # Changed back to dist for Vite
+      - client/dist/
     expire_in: 1 week
   only:
     - main
@@ -75,7 +75,6 @@ deploy_server_to_heroku:
   image: node:16
   stage: deploy
   script:
-    - apt-get update -qy && apt-get install -y nodejs npm
     - npm install -g heroku
     - heroku --version
     - echo $HEROKU_API_KEY | heroku auth:token --stdin
