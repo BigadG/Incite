@@ -76,21 +76,20 @@ deploy_server_to_heroku:
   image: node:16
   stage: deploy
   script:
-    - heroku --version
-    - echo $HEROKU_API_KEY | heroku auth:token --stdin
-    - heroku git:remote -a $HEROKU_APP_NAME
+    - npx heroku --version
+    - echo $HEROKU_API_KEY | npx heroku auth:token --stdin
+    - npx heroku git:remote -a $HEROKU_APP_NAME
     - cd server
     - git init
     - git config --global user.email "bigadgaber@icloud.com"
     - git config --global user.name "Bigad Gaber"
     - git add .
     - |
-      if git diff --cached --quiet; then
-        echo "No changes to deploy. Exiting gracefully."
-        exit 0
-      else
-        git commit -am "Deploy to Heroku"
+      git diff --cached --quiet || git commit -am "Deploy to Heroku"
+      if [ $? -eq 0 ]; then
         git push heroku master
+      else
+        echo "No changes to deploy."
       fi
   only:
     - main
