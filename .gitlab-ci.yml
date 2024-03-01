@@ -1,4 +1,4 @@
-stages:
+stages: 
   - test
   - build
   - deploy
@@ -15,7 +15,7 @@ variables:
   JWT_SECRET: $JWT_SECRET
   PORT: $PORT
   DB_NAME: InciteDB
-  # Attempt to increase memory for Node.js processes
+  # Increase memory limit for Node.js processes
   NODE_OPTIONS: "--max_old_space_size=4096"
 
 test_server:
@@ -35,7 +35,7 @@ test_server:
 
 test_client:
   stage: test
-  image: node:18 # Use Node.js version 18 for client tasks
+  image: node:18.17.1 # Use the specific Node.js version that works locally
   script:
     - cd client
     - npm ci
@@ -46,7 +46,7 @@ test_client:
 
 eslint_job:
   stage: test
-  image: node:18 # Use Node.js version 18 for linting
+  image: node:18.17.1 # Use the specific Node.js version that works locally
   script:
     - cd client
     - npm ci
@@ -60,7 +60,7 @@ eslint_job:
 
 build_client:
   stage: build
-  image: node:18.17.1 # Use the specific Node.js version
+  image: node:18.17.1 # Use the specific Node.js version that works locally
   script:
     - cd client
     - npm ci
