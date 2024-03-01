@@ -62,9 +62,10 @@ build_client:
   stage: build
   image: node:18.17.1 # Use the specific Node.js version that works locally
   script:
+    - export NODE_OPTIONS=--max_old_space_size=4096
     - cd client
     - npm ci
-    - npm run build
+    - npm run build --verbose # Or the equivalent verbose flag for your build tool
   artifacts:
     paths:
       - client/dist/
