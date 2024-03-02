@@ -63,7 +63,7 @@ build_client:
     - npm run build
   artifacts:
     paths:
-      - client/dist/ # Adjusted from client/build to client/dist as you use Vite
+      - client/dist/
     expire_in: 1 week
   only:
     - main
@@ -71,20 +71,13 @@ build_client:
 
 deploy_server_to_heroku:
   stage: deploy
-  image: node:latest # Use Node.js image since we're deploying a Node.js app
+  image: ruby:latest
   script:
-    - cd server
-    - npm ci --only=production # Install only production dependencies
-    - echo "web: npm start" > Procfile # Create a Procfile for Heroku
-    - git init
-    - git config user.email "bigadgaber@icloud.com"
-    - git config user.name "Bigad Gaber"
-    - git add .
-    - git commit -m "Deploy to Heroku"
-    - heroku git:remote -a $HEROKU_APP_NAME
-    - git push heroku master --force
-  environment:
-    name: production
-    url: https://$HEROKU_APP_NAME.herokuapp.com
+    - apt-get update -qy
+    - apt-get install -y ruby-dev
+    - gem install dpl
+    - |
+      cd server
+      dpl --provider=heroku --app=$HEROKU_APP_NAME --api-key=$HEROKU_API_KEY
   only:
     - main
