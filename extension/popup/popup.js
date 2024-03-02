@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-  const serverUrl = 'http://localhost:3001/api';
+  const serverUrl = 'https://incite-d3f19169e5b5.herokuapp.com/api';
 
   const addButton = document.getElementById('addButton');
   const showButton = document.getElementById('showButton');
@@ -210,7 +210,7 @@ async function addSelection(url, title) {
   
       const selectionUrls = selections.map(selection => encodeURIComponent(selection.url)).join(',');
   
-      const inciteAppUrl = `http://localhost:5173/?uuid=${uuid}&selections=${selectionUrls}`;
+      const inciteAppUrl = `https://incite-client-77f7b261a1a7.herokuapp.com`;
   
       console.log(`Opening React app with URL: ${inciteAppUrl}`);
       chrome.tabs.create({ url: inciteAppUrl });
@@ -260,7 +260,7 @@ async function addSelection(url, title) {
     const uuid = await getUUID();
     const selectionUrls = selections.map(selection => encodeURIComponent(selection.url)).join(',');
 
-    const inciteAppUrl = `http://localhost:5173/?uuid=${uuid}&selections=${selectionUrls}`;
+    const inciteAppUrl = `https://incite-client-77f7b261a1a7.herokuapp.com`;
 
     console.log(`Opening React app with URL: ${inciteAppUrl}`);
     chrome.tabs.create({ url: inciteAppUrl });
