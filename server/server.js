@@ -9,7 +9,7 @@ const app = express();
 // Set up CORS to allow requests from your React app's production URL and your Chrome extension's ID
 const allowedOrigins = [
   'https://incite-client-77f7b261a1a7.herokuapp.com', // React app's production URL
-  'pljamknofgphbebllbhccjfbmdjmdfco' // Chrome extension's ID
+  'chrome-extension://pljamknofgphbebllbhccjfbmdjmdfco' // Corrected Chrome extension's ID
 ];
 
 app.use(cors({
