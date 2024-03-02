@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import '../styles/MissingCitations.css';
+import '../styles/missingCitations.css';
 
 function MissingCitations({ missing, onCitationChange, onSubmit }) {
     // Initial state setup for validation flags for each input
