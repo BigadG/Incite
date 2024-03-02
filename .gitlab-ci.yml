@@ -1,4 +1,4 @@
-stages: 
+stages:
   - test
   - build
   - deploy
@@ -9,29 +9,28 @@ cache:
     - server/node_modules/
 
 variables:
-  HEROKU_APP_NAME: incite
-  HEROKU_API_KEY: $HEROKU_API_KEY
   MONGO_ATLAS_PASSWORD: $MONGO_ATLAS_PASSWORD
   JWT_SECRET: $JWT_SECRET
   PORT: $PORT
   DB_NAME: InciteDB
-  NODE_OPTIONS: "--max_old_space_size=4096"
+  HEROKU_API_KEY: $HEROKU_API_KEY
+  HEROKU_APP_NAME: $HEROKU_APP_NAME
 
 test_server:
-  image: node:16
   stage: test
   services:
     - mongo:latest
+  variables:
+    MONGO_URL: "mongodb://mongo:27017/InciteDB"
   script:
     - cd server
     - npm ci
     - npm test
   only:
     - main
-    - /^feature\/.*$/
+    - /^feature\/.*$/ # Enable tests for feature branches
 
 test_client:
-  image: node:18.17.1
   stage: test
   script:
     - cd client
@@ -42,12 +41,13 @@ test_client:
     - /^feature\/.*$/
 
 eslint_job:
-  image: node:18.17.1
   stage: test
   script:
+    - echo "Linting Client..."
     - cd client
     - npm ci
     - npm run lint
+    - echo "Linting Server..."
     - cd ../server
     - npm ci
     - npm run lint
@@ -57,34 +57,25 @@ eslint_job:
 
 build_client:
   stage: build
-  image: node:18.17.1
   script:
     - cd client
     - npm ci
     - npm run build
   artifacts:
     paths:
-      - client/dist/
+      - client/build/
     expire_in: 1 week
   only:
     - main
     - /^feature\/.*$/
 
 deploy_server_to_heroku:
-  image: ruby:latest # Switching to a Ruby image for Heroku CLI compatibility
   stage: deploy
+  image: ruby:latest
   script:
-    - apt-get update -qq && apt-get install -y nodejs git
-    - curl https://cli-assets.heroku.com/install.sh | sh
-    - heroku --version
-    - echo "$HEROKU_API_KEY" | heroku auth:token --stdin
-    - heroku git:remote -a $HEROKU_APP_NAME
-    - cd server
-    - git init
-    - git config --global user.email "bigadgaber@icloud.com"
-    - git config --global user.name "Bigad Gaber"
-    - git add .
-    - git commit -am "Deploy to Heroku"
-    - git push heroku master:main
+    - apt-get update -qy
+    - apt-get install -y ruby-dev
+    - gem install dpl
+    - dpl --provider=heroku --app=$HEROKU_APP_NAME --api-key=$HEROKU_API_KEY
   only:
     - main
