@@ -7,11 +7,11 @@ cache:
   paths:
     - client/node_modules/
     - server/node_modules/
+    - extension/node_modules/
 
 variables:
   MONGO_ATLAS_PASSWORD: $MONGO_ATLAS_PASSWORD
   JWT_SECRET: $JWT_SECRET
-  PORT: $PORT
   DB_NAME: InciteDB
   HEROKU_API_KEY: $HEROKU_API_KEY
   HEROKU_APP_NAME: $HEROKU_APP_NAME
@@ -21,7 +21,7 @@ test_server:
   services:
     - mongo:latest
   variables:
-    MONGO_URL: "mongodb://mongo:27017/InciteDB"
+    MONGO_URL: "mongodb://mongo:27017/$DB_NAME"
   script:
     - cd server
     - npm ci
@@ -63,7 +63,7 @@ build_client:
     - npm run build
   artifacts:
     paths:
-      - client/build/
+      - client/dist/ # Adjusted from client/build to client/dist as you use Vite
     expire_in: 1 week
   only:
     - main
@@ -71,11 +71,20 @@ build_client:
 
 deploy_server_to_heroku:
   stage: deploy
-  image: ruby:latest
+  image: node:latest # Use Node.js image since we're deploying a Node.js app
   script:
-    - apt-get update -qy
-    - apt-get install -y ruby-dev
-    - gem install dpl
-    - dpl --provider=heroku --app=$HEROKU_APP_NAME --api-key=$HEROKU_API_KEY
+    - cd server
+    - npm ci --only=production # Install only production dependencies
+    - echo "web: npm start" > Procfile # Create a Procfile for Heroku
+    - git init
+    - git config user.email "bigadgaber@icloud.com"
+    - git config user.name "Bigad Gaber"
+    - git add .
+    - git commit -m "Deploy to Heroku"
+    - heroku git:remote -a $HEROKU_APP_NAME
+    - git push heroku master --force
+  environment:
+    name: production
+    url: https://$HEROKU_APP_NAME.herokuapp.com
   only:
     - main
