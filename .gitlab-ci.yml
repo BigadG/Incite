@@ -7,7 +7,6 @@ cache:
   paths:
     - client/node_modules/
     - server/node_modules/
-    - extension/node_modules/
 
 variables:
   MONGO_ATLAS_PASSWORD: $MONGO_ATLAS_PASSWORD
@@ -79,5 +78,18 @@ deploy_server_to_heroku:
     - |
       cd server
       dpl --provider=heroku --app=$HEROKU_APP_NAME --api-key=$HEROKU_API_KEY
+  only:
+    - main
+
+deploy_client_to_heroku:
+  stage: deploy
+  image: ruby:latest
+  script:
+    - apt-get update -qy
+    - apt-get install -y ruby-dev
+    - gem install dpl
+    - |
+      cd client
+      dpl --provider=heroku --app=$HEROKU_CLIENT_APP_NAME --api-key=$HEROKU_API_KEY
   only:
     - main

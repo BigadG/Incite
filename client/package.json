@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "start": "serve -s dist",
     "test": "jest --passWithNoTests",
     "test:clearCache": "jest --clearCache",
     "lint": "eslint 'src/**/*.{js,jsx}' --fix",
@@ -18,7 +19,8 @@
     "prop-types": "^15.8.1",
     "query-string": "^8.2.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "serve": "^14.2.1"
   },
   "devDependencies": {
     "@babel/core": "^7.23.9",
