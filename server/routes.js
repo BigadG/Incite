@@ -188,23 +188,38 @@ const generateEssayWithSelections = async (req, res) => {
   }
 };
 
-
 const register = async (req, res) => {
   try {
     const { uuid } = req.body;
+
+    // Check if uuid is provided in the request
+    if (!uuid) {
+      console.error('Registration Error: UUID not provided');
+      return res.status(400).json({ message: 'UUID not provided' });
+    }
+
     const db = await connect();
-    await db.collection('Users').updateOne(
+    const result = await db.collection('Users').updateOne(
       { uuid },
       { $setOnInsert: { uuid, selections: [] } },
       { upsert: true }
     );
-    res.status(200).json({ message: 'UUID registered' });
+
+    // Log the result of the operation for debugging purposes
+    console.log(`Registration Result for UUID ${uuid}:`, result);
+
+    if (result.upsertedCount > 0) {
+      console.log(`UUID registered: ${uuid}`);
+      return res.status(200).json({ message: 'UUID registered' });
+    } else {
+      console.log(`UUID already exists: ${uuid}`);
+      return res.status(200).json({ message: 'UUID already exists' });
+    }
   } catch (error) {
     console.error('Registration Error:', error);
-    res.status(500).json({ message: 'Error during registration', error });
+    return res.status(500).json({ message: 'Error during registration', error: error.message });
   }
 };
-
 
 router.use(authMiddleware);
 
