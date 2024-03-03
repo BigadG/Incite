@@ -23,6 +23,10 @@ app.use(cors({
   },
   optionsSuccessStatus: 200,
 }));
+
+// Enable preflight requests for all routes
+app.options('*', cors());
+
 app.use(express.json());
 
 app.post('/api/register', register);
@@ -33,6 +37,7 @@ app.get('/', (req, res) => {
 });
 
 if (process.env.NODE_ENV !== 'test') {
+  // The port is set by Heroku dynamically
   const port = process.env.PORT || 3001;
   app.listen(port, () => {
     console.log(`Server is listening on port ${port}`);
