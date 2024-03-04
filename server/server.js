@@ -12,34 +12,29 @@ const allowedOrigins = [
   'chrome-extension://pljamknofgphbebllbhccjfbmdjmdfco'
 ];
 
-// CORS middleware setup to include preflight check
+// Enhanced CORS middleware setup to explicitly allow certain headers
 app.use(cors({
   origin: function(origin, callback) {
-    console.log("Received request from origin:", origin); // Logs every incoming origin
-
-    if (process.env.NODE_ENV === 'development') {
-      console.log("Allowing all origins in development mode.");
-      return callback(null, true);
-    }
-
-    if (!origin) return callback(null, true);
+    if (!origin) return callback(null, true); // Allow requests with no origin (like mobile apps or curl requests)
     
-    if (allowedOrigins.indexOf(origin) >= 0) {
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.error('CORS policy rejection for origin:', origin); // Log rejected origin
       callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'), false);
     }
   },
-  optionsSuccessStatus: 200
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Ensure all relevant methods are allowed
+  allowedHeaders: 'Content-Type,Authorization', // Explicitly allow Authorization and Content-Type headers
+  optionsSuccessStatus: 204 // Some legacy browsers (IE11, various SmartTVs) choke on 204
 }));
 
+// Pre-flight requests handler for all routes (to support CORS)
 app.options('*', cors());
 
 app.use(express.json());
 
+// Routes
 app.post('/api/register', register);
-
 app.use('/api', authMiddleware, router);
 
 app.get('/', (req, res) => {
