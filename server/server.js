@@ -15,45 +15,37 @@ const allowedOrigins = [
 // CORS middleware setup to include preflight check
 app.use(cors({
   origin: function(origin, callback) {
-    // Log the origin for debugging
-    console.log("Received request from origin:", origin);
+    console.log("Received request from origin:", origin); // Logs every incoming origin
 
-    // Temporarily allow all origins in development environment
     if (process.env.NODE_ENV === 'development') {
       console.log("Allowing all origins in development mode.");
       return callback(null, true);
     }
 
-    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    // Check if the origin is in the list of allowed origins
     if (allowedOrigins.indexOf(origin) >= 0) {
       callback(null, true);
     } else {
+      console.error('CORS policy rejection for origin:', origin); // Log rejected origin
       callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'), false);
     }
   },
-  optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204
+  optionsSuccessStatus: 200
 }));
 
-// Enable preflight requests for all routes
 app.options('*', cors());
 
 app.use(express.json());
 
-// Register route for UUID registration
 app.post('/api/register', register);
 
-// Use authentication middleware for API routes
 app.use('/api', authMiddleware, router);
 
-// Root route to check if the server is running
 app.get('/', (req, res) => {
   res.send('Incite Server is running!');
 });
 
-// Server listening setup
 if (process.env.NODE_ENV !== 'test') {
   const port = process.env.PORT || 3001;
   app.listen(port, () => {

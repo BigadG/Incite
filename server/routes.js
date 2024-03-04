@@ -223,23 +223,29 @@ const register = async (req, res) => {
 
 router.use(authMiddleware);
 
-router.post('/addSelection', async (req, res) => {
+router.post('/addSelection', async (req, res) => { 
   try {
     const db = await connect();
-    const { title, url, author, publicationDate } = req.body; // Extract author and publicationDate from the request body
+    const { title, url, author, publicationDate } = req.body;
     const uuid = req.userId;
+
+    // Log the request details for debugging
+    console.log(`Adding selection for UUID: ${uuid} with title: ${title}`);
 
     const result = await db.collection('Users').updateOne(
       { uuid },
-      { $push: { selections: { title, url, author, publicationDate, pageId: new ObjectId(), timestamp: new Date() } } }, // Store author and publicationDate
+      { $push: { selections: { title, url, author, publicationDate, pageId: new ObjectId(), timestamp: new Date() } } },
       { upsert: true }
     );
+
+    console.log(`Selection added successfully for UUID: ${uuid}`); // Success log
     res.status(200).json({ message: 'Selection added', result });
   } catch (error) {
-    console.error('Add Selection Error:', error);
-    res.status(500).json({ message: 'Error adding selection', error });
+    console.error('Add Selection Error for UUID:', req.userId, error); // Include UUID in error log
+    res.status(500).json({ message: 'Error adding selection', error: error.message });
   }
 });
+
 
 router.get('/selections', async (req, res) => {
   try {
