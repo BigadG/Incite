@@ -22,10 +22,14 @@ app.get('/', (req, res) => {
   res.send('Incite Server is running!');
 });
 
-// Listen to the App Engine-specified port, or 3001 otherwise
+// The port is set by Heroku dynamically
 const port = process.env.PORT || 3001;
-app.listen(port, () => {
-  console.log(`Server is listening on port ${port}`);
-});
 
-module.exports = app;
+// Check if the module is not being required by a test file
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`Server is listening on port ${port}`);
+  });
+}
+
+module.exports = { app };
