@@ -191,23 +191,20 @@ const generateEssayWithSelections = async (req, res) => {
 const register = async (req, res) => {
   try {
     const { uuid } = req.body;
-
-    // Check if uuid is provided in the request
     if (!uuid) {
       console.error('Registration Error: UUID not provided');
       return res.status(400).json({ message: 'UUID not provided' });
     }
-
     const db = await connect();
+    if (!db) {
+      throw new Error('Database connection failed');
+    }
     const result = await db.collection('Users').updateOne(
       { uuid },
       { $setOnInsert: { uuid, selections: [] } },
       { upsert: true }
     );
-
-    // Log the result of the operation for debugging purposes
     console.log(`Registration Result for UUID ${uuid}:`, result);
-
     if (result.upsertedCount > 0) {
       console.log(`UUID registered: ${uuid}`);
       return res.status(200).json({ message: 'UUID registered' });
@@ -217,7 +214,7 @@ const register = async (req, res) => {
     }
   } catch (error) {
     console.error('Registration Error:', error);
-    return res.status(500).json({ message: 'Error during registration', error: error.message });
+    return res.status(500).json({ message: 'Error during registration', error: error.toString() });
   }
 };
 
