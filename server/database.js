@@ -12,11 +12,13 @@ async function connect() {
     await client.connect();
     console.log('Connected to MongoDB Atlas');
     const db = client.db(dbName);
+
+    // Ensure the `Users` collection has an index on the `uuid` field
     await db.collection('Users').createIndex({ "uuid": 1 }, { unique: true });
+
     return db;
   } catch (e) {
     console.error('Failed to connect to MongoDB Atlas', e);
-    throw e; // Throw the error to be caught by the route handler
   }
 }
 
