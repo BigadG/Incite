@@ -1,24 +1,19 @@
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
 const { router, register } = require('./routes');
 const authMiddleware = require('./authMiddleware');
 
 const app = express();
 
-// Disable CORS for all routes as a temporary measure
-app.use(cors({
-  origin: '*', // Allow all origins
-  methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'], // Allow all methods
-  allowedHeaders: ['Content-Type', 'Authorization'], // Allow all headers
-  credentials: true, // Allow credentials
-  optionsSuccessStatus: 204,
-}));
+// Manually set headers to allow all CORS requests
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  next();
+});
 
 app.use(express.json());
-
-// Since CORS is disabled, this might not be necessary, but we'll keep it for completeness
-app.options('*', cors());
 
 app.post('/api/register', register);
 app.use('/api', authMiddleware, router);
@@ -27,12 +22,10 @@ app.get('/', (req, res) => {
   res.send('Incite Server is running!');
 });
 
-if (process.env.NODE_ENV !== 'test') {
-  // The port is set by Heroku dynamically
-  const port = process.env.PORT || 3001;
-  app.listen(port, () => {
-    console.log(`Server is listening on port ${port}`);
-  });
-}
+// Listen to the App Engine-specified port, or 3001 otherwise
+const port = process.env.PORT || 3001;
+app.listen(port, () => {
+  console.log(`Server is listening on port ${port}`);
+});
 
 module.exports = app;
