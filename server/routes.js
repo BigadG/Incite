@@ -195,10 +195,7 @@ const register = async (req, res) => {
       console.error('Registration Error: UUID not provided');
       return res.status(400).json({ message: 'UUID not provided' });
     }
-    const db = await connect();
-    if (!db) {
-      throw new Error('Database connection failed');
-    }
+    const db = await connect(); // Ensure that a connection failure here is caught
     const result = await db.collection('Users').updateOne(
       { uuid },
       { $setOnInsert: { uuid, selections: [] } },
@@ -213,8 +210,8 @@ const register = async (req, res) => {
       return res.status(200).json({ message: 'UUID already exists' });
     }
   } catch (error) {
-    console.error('Registration Error:', error);
-    return res.status(500).json({ message: 'Error during registration', error: error.toString() });
+    console.error('Registration Error:', error.message);
+    res.status(500).json({ message: 'Error during registration', error: error.message });
   }
 };
 

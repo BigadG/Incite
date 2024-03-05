@@ -26,7 +26,7 @@ async function authMiddleware(req, res, next) {
     // Pass control to the next middleware
     next();
   } catch (error) {
-    // Respond with an error if UUID is missing or invalid
+    console.error('AuthMiddleware Error:', error.message);
     res.status(401).json({ message: 'Authentication failed', error: error.message });
   }
 }

@@ -18,10 +18,9 @@ chrome.runtime.onInstalled.addListener(() => {
   const uuid = generateUUID();
   console.log(`Generated UUID: ${uuid}`);
   chrome.storage.local.set({ userId: uuid, selections: [] });
-  
+
   const serverUrl = 'https://incite-d3f19169e5b5.herokuapp.com/api';
 
-  // Call the new /register endpoint to register the UUID
   fetch(`${serverUrl}/register`, {
     method: 'POST',
     headers: {
@@ -32,7 +31,7 @@ chrome.runtime.onInstalled.addListener(() => {
   })
   .then(response => {
     if (!response.ok) {
-      throw new Error('Network response was not ok');
+      return response.text().then(text => Promise.reject(new Error(text)));
     }
     return response.json();
   })

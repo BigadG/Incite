@@ -15,11 +15,10 @@ async function connect() {
     await db.collection('Users').createIndex({ "uuid": 1 }, { unique: true });
     return db;
   } catch (e) {
-    console.error('Failed to connect to MongoDB Atlas', e);
-    throw e; // Throw the error to be caught by the route handler
+    console.error('Database connection error:', e.message);
+    throw new Error('Database connection error'); // Throwing a generic error message
   }
 }
-
 
 async function closeDatabase() {
   await client.close();
