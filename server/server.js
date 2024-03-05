@@ -6,29 +6,19 @@ const authMiddleware = require('./authMiddleware');
 
 const app = express();
 
-// Set up CORS to allow requests from your React app's production URL and your Chrome extension's ID
-const allowedOrigins = [
-  'https://incite-client-77f7b261a1a7.herokuapp.com',
-  'chrome-extension://pljamknofgphbebllbhccjfbmdjmdfco'
-];
-
+// Disable CORS for all routes as a temporary measure
 app.use(cors({
-  origin: function (origin, callback) {
-    // allow requests with no origin (like mobile apps, curl requests, or server-to-server requests)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
-  },
-  methods: ['GET', 'POST', 'OPTIONS'], // Explicitly allow methods
-  allowedHeaders: ['Content-Type', 'Authorization'], // Explicitly allow headers
-  optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204
+  origin: '*', // Allow all origins
+  methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'], // Allow all methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allow all headers
+  credentials: true, // Allow credentials
+  optionsSuccessStatus: 204,
 }));
+
 app.use(express.json());
 
-app.options('*', cors()); // Enable pre-flight across the board for OPTIONS method
+// Since CORS is disabled, this might not be necessary, but we'll keep it for completeness
+app.options('*', cors());
 
 app.post('/api/register', register);
 app.use('/api', authMiddleware, router);
