@@ -3,6 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const { router, register } = require('./routes');
 const authMiddleware = require('./authMiddleware');
+const process = require('process');
+console.log('Node.js Version:', process.version);
 
 const app = express();
 
