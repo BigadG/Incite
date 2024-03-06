@@ -15,7 +15,22 @@ const allowedOrigins = [
 ]; 
 
 app.use(cors({
-  origin: '*' 
+  origin: function (origin, callback) {
+    console.log('CORS request from origin:', origin); 
+    // Include explicit checks for null or undefined origin
+    if (!origin) {
+      // Allow requests with no origin  
+      return callback(null, true); 
+    }
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  methods: ['GET', 'POST', 'OPTIONS'], // Explicitly allow methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Explicitly allow headers
+  optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204
 }));
 app.use(express.json());
 
