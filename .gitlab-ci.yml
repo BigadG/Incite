@@ -62,8 +62,8 @@ build_client:
   stage: build
   script:
     - cd client
-    - npm ci
-    - npm run build
+    - npm ci 
+    - npm run build --verbose  # Verbose logging for build process
   artifacts:
     paths:
       - client/dist/
