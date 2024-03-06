@@ -48,31 +48,4 @@ if (process.env.NODE_ENV !== 'test') {
   });
 }
 
-router.post('/register', async (req, res) => {
-  try {
-    const { uuid } = req.body;
-    if (!uuid) {
-      console.error('Registration Error: UUID not provided');
-      return res.status(400).json({ message: 'UUID not provided' });
-    }
-    const db = await connect(); // Ensure that a connection failure here is caught
-    const result = await db.collection('Users').updateOne(
-      { uuid },
-      { $setOnInsert: { uuid, selections: [] } },
-      { upsert: true }
-    );
-    console.log(`Registration Result for UUID ${uuid}:`, result);
-    if (result.upsertedCount > 0) {
-      console.log(`UUID registered: ${uuid}`);
-      return res.status(200).json({ message: 'UUID registered' });
-    } else {
-      console.log(`UUID already exists: ${uuid}`);
-      return res.status(200).json({ message: 'UUID already exists' });
-    }
-  } catch (error) {
-    console.error('Registration Error:', error.message);
-    res.status(500).json({ message: 'Error during registration', error: error.message });
-  }
-});
-
 module.exports = app;
