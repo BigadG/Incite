@@ -72,13 +72,14 @@ build_client:
 
 deploy_server_to_heroku:
   stage: deploy
-  image: ruby:latest
+  image: node:18.17.1  # Use a specific Node.js version container
   script:
     - apt-get update -qy
     - apt-get install -y ruby-dev
     - gem install dpl
     - |
       cd server
+      npm install # Ensure Node_modules are installed based on package.json
       dpl --provider=heroku --app=$HEROKU_APP_NAME --api-key=$HEROKU_API_KEY
   only:
     - main
