@@ -16,6 +16,7 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
+    console.log('CORS request from origin:', origin); 
     // Include explicit checks for null or undefined origin
     if (!origin) {
       // Allow requests with no origin  
