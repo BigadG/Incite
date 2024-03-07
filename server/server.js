@@ -10,7 +10,7 @@ const app = express();
 
 // Updated CORS configuration with troubleshooting changes and forum insights
 const allowedOrigins = [
-  'http://incite-client-77f7b261a1a7.herokuapp.com/', // Your client app's URL
+  'https://incite-client-77f7b261a1a7.herokuapp.com/', // Your client app's URL
   'chrome-extension://pljamknofgphbebllbhccjfbmdjmdfco' // Hardcoded for testing
 ];
 
