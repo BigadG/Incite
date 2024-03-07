@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
+const cors = require('cors'); 
 const { router, register } = require('./routes');
 const authMiddleware = require('./authMiddleware');
 const process = require('process');
@@ -8,33 +8,28 @@ console.log('Node.js Version:', process.version);
 
 const app = express();
 
-// Set up CORS to allow requests from your React app's production URL and your Chrome extension's ID
+// Updated CORS configuration
 const allowedOrigins = [
   'https://incite-client-77f7b261a1a7.herokuapp.com',
   'chrome-extension://pljamknofgphbebllbhccjfbmdjmdfco' // Extension ID
 ]; 
 
-app.use(cors({
+const corsOptions = {
   origin: function (origin, callback) {
-    console.log('CORS request from origin:', origin); 
-    // Include explicit checks for null or undefined origin
-    if (!origin) {
-      // Allow requests with no origin  
-      return callback(null, true); 
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
     }
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
   },
-  methods: ['GET', 'POST', 'OPTIONS'], // Explicitly allow methods
-  allowedHeaders: ['Content-Type', 'Authorization'], // Explicitly allow headers
-  optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204
-}));
-app.use(express.json());
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200
+};
 
-app.options('*', cors()); // Enable pre-flight across the board for OPTIONS method
+app.use(cors(corsOptions)); // Apply CORS with the dynamic configuration
+
+app.options('*', cors(corsOptions)); // Enable pre-flight requests
 
 app.post('/api/register', register);
 app.use('/api', authMiddleware, router);
