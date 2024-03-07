@@ -8,15 +8,15 @@ console.log('Node.js Version:', process.version);
 
 const app = express();
 
-// Updated CORS configuration with troubleshooting changes
+// Updated CORS configuration with troubleshooting changes and forum insights
 const allowedOrigins = [
-  'https://incite-client-77f7b261a1a7.herokuapp.com',
+  'https://incite-client-77f7b261a1a7.herokuapp.com/', // Your client app's URL
   'chrome-extension://pljamknofgphbebllbhccjfbmdjmdfco' // Hardcoded for testing
 ];
 
 const corsOptions = {
   origin: function (origin, callback) {
-    console.log('Incoming Origin:', origin); // Log for debugging 
+    console.log('Incoming Origin:', origin); 
     if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
       callback(null, true);
     } else {
@@ -25,7 +25,8 @@ const corsOptions = {
   },
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
+  credentials: true // Enable sending cookies, if needed
 };
 
 // Ensure CORS is applied before other middleware
