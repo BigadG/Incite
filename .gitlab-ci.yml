@@ -1,4 +1,4 @@
-image: node:18.12.1 # Default Node.js version for consistency
+image: node:18.12.1
 
 stages:
   - test
@@ -19,11 +19,6 @@ variables:
   VITE_API_BASE_URL: "$VITE_API_BASE_URL"
   HEROKU_CLIENT_APP_NAME: "incite-client"
 
-# Install Node modules once for efficiency 
-before_script:
-  - cd client
-  - npm ci    
-
 test_server:
   stage: test
   services:
@@ -32,35 +27,43 @@ test_server:
     MONGO_URL: "mongodb://mongo:27017/$DB_NAME"
   script:
     - cd server
-    - npm test 
+    - npm ci
+    - npm test
   only:
     - main
-    - /^feature\/.*$/ 
+    - /^feature\/.*$/ # Enable tests for feature branches
 
 test_client:
   stage: test
   script:
-    - npm test 
+    - cd client
+    - npm ci
+    - npm test
   only:
     - main
-    - /^feature\/.*$/ 
+    - /^feature\/.*$/
 
 eslint_job:
   stage: test
   script:
     - echo "Linting Client..."
+    - cd client
+    - npm ci
     - npm run lint
     - echo "Linting Server..."
     - cd ../server
+    - npm ci
     - npm run lint
   only:
     - main
-    - /^feature\/.*$/ 
+    - /^feature\/.*$/
 
 build_client:
   stage: build
   script:
-    - npm run build --verbose  
+    - cd client
+    - npm ci 
+    - npm run build --verbose  # Verbose logging for build process
   artifacts:
     paths:
       - client/dist/
@@ -71,25 +74,27 @@ build_client:
 
 deploy_server_to_heroku:
   stage: deploy
-  image: node:18.12.1  # Ensure consistency
+  image: node:18.12.1  # Use a specific Node.js version container
   script:
     - apt-get update -qy
     - apt-get install -y ruby-dev
     - gem install dpl
     - |
       cd server
-      npm install
+      npm install # Ensure Node_modules are installed based on package.json
       dpl --provider=heroku --app=$HEROKU_APP_NAME --api-key=$HEROKU_API_KEY
   only:
     - main
 
 deploy_client_to_heroku:
   stage: deploy
-  image: node:18.12.1 # Node.js for deployment step
+  image: node:18.12.1
   script:
     - apt-get update -qy
     - apt-get install -y ruby-dev
-    - gem install dpl 
-    - dpl --provider=heroku --app=$HEROKU_CLIENT_APP_NAME --api-key=$HEROKU_API_KEY
+    - gem install dpl
+    - |
+      cd client
+      dpl --provider=heroku --app=$HEROKU_CLIENT_APP_NAME --api-key=$HEROKU_API_KEY
   only:
     - main
