@@ -17,6 +17,11 @@ variables:
   VITE_API_BASE_URL: "$VITE_API_BASE_URL"
   HEROKU_CLIENT_APP_NAME: "incite-client"
 
+image: node:18.17.1-alpin
+
+before_script:
+  - apk add --no-cache build-base  # For potential native compilation 
+
 test_server:
   stage: test
   services:
@@ -60,11 +65,6 @@ build_client:
   stage: build
   script:
     - cd client
-    - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash # Install nvm
-    - export NVM_DIR="$HOME/.nvm" 
-    - '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"'  # Load nvm
-    - nvm install 18.17.1  # Install required Node.js version
-    - nvm use 18.17.1    # Activate Node.js version
     - npm ci 
     - npm run build --verbose 
   artifacts:
