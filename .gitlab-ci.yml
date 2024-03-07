@@ -88,7 +88,7 @@ deploy_server_to_heroku:
 
 deploy_client_to_heroku:
   stage: deploy
-  image: ruby:latest
+  image: node:18.17.1
   script:
     - apt-get update -qy
     - apt-get install -y ruby-dev
