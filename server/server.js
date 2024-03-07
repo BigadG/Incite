@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors'); 
+const cors = require('cors');
 const { router, register } = require('./routes');
 const authMiddleware = require('./authMiddleware');
 const process = require('process');
@@ -8,14 +8,15 @@ console.log('Node.js Version:', process.version);
 
 const app = express();
 
-// Updated CORS configuration
+// Updated CORS configuration with troubleshooting changes
 const allowedOrigins = [
   'https://incite-client-77f7b261a1a7.herokuapp.com',
-  'chrome-extension://pljamknofgphbebllbhccjfbmdjmdfco' // Extension ID
-]; 
+  'chrome-extension://pljamknofgphbebllbhccjfbmdjmdfco' // Hardcoded for testing
+];
 
 const corsOptions = {
   origin: function (origin, callback) {
+    console.log('Incoming Origin:', origin); // Log for debugging 
     if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
       callback(null, true);
     } else {
@@ -27,7 +28,8 @@ const corsOptions = {
   optionsSuccessStatus: 200
 };
 
-app.use(cors(corsOptions)); // Apply CORS with the dynamic configuration
+// Ensure CORS is applied before other middleware
+app.use(cors(corsOptions)); 
 
 app.options('*', cors(corsOptions)); // Enable pre-flight requests
 
@@ -39,8 +41,7 @@ app.get('/', (req, res) => {
 });
 
 if (process.env.NODE_ENV !== 'test') {
-  // The port is set by Heroku dynamically
-  const port = process.env.PORT || 3001;
+  const port = process.env.PORT || 3001; 
   app.listen(port, () => {
     console.log(`Server is listening on port ${port}`);
   });
