@@ -17,12 +17,6 @@ variables:
   VITE_API_BASE_URL: "$VITE_API_BASE_URL"
   HEROKU_CLIENT_APP_NAME: "incite-client"
 
-image: node:18.17.1-alpine 
-
-# Jobs that need build tools 
-before_script:
-  - apk add --no-cache build-base 
-
 test_server:
   stage: test
   services:
@@ -66,8 +60,8 @@ build_client:
   stage: build
   script:
     - cd client
-    - npm ci 
-    - npm run build --verbose 
+    - npm ci
+    - npm run build
   artifacts:
     paths:
       - client/dist/
@@ -78,21 +72,20 @@ build_client:
 
 deploy_server_to_heroku:
   stage: deploy
-  image: ruby:latest  # Standard image likely to have 'apt' 
+  image: ruby:latest
   script:
     - apt-get update -qy
     - apt-get install -y ruby-dev
     - gem install dpl
     - |
       cd server
-      npm install 
       dpl --provider=heroku --app=$HEROKU_APP_NAME --api-key=$HEROKU_API_KEY
   only:
     - main
 
 deploy_client_to_heroku:
   stage: deploy
-  image: ruby:latest 
+  image: ruby:latest
   script:
     - apt-get update -qy
     - apt-get install -y ruby-dev
