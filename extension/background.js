@@ -20,6 +20,24 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.local.set({ userId: uuid, selections: [] });
 
   const serverUrl = 'https://incite-d3f19169e5b5.herokuapp.com/api';
+
+  // Add back the /register endpoint to register the UUID
+  fetch(`${serverUrl}/register`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${uuid}`
+    },
+    body: JSON.stringify({ uuid }),
+  })
+  .then(response => response.json().then(data => ({ status: response.status, body: data })))
+  .then(obj => {
+    if (obj.status !== 200) {
+      throw new Error(`Error: ${obj.status} ${JSON.stringify(obj.body)}`);
+    }
+    console.log('Registration successful', obj.body);
+  })
+  .catch(error => console.error('Error registering UUID:', error));
 });
 
 function executeContentScript(callback) {

@@ -202,6 +202,8 @@ const register = async (req, res) => {
       { upsert: true }
     );
     console.log(`Registration Result for UUID ${uuid}:`, result);
+    console.log('Request headers:', req.headers);
+    console.log('Request body:', req.body);
     if (result.upsertedCount > 0) {
       console.log(`UUID registered: ${uuid}`);
       return res.status(200).json({ message: 'UUID registered' });
@@ -225,6 +227,8 @@ router.post('/addSelection', async (req, res) => {
 
     // Log the request details for debugging
     console.log(`Adding selection for UUID: ${uuid} with title: ${title}`);
+    console.log('Request headers:', req.headers);
+    console.log('Request body:', req.body);
 
     const result = await db.collection('Users').updateOne(
       { uuid },
@@ -248,6 +252,8 @@ router.get('/selections', async (req, res) => {
 
     const user = await db.collection('Users').findOne({ uuid });
     res.status(200).json(user ? user.selections : []);
+    console.log('Request headers:', req.headers);
+    console.log('Request body:', req.body);
   } catch (error) {
     res.status(500).json({ message: 'Error retrieving selections', error });
   }
