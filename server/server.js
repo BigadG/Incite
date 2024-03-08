@@ -36,6 +36,7 @@ app.use(cors(corsOptions));
 app.options('*', cors(corsOptions)); // Enable pre-flight requests
 
 // Apply the authMiddleware to all API routes
+app.post('/api/register', register);
 app.use('/api', authMiddleware, router);
 
 // Root endpoint
@@ -43,20 +44,28 @@ app.get('/', (req, res) => {
   res.send('Incite Server is running!');
 });
 
-// Error handling for cors errors specifically
+// Error handling for CORS errors specifically
 app.use((err, req, res, next) => {
   if (err instanceof cors.CorsError) {
     console.error('CORS error:', err.message);
     res.status(500).json({ message: 'CORS error', error: err.message });
-    return;
+  } else {
+    next(err);
   }
-  next(err);
 });
 
-// General error handling middleware
-app.use((err, req, res, next) => {
+// Catch 404 and forward to error handler
+app.use((req, res, next) => {
+  const error = new Error('Not Found');
+  error.status = 404;
+  next(error);
+});
+
+// General error handler
+app.use((err, req, res, _next) => {
   console.error('General error:', err.message);
-  res.status(500).json({ message: 'An error occurred', error: err.message });
+  const status = err.status || 500;
+  res.status(status).json({ message: 'An error occurred', error: err.message });
 });
 
 if (process.env.NODE_ENV !== 'test') {
