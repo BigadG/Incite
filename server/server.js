@@ -1,77 +1,70 @@
-// server.js
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { router, register } = require('./routes');
+const { router } = require('./routes');
 const authMiddleware = require('./authMiddleware');
 const process = require('process');
-console.log('Node.js Version:', process.version);
 
 const app = express();
 
-// Updated CORS configuration with troubleshooting changes and forum insights
+// Identify the environment and set the port
+const isProduction = process.env.NODE_ENV === 'production';
+const port = process.env.PORT || 3001;
+
+console.log(`Starting server in ${isProduction ? 'production' : 'development'} mode on port ${port}`);
+
+// Allow CORS from your client app URL and the Chrome extension ID
 const allowedOrigins = [
   'https://incite-client-77f7b261a1a7.herokuapp.com',
   'chrome-extension://pljamknofgphbebllbhccjfbmdjmdfco',
 ];
 
-const corsOptions = {
+app.use(cors({
   origin: function (origin, callback) {
-    console.log('Incoming Origin:', origin);
-    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+    // Log every request's origin for debugging
+    console.log('Origin of request allowed:', origin);
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
     }
+    // If not found, log and block the request
+    console.error('Origin blocked by CORS:', origin);
+    callback(new Error('Not allowed by CORS'));
   },
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  optionsSuccessStatus: 200,
-  credentials: true, // Enable sending cookies, if needed
-};
+  credentials: true,
+}));
 
-// Ensure CORS is applied before other middleware
-app.use(cors(corsOptions));
+// Serve static files from the React app
+if (isProduction) {
+  app.use(express.static(path.join(__dirname, '../client/build')));
+}
 
-app.options('*', cors(corsOptions)); // Enable pre-flight requests
+// Parse JSON bodies
+app.use(express.json());
 
 // Apply the authMiddleware to all API routes
-app.post('/api/register', register);
 app.use('/api', authMiddleware, router);
 
-// Root endpoint
+// Default route for server check
 app.get('/', (req, res) => {
   res.send('Incite Server is running!');
 });
 
-// Error handling for cors errors specifically
-app.use((err, req, res, next) => {
-  if (err instanceof cors.CorsError) {
-    console.error('CORS error:', err.message);
-    res.status(500).json({ message: 'CORS error', error: err.message });
-    return;
-  }
-  next(err);
-});
-
-app.use((req, res, next) => {
-  const error = new Error('Not Found');
-  error.status = 404;
-  next(error);
-});
-
-// Existing error handler
-app.use((err, req, res /*, _next*/) => {
-  console.error('General error:', err.message);
-  const status = err.status || 500;
-  res.status(status).json({ message: 'An error occurred', error: err.message });
-});
-
-if (process.env.NODE_ENV !== 'test') {
-  const port = process.env.PORT || 3001;
-  app.listen(port, () => {
-    console.log(`Server is listening on port ${port}`);
+// Handle production case, serve the client's index.html
+if (isProduction) {
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/build/index.html'));
   });
 }
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Server error:', err.stack);
+  res.status(500).send({ error: err.message });
+});
+
+// Start the server
+app.listen(port, () => {
+  console.log(`Server listening on port ${port}`);
+});
 
 module.exports = app;
