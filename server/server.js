@@ -44,25 +44,24 @@ app.get('/', (req, res) => {
   res.send('Incite Server is running!');
 });
 
-// Error handling for CORS errors specifically
+// Error handling for cors errors specifically
 app.use((err, req, res, next) => {
   if (err instanceof cors.CorsError) {
     console.error('CORS error:', err.message);
     res.status(500).json({ message: 'CORS error', error: err.message });
-  } else {
-    next(err);
+    return;
   }
+  next(err);
 });
 
-// Catch 404 and forward to error handler
 app.use((req, res, next) => {
   const error = new Error('Not Found');
   error.status = 404;
   next(error);
 });
 
-// General error handler
-app.use((err, req, res, _next) => {
+// Existing error handler
+app.use((err, req, res /*, _next*/) => {
   console.error('General error:', err.message);
   const status = err.status || 500;
   res.status(status).json({ message: 'An error occurred', error: err.message });
