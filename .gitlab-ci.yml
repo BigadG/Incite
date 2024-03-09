@@ -17,17 +17,17 @@ variables:
   VITE_API_BASE_URL: "$VITE_API_BASE_URL"
   HEROKU_CLIENT_APP_NAME: "incite-client"
 
+before_script:
+  - echo "Running as user: $(whoami)"  
+  - . /Users/bigadgaber/.nvm/nvm.sh 
+
 test_server:
   stage: test
   services:
     - mongo:latest
   variables:
     MONGO_URL: "mongodb://mongo:27017/$DB_NAME"
-  before_script:
-  - echo "Running as user: $(whoami)"  
-  - . /Users/bigadgaber/.nvm/nvm.sh 
   script:
-    - env | grep -E 'HOME|SHELL|USER|NVM' 
     - cd server
     - npm ci
     - npm test
@@ -109,4 +109,3 @@ deploy_client_to_heroku:
     - git push heroku main:master 
   only:
     - main 
-
