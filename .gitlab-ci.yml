@@ -18,7 +18,7 @@ variables:
   HEROKU_CLIENT_APP_NAME: "incite-client"
 
 before_script:
-  - source /usr/share/nvm/init-nvm.sh
+  - source /Users/bigadgaber/.nvm/nvm.sh 
 
 test_server:
   stage: test
