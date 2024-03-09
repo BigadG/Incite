@@ -75,27 +75,29 @@ deploy_server_to_heroku:
   image: node:lts 
   script:
     - npm install -g heroku 
-    - heroku plugins:install heroku-container-registry 
     - heroku login  
-    - heroku container:login # Log in to Heroku's container registry
-    - docker tag vigorous_lamarr registry.heroku.com/incite/web
-    - heroku container:push web -a incite
-    - heroku container:release web -a incite 
+    - heroku git:remote -a incite
+    - cd server 
+    - git push heroku main:master 
   only:
     - main 
 
 deploy_client_to_heroku:
   stage: deploy
   image: node:lts 
+  before_script: 
+    - nvm install 
+    - nvm use 
   script:
     - npm install -g heroku 
     - heroku login  
     - heroku git:remote -a incite-client 
     - cd client 
-    - npm ci # Use 'npm ci' for consistent builds on CI 
-    - npm run build # Build your Vite project
-    - git add dist # Add the built 'dist' folder
+    - npm ci 
+    - npm run build
+    - git add dist 
     - git commit -m "Deploying Vite build" 
     - git push heroku main:master 
   only:
     - main 
+
