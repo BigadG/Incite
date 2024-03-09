@@ -18,11 +18,11 @@ variables:
   HEROKU_CLIENT_APP_NAME: "incite-client"
 
 before_script:
-  - echo $SHELL # Output the current shell
-  - echo $USER # Output the current user
-  - which nvm  # Try to get the NVM path (even though this may fail)
-  - ls -la /Users/bigadgaber/.nvm  # Verify directory contents on runner 
-  - source /Users/bigadgaber/.nvm/nvm.sh  
+  - echo "Running as user: $(whoami)"  # Check the actual user at runtime
+  - . /Users/bigadgaber/.nvm/nvm.sh 
+
+script:
+- env | grep -E 'HOME|SHELL|USER|NVM' 
 
 test_server:
   stage: test
