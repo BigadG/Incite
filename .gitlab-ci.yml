@@ -22,7 +22,7 @@ before_script:
   - echo $USER # Output the current user
   - which nvm  # Try to get the NVM path (even though this may fail)
   - ls -la /Users/bigadgaber/.nvm  # Verify directory contents on runner 
-  - source /Users/bigadgaber/.nvm/nvm.sh 
+  - source /Users/bigadgaber/.nvm/nvm.sh  
 
 test_server:
   stage: test
