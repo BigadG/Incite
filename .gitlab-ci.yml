@@ -17,6 +17,9 @@ variables:
   VITE_API_BASE_URL: "$VITE_API_BASE_URL"
   HEROKU_CLIENT_APP_NAME: "incite-client"
 
+before_script:
+  - source /usr/share/nvm/init-nvm.sh
+
 test_server:
   stage: test
   services:
@@ -72,13 +75,18 @@ build_client:
 
 deploy_server_to_heroku: 
   stage: deploy
-  image: node:lts 
+  image:
+    name: bigadg/incite-server:latest 
+    entrypoint: [""] 
   script:
+    - docker login -u bigadg -p $DOCKER_HUB_PASSWORD
+    - docker build -t bigadg/incite-server:latest . 
+    - docker push bigadg/incite-server:latest
     - npm install -g heroku 
     - heroku login  
-    - heroku git:remote -a incite
-    - cd server 
-    - git push heroku main:master 
+    - heroku git:remote -a incite 
+    - heroku container:push web -a incite
+    - heroku container:release web -a incite
   only:
     - main 
 
