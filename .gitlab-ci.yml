@@ -18,11 +18,11 @@ variables:
   HEROKU_CLIENT_APP_NAME: "incite-client"
 
 before_script:
-  - echo "Running as user: $(whoami)"  # Check the actual user at runtime
+  - echo "Running as user: $(whoami)"  
   - . /Users/bigadgaber/.nvm/nvm.sh 
 
 script:
-- env | grep -E 'HOME|SHELL|USER|NVM' 
+  - env | grep -E 'HOME|SHELL|USER|NVM' 
 
 test_server:
   stage: test
