@@ -18,7 +18,9 @@ variables:
   HEROKU_CLIENT_APP_NAME: "incite-client"
 
 before_script:
-  - . /Users/bigadgaber/.nvm/nvm.sh 
+  - |
+    echo "Running as user: $(whoami)"
+    # You can add more commands here if needed 
 
 test_server:
   stage: test
