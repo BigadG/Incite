@@ -70,28 +70,26 @@ build_client:
     - main
     - /^feature\/.*$/
 
-deploy_server_to_heroku:
+deploy_server_to_heroku: 
   stage: deploy
-  image: ruby:latest
+  image: node:lts 
   script:
-    - apt-get update -qy
-    - apt-get install -y ruby-dev
-    - gem install dpl
-    - |
-      cd server
-      dpl --provider=heroku --app=$HEROKU_APP_NAME --api-key=$HEROKU_API_KEY
+    - npm install -g heroku # Install Heroku CLI
+    - heroku login -i 
+    - heroku git:remote -a $HEROKU_APP_NAME
+    - cd server 
+    - git push heroku main:master 
   only:
-    - main
+    - main 
 
 deploy_client_to_heroku:
   stage: deploy
-  image: ruby:latest
+  image: node:lts 
   script:
-    - apt-get update -qy
-    - apt-get install -y ruby-dev
-    - gem install dpl
-    - |
-      cd client
-      dpl --provider=heroku --app=$HEROKU_CLIENT_APP_NAME --api-key=$HEROKU_API_KEY
+    - npm install -g heroku 
+    - heroku login -i 
+    - heroku git:remote -a $HEROKU_CLIENT_APP_NAME
+    - cd client 
+    - git push heroku main:master
   only:
-    - main
+    - main 
