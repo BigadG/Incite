@@ -30,8 +30,7 @@ test_server:
     MONGO_URL: "mongodb://mongo:27017/$DB_NAME"
   script:
     - cd server
-    - rm -rf /root/.npm # Clear npm cache for the root user
-    - npm ci 
+    - npm ci
     - npm test
   only:
     - main
