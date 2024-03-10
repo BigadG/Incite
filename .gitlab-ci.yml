@@ -14,21 +14,23 @@ variables:
   DB_NAME: InciteDB
   HEROKU_API_KEY: $HEROKU_API_KEY
   HEROKU_APP_NAME: $HEROKU_APP_NAME
-  VITE_API_BASE_URL: $VITE_API_BASE_URL
-  HEROKU_CLIENT_APP_NAME: incite-client
+  VITE_API_BASE_URL: "$VITE_API_BASE_URL"
+  HEROKU_CLIENT_APP_NAME: "incite-client"
 
 before_script:
-  - echo "Running as user: $(whoami)"
+  - |
+    echo "Running as user: $(whoami)"
+    # You can add more commands here if needed 
 
 test_server:
   stage: test
-  image: node:16.20.0 # Specify a Node.js image that includes npm
   services:
     - mongo:latest
   variables:
     MONGO_URL: "mongodb://mongo:27017/$DB_NAME"
   script:
     - cd server
+    - rm -rf /root/.npm # Clear npm cache for the root user
     - npm ci 
     - npm test
   only:
@@ -37,7 +39,6 @@ test_server:
 
 test_client:
   stage: test
-  image: node:16.20.0 # Ensure we use an image with npm for consistency
   script:
     - cd client
     - npm ci
@@ -48,7 +49,6 @@ test_client:
 
 eslint_job:
   stage: test
-  image: node:16.20.0 # Using Node.js image to ensure npm is available
   script:
     - echo "Linting Client..."
     - cd client
@@ -64,11 +64,10 @@ eslint_job:
 
 build_client:
   stage: build
-  image: node:16.20.0 # Use Node.js image
   script:
     - cd client
     - npm ci
-    - npm run build
+    - npm run build 
   artifacts:
     paths:
       - client/dist/
@@ -76,7 +75,6 @@ build_client:
   only:
     - main
     - /^feature\/.*$/
-
 
 deploy_server_to_heroku: 
   stage: deploy
