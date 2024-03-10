@@ -78,20 +78,25 @@ build_client:
 
 deploy_server_to_heroku: 
   stage: deploy
-  image:
-    name: bigadg/incite-server:latest 
-    entrypoint: [""] 
+  image: docker:latest # Use Docker image
+  services:
+    - docker:dind # Enable Docker-in-Docker service
+  variables:
+    DOCKER_HOST: tcp://docker:2375/ # Use Docker daemon provided by dind service
+    DOCKER_DRIVER: overlay2
+    # Ensure DOCKER_TLS_CERTDIR is unset if issues arise with TLS
+    # DOCKER_TLS_CERTDIR: ""
   script:
     - docker login -u bigadg -p $DOCKER_HUB_PASSWORD 
     - docker build -t bigadg/incite-server:latest . 
     - docker push bigadg/incite-server:latest
     - npm install -g heroku 
-    - heroku login  
+    - heroku container:login
     - heroku git:remote -a incite 
     - heroku container:push web -a incite
     - heroku container:release web -a incite
   only:
-    - main 
+    - main
 
 deploy_client_to_heroku:
   stage: deploy
