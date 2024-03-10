@@ -39,6 +39,7 @@ test_server:
 
 test_client:
   stage: test
+  image: node:16.20.0  # Change the image
   script:
     - cd client
     - npm ci
@@ -49,7 +50,9 @@ test_client:
 
 eslint_job:
   stage: test
+  image: node:16.20.0  # Change the image
   script:
+
     - echo "Linting Client..."
     - cd client
     - npm ci
