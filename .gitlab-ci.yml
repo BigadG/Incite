@@ -84,10 +84,9 @@ deploy_server_to_heroku:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_DRIVER: overlay2
   script:
-    - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+    - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
     - docker build -t $DOCKER_IMAGE .
     - docker push $DOCKER_IMAGE
-    - npm install -g heroku
     - heroku container:login
     - heroku git:remote -a $HEROKU_APP_NAME
     - heroku container:push web -a $HEROKU_APP_NAME
@@ -99,7 +98,6 @@ deploy_client_to_heroku:
   stage: deploy
   image: heroku/heroku:18
   script:
-    - heroku login -i
     - heroku git:remote -a $HEROKU_CLIENT_APP_NAME
     - cd client
     - npm ci
@@ -107,8 +105,10 @@ deploy_client_to_heroku:
     - git init
     - git config user.email "you@example.com"
     - git config user.name "Your Name"
-    - git add dist 
+    - git add dist
     - git commit -m "Deploying Vite build"
-    - git subtree push --prefix client/dist heroku main
+    # Using force push might be necessary if pushing to a non-empty repository.
+    - git push heroku `git subtree split --prefix dist main`:refs/heads/main --force
   only:
     - main
+
