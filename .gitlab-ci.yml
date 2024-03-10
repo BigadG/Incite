@@ -14,27 +14,31 @@ variables:
   DB_NAME: InciteDB
   HEROKU_API_KEY: $HEROKU_API_KEY
   HEROKU_APP_NAME: $HEROKU_APP_NAME
-  VITE_API_BASE_URL: $VITE_API_BASE_URL
-  HEROKU_CLIENT_APP_NAME: incite-client
+  VITE_API_BASE_URL: "$VITE_API_BASE_URL"
+  HEROKU_CLIENT_APP_NAME: "incite-client"
+
+before_script:
+  - |
+    echo "Running as user: $(whoami)"
+    # You can add more commands here if needed
 
 test_server:
   stage: test
-  image: node:16.20.0
   services:
     - mongo:latest
   variables:
     MONGO_URL: "mongodb://mongo:27017/$DB_NAME"
   script:
     - cd server
+    - rm -rf /root/.npm # Clear npm cache for the root user
     - npm ci
     - npm test
   only:
     - main
-    - /^feature\/.*$/
+    - /^feature\/.*$/ # Enable tests for feature branches
 
 test_client:
   stage: test
-  image: node:16.20.0
   script:
     - cd client
     - npm ci
@@ -45,7 +49,6 @@ test_client:
 
 eslint_job:
   stage: test
-  image: node:16.20.0
   script:
     - echo "Linting Client..."
     - cd client
@@ -61,7 +64,6 @@ eslint_job:
 
 build_client:
   stage: build
-  image: node:16.20.0
   script:
     - cd client
     - npm ci
@@ -74,40 +76,32 @@ build_client:
     - main
     - /^feature\/.*$/
 
-# Simplified Heroku Deployment for the Server
 deploy_server_to_heroku:
   stage: deploy
-  image: node:16.20.0
-  before_script:
-    - npm install -g heroku
-    - heroku --version
-    - heroku login -i
+  image: node:lts # Use a Node image as the base
   script:
-    - heroku git:remote -a $HEROKU_APP_NAME
-    - git config --global user.email "you@example.com"
-    - git config --global user.name "Your Name"
-    - git add .
-    - git commit -m "Deploy to Heroku"
-    - git push heroku main
+    - npm install -g heroku # Install Heroku CLI
+    - echo "$HEROKU_API_KEY" | heroku login -i # Login to Heroku CLI
+    - heroku git:remote -a $HEROKU_APP_NAME # Set Heroku git remote
+    - git push heroku main:master # Push code to Heroku
   only:
     - main
 
-# Using a Node.js image and leveraging Git for client deployment
 deploy_client_to_heroku:
   stage: deploy
-  image: node:16.20.0
+  image: node:lts
+  before_script:
+    - nvm install
+    - nvm use
   script:
     - npm install -g heroku
-    - heroku login -i
+    - heroku login
     - heroku git:remote -a $HEROKU_CLIENT_APP_NAME
     - cd client
     - npm ci
     - npm run build
-    - git init
-    - git config user.email "you@example.com"
-    - git config user.name "Your Name"
     - git add dist
     - git commit -m "Deploying Vite build"
-    - git push heroku `git subtree split --prefix dist main`:refs/heads/main --force
+    - git push heroku main:master
   only:
     - main
