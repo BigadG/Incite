@@ -22,7 +22,7 @@ before_script:
 
 test_server:
   stage: test
-  image: node:16.20.0 # Use an image that has Node.js and npm
+  image: node:16.20.0
   services:
     - mongo:latest
   variables:
@@ -37,7 +37,7 @@ test_server:
 
 test_client:
   stage: test
-  image: node:16.20.0 # Use an image that has Node.js and npm
+  image: node:16.20.0
   script:
     - cd client
     - npm ci
@@ -48,13 +48,13 @@ test_client:
 
 eslint_job:
   stage: test
-  image: node:16.20.0 # Use an image that has Node.js and npm
+  image: node:16.20.0
   script:
     - echo "Linting Client..."
     - cd client
     - npm ci
     - npm run lint
-    - echo "Linting Server..." 
+    - echo "Linting Server..."
     - cd ../server
     - npm ci
     - npm run lint
@@ -64,7 +64,7 @@ eslint_job:
 
 build_client:
   stage: build
-  image: node:16.20.0 # Use an image that has Node.js and npm
+  image: node:16.20.0
   script:
     - cd client
     - npm ci
@@ -79,17 +79,17 @@ build_client:
 
 deploy_server_to_heroku: 
   stage: deploy
-  image: docker:latest # Use Docker image
+  image: docker:latest
   services:
-    - docker:dind # Enable Docker-in-Docker service
+    - docker:dind
   variables:
-    DOCKER_HOST: tcp://docker:2375/ # Use Docker daemon provided by dind service
+    DOCKER_HOST: tcp://docker:2375/
     DOCKER_DRIVER: overlay2
   before_script:
-    - apk add --no-cache npm # Install npm in the Docker container
+    - apk add --no-cache npm # Ensure this line is properly nested as an array item
   script:
     - docker login -u bigadg -p $DOCKER_HUB_PASSWORD 
-    - docker build -t bigadg/incite-server:latest .
+    - docker build -t bigadg/incite-server:latest . 
     - docker push bigadg/incite-server:latest
     - npm install -g heroku 
     - heroku container:login
@@ -113,4 +113,4 @@ deploy_client_to_heroku:
     - git commit -m "Deploying Vite build" 
     - git push heroku main:master 
   only:
-    - main 
+    - main
