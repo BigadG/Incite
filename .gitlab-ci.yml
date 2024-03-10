@@ -77,14 +77,17 @@ build_client:
     - main
     - /^feature\/.*$/
 
+
 deploy_server_to_heroku: 
   stage: deploy
-  image: docker:latest
+  image: docker:latest # Use Docker image
   services:
-    - docker:dind
+    - docker:dind # Enable Docker-in-Docker service
   variables:
-    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_HOST: tcp://docker:2375/ # Use Docker daemon provided by dind service
     DOCKER_DRIVER: overlay2
+    # Ensure DOCKER_TLS_CERTDIR is unset if issues arise with TLS
+    # DOCKER_TLS_CERTDIR: ""
   script:
     - docker login -u bigadg -p $DOCKER_HUB_PASSWORD 
     - docker build -t bigadg/incite-server:latest . 
@@ -99,7 +102,10 @@ deploy_server_to_heroku:
 
 deploy_client_to_heroku:
   stage: deploy
-  image: node:16.20.0
+  image: node:lts 
+  before_script: 
+    - nvm install 
+    - nvm use 
   script:
     - npm install -g heroku 
     - heroku login  
@@ -107,11 +113,8 @@ deploy_client_to_heroku:
     - cd client 
     - npm ci 
     - npm run build
-    - git init
-    - git config --global user.email "you@example.com"
-    - git config --global user.name "Your Name"
     - git add dist 
     - git commit -m "Deploying Vite build" 
-    - git push heroku main:master --force
+    - git push heroku main:master 
   only:
-    - main
+    - main 
