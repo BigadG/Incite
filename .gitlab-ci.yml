@@ -14,8 +14,8 @@ variables:
   DB_NAME: InciteDB
   HEROKU_API_KEY: $HEROKU_API_KEY
   HEROKU_APP_NAME: $HEROKU_APP_NAME
-  VITE_API_BASE_URL: "$VITE_API_BASE_URL"
-  HEROKU_CLIENT_APP_NAME: "incite-client"
+  VITE_API_BASE_URL: $VITE_API_BASE_URL
+  HEROKU_CLIENT_APP_NAME: incite-client
 
 before_script:
   - |
@@ -24,13 +24,13 @@ before_script:
 
 test_server:
   stage: test
+  image: node:16.20.0 # Specify a Node.js image that includes npm
   services:
     - mongo:latest
   variables:
     MONGO_URL: "mongodb://mongo:27017/$DB_NAME"
   script:
     - cd server
-    - rm -rf /root/.npm # Clear npm cache for the root user
     - npm ci 
     - npm test
   only:
@@ -39,6 +39,7 @@ test_server:
 
 test_client:
   stage: test
+  image: node:16.20.0 # Ensure we use an image with npm for consistency
   script:
     - cd client
     - npm ci
@@ -49,6 +50,7 @@ test_client:
 
 eslint_job:
   stage: test
+  image: node:16.20.0 # Using Node.js image to ensure npm is available
   script:
     - echo "Linting Client..."
     - cd client
@@ -64,10 +66,11 @@ eslint_job:
 
 build_client:
   stage: build
+  image: node:16.20.0 # Use Node.js image
   script:
     - cd client
     - npm ci
-    - npm run build 
+    - npm run build
   artifacts:
     paths:
       - client/dist/
@@ -76,16 +79,15 @@ build_client:
     - main
     - /^feature\/.*$/
 
+
 deploy_server_to_heroku: 
   stage: deploy
-  image: docker:latest # Use Docker image
+  image: docker:latest
   services:
-    - docker:dind # Enable Docker-in-Docker service
+    - docker:dind
   variables:
-    DOCKER_HOST: tcp://docker:2375/ # Use Docker daemon provided by dind service
+    DOCKER_HOST: tcp://docker:2375/
     DOCKER_DRIVER: overlay2
-    # Ensure DOCKER_TLS_CERTDIR is unset if issues arise with TLS
-    # DOCKER_TLS_CERTDIR: ""
   script:
     - docker login -u bigadg -p $DOCKER_HUB_PASSWORD 
     - docker build -t bigadg/incite-server:latest . 
@@ -100,10 +102,7 @@ deploy_server_to_heroku:
 
 deploy_client_to_heroku:
   stage: deploy
-  image: node:lts 
-  before_script: 
-    - nvm install 
-    - nvm use 
+  image: node:16.20.0
   script:
     - npm install -g heroku 
     - heroku login  
@@ -111,8 +110,11 @@ deploy_client_to_heroku:
     - cd client 
     - npm ci 
     - npm run build
+    - git init
+    - git config --global user.email "you@example.com"
+    - git config --global user.name "Your Name"
     - git add dist 
     - git commit -m "Deploying Vite build" 
-    - git push heroku main:master 
+    - git push heroku main:master --force
   only:
-    - main 
+    - main
