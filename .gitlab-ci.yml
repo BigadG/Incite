@@ -86,9 +86,11 @@ deploy_server_to_heroku:
   services:
     - name: docker:dind
       command: ["--tls=false"]
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_TLS_CERTDIR: ""
   before_script:
     - docker info
-    - apk add --no-cache git
   script:
     - echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
     - docker build -t $DOCKER_IMAGE .
