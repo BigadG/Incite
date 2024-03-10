@@ -17,11 +17,6 @@ variables:
   VITE_API_BASE_URL: $VITE_API_BASE_URL
   HEROKU_CLIENT_APP_NAME: incite-client
 
-before_script:
-  - |
-    echo "Running as user: $(whoami)"
-    # You can add more commands here if needed 
-
 test_server:
   stage: test
   image: node:16.20.0 # Specify a Node.js image that includes npm
@@ -84,37 +79,40 @@ deploy_server_to_heroku:
   stage: deploy
   image: docker:latest
   services:
-    - docker:dind
+    - name: docker:dind
+      command: ["--insecure-registry"]
   variables:
     DOCKER_HOST: tcp://docker:2375/
+    DOCKER_TLS_CERTDIR: ""
     DOCKER_DRIVER: overlay2
   script:
-    - docker login -u bigadg -p $DOCKER_HUB_PASSWORD 
-    - docker build -t bigadg/incite-server:latest . 
-    - docker push bigadg/incite-server:latest
+    - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD 
+    - docker build -t $DOCKER_IMAGE .
+    - docker push $DOCKER_IMAGE
     - npm install -g heroku 
     - heroku container:login
-    - heroku git:remote -a incite 
-    - heroku container:push web -a incite
-    - heroku container:release web -a incite
+    - heroku git:remote -a $HEROKU_APP_NAME
+    - heroku container:push web -a $HEROKU_APP_NAME
+    - heroku container:release web -a $HEROKU_APP_NAME
   only:
     - main
 
 deploy_client_to_heroku:
   stage: deploy
-  image: node:16.20.0
+  image: ruby:latest # Using Ruby image as it's commonly used for Heroku CLI operations in Docker
   script:
-    - npm install -g heroku 
-    - heroku login  
-    - heroku git:remote -a incite-client 
-    - cd client 
-    - npm ci 
+    - apt-get update && apt-get install -y curl gnupg build-essential
+    - curl https://cli-assets.heroku.com/install.sh | sh # Installing Heroku CLI
+    - heroku login -i
+    - heroku git:remote -a $HEROKU_CLIENT_APP_NAME
+    - cd client
+    - npm ci
     - npm run build
     - git init
-    - git config --global user.email "you@example.com"
-    - git config --global user.name "Your Name"
+    - git config user.email "you@example.com"
+    - git config user.name "Your Name"
     - git add dist 
-    - git commit -m "Deploying Vite build" 
-    - git push heroku main:master --force
+    - git commit -m "Deploying Vite build"
+    - git push --force heroku `git subtree split --prefix client/dist main`:refs/heads/main
   only:
     - main
