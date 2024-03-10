@@ -84,7 +84,7 @@ deploy_server_to_heroku:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_DRIVER: overlay2
   script:
-    - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+    - echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
     - docker build -t $DOCKER_IMAGE .
     - docker push $DOCKER_IMAGE
     - heroku container:login
