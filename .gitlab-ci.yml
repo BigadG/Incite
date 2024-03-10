@@ -54,7 +54,7 @@ eslint_job:
     - cd client
     - npm ci
     - npm run lint
-    - echo "Linting Server..."
+    - echo "Linting Server..." 
     - cd ../server
     - npm ci
     - npm run lint
