@@ -16,6 +16,12 @@ variables:
   HEROKU_APP_NAME: $HEROKU_APP_NAME
   VITE_API_BASE_URL: $VITE_API_BASE_URL
   HEROKU_CLIENT_APP_NAME: incite-client
+  DOCKER_TLS_CERTDIR: "/certs"
+  DOCKER_HOST: "tcp://docker:2376"
+  DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
+  DOCKER_USERNAME: $DOCKER_USERNAME
+  DOCKER_HUB_PASSWORD: $DOCKER_HUB_PASSWORD
+  DOCKER_IMAGE: $DOCKER_IMAGE
 
 test_server:
   stage: test
@@ -78,15 +84,17 @@ deploy_server_to_heroku:
   stage: deploy
   image: docker:latest
   services:
-    - docker:dind
-  variables:
-    DOCKER_HOST: tcp://docker:2375/
-    DOCKER_TLS_CERTDIR: ""
-    DOCKER_DRIVER: overlay2
+    - name: docker:dind
+      command: ["--tls=false"]
+  before_script:
+    - docker info
+    - apk add --no-cache git
   script:
     - echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
     - docker build -t $DOCKER_IMAGE .
     - docker push $DOCKER_IMAGE
+    - apk add --no-cache curl
+    - curl https://cli-assets.heroku.com/install.sh | sh
     - heroku container:login
     - heroku git:remote -a $HEROKU_APP_NAME
     - heroku container:push web -a $HEROKU_APP_NAME
