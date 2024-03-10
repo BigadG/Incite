@@ -74,27 +74,11 @@ build_client:
     - main
     - /^feature\/.*$/
 
-deploy_server_to_heroku:
-  stage: deploy
-  image: docker:latest
-  services:
-    - docker:dind
-  before_script:
-    - apk add --no-cache curl
-    - curl https://cli-assets.heroku.com/install.sh | sh
-  script:
-    - docker login --username=_ --password=$HEROKU_API_KEY registry.heroku.com
-    - docker build -t registry.heroku.com/$HEROKU_APP_NAME/web .
-    - docker push registry.heroku.com/$HEROKU_APP_NAME/web
-    - heroku container:release web --app $HEROKU_APP_NAME
-  only:
-    - main
-
 deploy_client_to_heroku:
   stage: deploy
-  image: node:16.20.0
+  image: node:16.20.0 # Ensure using an image with the correct Node.js version
   before_script:
-    - npm install -g heroku
+    - npm install -g heroku --unsafe-perm=true # Bypass permission issues
     - heroku login --apikey=$HEROKU_API_KEY
   script:
     - cd client
@@ -102,8 +86,30 @@ deploy_client_to_heroku:
     - npm run build
     - heroku git:remote -a $HEROKU_CLIENT_APP_NAME
     - git init
+    - git config user.email "bigadgaber@icloud.com"
+    - git config user.name "Bigad Gaber"
     - git add -A
-    - git commit -m "Deploying client"
-    - git push heroku main
+    - git commit -m "Deploying client to Heroku"
+    - git push heroku `git subtree split --prefix client main`:main --force
+  only:
+    - main
+
+deploy_server_to_heroku:
+  stage: deploy
+  image: docker:20-dind # Use a specific version of the docker image that matches Docker version
+  services:
+    - name: docker:20-dind
+      alias: docker
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - apk add --no-cache bash curl # Ensure bash is installed
+    - curl https://cli-assets.heroku.com/install.sh | sh
+  script:
+    - docker login --username=_ --password=$HEROKU_API_KEY registry.heroku.com
+    - docker build -t registry.heroku.com/$HEROKU_APP_NAME/web .
+    - docker push registry.heroku.com/$HEROKU_APP_NAME/web
+    - heroku container:release web --app $HEROKU_APP_NAME
   only:
     - main
