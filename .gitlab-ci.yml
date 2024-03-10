@@ -19,22 +19,22 @@ variables:
 
 test_server:
   stage: test
-  image: node:16.20.0 # Specify a Node.js image that includes npm
+  image: node:16.20.0
   services:
     - mongo:latest
   variables:
     MONGO_URL: "mongodb://mongo:27017/$DB_NAME"
   script:
     - cd server
-    - npm ci 
+    - npm ci
     - npm test
   only:
     - main
-    - /^feature\/.*$/ # Enable tests for feature branches
+    - /^feature\/.*$/
 
 test_client:
   stage: test
-  image: node:16.20.0 # Ensure we use an image with npm for consistency
+  image: node:16.20.0
   script:
     - cd client
     - npm ci
@@ -45,13 +45,13 @@ test_client:
 
 eslint_job:
   stage: test
-  image: node:16.20.0 # Using Node.js image to ensure npm is available
+  image: node:16.20.0
   script:
     - echo "Linting Client..."
     - cd client
     - npm ci
     - npm run lint
-    - echo "Linting Server..." 
+    - echo "Linting Server..."
     - cd ../server
     - npm ci
     - npm run lint
@@ -61,7 +61,7 @@ eslint_job:
 
 build_client:
   stage: build
-  image: node:16.20.0 # Use Node.js image
+  image: node:16.20.0
   script:
     - cd client
     - npm ci
@@ -74,22 +74,20 @@ build_client:
     - main
     - /^feature\/.*$/
 
-
-deploy_server_to_heroku: 
+deploy_server_to_heroku:
   stage: deploy
   image: docker:latest
   services:
-    - name: docker:dind
-      command: ["--insecure-registry"]
+    - docker:dind
   variables:
     DOCKER_HOST: tcp://docker:2375/
     DOCKER_TLS_CERTDIR: ""
     DOCKER_DRIVER: overlay2
   script:
-    - docker login -u $DOCKER_USERNAME -p $DOCKER_HUB_PASSWORD 
+    - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
     - docker build -t $DOCKER_IMAGE .
     - docker push $DOCKER_IMAGE
-    - npm install -g heroku 
+    - npm install -g heroku
     - heroku container:login
     - heroku git:remote -a $HEROKU_APP_NAME
     - heroku container:push web -a $HEROKU_APP_NAME
@@ -99,10 +97,8 @@ deploy_server_to_heroku:
 
 deploy_client_to_heroku:
   stage: deploy
-  image: ruby:latest # Using Ruby image as it's commonly used for Heroku CLI operations in Docker
+  image: heroku/heroku:18
   script:
-    - apt-get update && apt-get install -y curl gnupg build-essential
-    - curl https://cli-assets.heroku.com/install.sh | sh # Installing Heroku CLI
     - heroku login -i
     - heroku git:remote -a $HEROKU_CLIENT_APP_NAME
     - cd client
@@ -113,6 +109,6 @@ deploy_client_to_heroku:
     - git config user.name "Your Name"
     - git add dist 
     - git commit -m "Deploying Vite build"
-    - git push --force heroku `git subtree split --prefix client/dist main`:refs/heads/main
+    - git subtree push --prefix client/dist heroku main
   only:
     - main
