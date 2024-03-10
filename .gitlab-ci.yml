@@ -16,12 +16,6 @@ variables:
   HEROKU_APP_NAME: $HEROKU_APP_NAME
   VITE_API_BASE_URL: $VITE_API_BASE_URL
   HEROKU_CLIENT_APP_NAME: incite-client
-  DOCKER_TLS_CERTDIR: "/certs"
-  DOCKER_HOST: "tcp://docker:2376"
-  DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
-  DOCKER_USERNAME: $DOCKER_USERNAME
-  DOCKER_HUB_PASSWORD: $DOCKER_HUB_PASSWORD
-  DOCKER_IMAGE: $DOCKER_IMAGE
 
 test_server:
   stage: test
@@ -80,34 +74,31 @@ build_client:
     - main
     - /^feature\/.*$/
 
+# Simplified Heroku Deployment for the Server
 deploy_server_to_heroku:
   stage: deploy
-  image: docker:latest
-  services:
-    - name: docker:dind
-      command: ["--tls=false"]
-  variables:
-    DOCKER_HOST: tcp://docker:2375/
-    DOCKER_TLS_CERTDIR: ""
+  image: node:16.20.0
   before_script:
-    - docker info
+    - npm install -g heroku
+    - heroku --version
+    - heroku login -i
   script:
-    - echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-    - docker build -t $DOCKER_IMAGE .
-    - docker push $DOCKER_IMAGE
-    - apk add --no-cache curl
-    - curl https://cli-assets.heroku.com/install.sh | sh
-    - heroku container:login
     - heroku git:remote -a $HEROKU_APP_NAME
-    - heroku container:push web -a $HEROKU_APP_NAME
-    - heroku container:release web -a $HEROKU_APP_NAME
+    - git config --global user.email "you@example.com"
+    - git config --global user.name "Your Name"
+    - git add .
+    - git commit -m "Deploy to Heroku"
+    - git push heroku main
   only:
     - main
 
+# Using a Node.js image and leveraging Git for client deployment
 deploy_client_to_heroku:
   stage: deploy
-  image: heroku/heroku:18
+  image: node:16.20.0
   script:
+    - npm install -g heroku
+    - heroku login -i
     - heroku git:remote -a $HEROKU_CLIENT_APP_NAME
     - cd client
     - npm ci
@@ -117,8 +108,6 @@ deploy_client_to_heroku:
     - git config user.name "Your Name"
     - git add dist
     - git commit -m "Deploying Vite build"
-    # Using force push might be necessary if pushing to a non-empty repository.
     - git push heroku `git subtree split --prefix dist main`:refs/heads/main --force
   only:
     - main
-
