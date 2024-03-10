@@ -18,36 +18,26 @@ variables:
   HEROKU_CLIENT_APP_NAME: "incite-client"
 
 before_script:
-  - |
-    echo "Running as user: $(whoami)"
-    # You can add more commands here if needed 
+  - echo "Running as user: $(whoami)"
 
 test_server:
   stage: test
-  image: debian:buster
+  image: node:16.20.0 # Use an image that has Node.js and npm
   services:
     - mongo:latest
   variables:
     MONGO_URL: "mongodb://mongo:27017/$DB_NAME"
   script:
-    - apt-get update && \
-      apt-get install -y \
-        curl \
-        gnupg \
-        lsb-release && \
-      curl -fsSL -o get_nodejs.sh https://deb.nodesource.com/setup_16.x && bash get_nodejs.sh && \
-      apt-get install -y nodejs && \
-      rm -rf get_nodejs.sh # Cleanup
     - cd server
-    - rm -rf /root/.npm # Clear npm cache for the root user
     - npm ci 
     - npm test
   only:
     - main
-    - /^feature\/.*$/ # Enable tests for feature branches
+    - /^feature\/.*$/
 
 test_client:
   stage: test
+  image: node:16.20.0 # Use an image that has Node.js and npm
   script:
     - cd client
     - npm ci
@@ -58,16 +48,8 @@ test_client:
 
 eslint_job:
   stage: test
-  image: debian:buster
+  image: node:16.20.0 # Use an image that has Node.js and npm
   script:
-    - apt-get update && \
-      apt-get install -y \
-        curl \
-        gnupg \
-        lsb-release && \
-      curl -fsSL -o get_nodejs.sh https://deb.nodesource.com/setup_16.x && bash get_nodejs.sh && \
-      apt-get install -y nodejs && \
-      rm -rf get_nodejs.sh # Cleanup
     - echo "Linting Client..."
     - cd client
     - npm ci
@@ -82,10 +64,11 @@ eslint_job:
 
 build_client:
   stage: build
+  image: node:16.20.0 # Use an image that has Node.js and npm
   script:
     - cd client
     - npm ci
-    - npm run build 
+    - npm run build
   artifacts:
     paths:
       - client/dist/
@@ -102,11 +85,11 @@ deploy_server_to_heroku:
   variables:
     DOCKER_HOST: tcp://docker:2375/ # Use Docker daemon provided by dind service
     DOCKER_DRIVER: overlay2
-    # Ensure DOCKER_TLS_CERTDIR is unset if issues arise with TLS
-    # DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - apk add --no-cache npm # Install npm in the Docker container
   script:
     - docker login -u bigadg -p $DOCKER_HUB_PASSWORD 
-    - docker build -t bigadg/incite-server:latest . 
+    - docker build -t bigadg/incite-server:latest .
     - docker push bigadg/incite-server:latest
     - npm install -g heroku 
     - heroku container:login
@@ -118,10 +101,7 @@ deploy_server_to_heroku:
 
 deploy_client_to_heroku:
   stage: deploy
-  image: node:lts 
-  before_script: 
-    - nvm install 
-    - nvm use 
+  image: node:lts
   script:
     - npm install -g heroku 
     - heroku login  
