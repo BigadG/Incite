@@ -24,7 +24,7 @@ before_script:
 
 test_server:
   stage: test
-  image: docker:19.03.12  # Using Docker image for consistency
+  image: debian:buster
   services:
     - mongo:latest
   variables:
@@ -58,7 +58,7 @@ test_client:
 
 eslint_job:
   stage: test
-  image: docker:19.03.12  # Using Docker image for consistency
+  image: debian:buster
   script:
     - apt-get update && \
       apt-get install -y \
