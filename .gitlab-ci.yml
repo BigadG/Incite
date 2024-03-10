@@ -67,7 +67,7 @@ build_client:
   script:
     - cd client
     - npm ci
-    - npm run build
+    - npm run build 
   artifacts:
     paths:
       - client/dist/
