@@ -37,22 +37,37 @@ test_server:
     - main
     - /^feature\/.*$/ # Enable tests for feature branches
 
-test_client:
+test_client: 
   stage: test
-  image: node:16.20.0  # Change the image
+  image: docker:19.03.12 
   script:
+    - apt-get update && \
+      apt-get install -y \
+        curl \
+        gnupg \
+        lsb-release && \
+      curl -fsSL -o get_nodejs.sh https://deb.nodesource.com/setup_16.x && bash get_nodejs.sh && \
+      apt-get install -y nodejs && \
+      rm -rf get_nodejs.sh # Cleanup
     - cd client
-    - npm ci
-    - npm test
-  only:
-    - main
-    - /^feature\/.*$/
+    - npm ci 
+    - npm test 
 
 eslint_job:
   stage: test
-  image: node:16.20.0  # Change the image
+  image: docker:19.03.12  
   script:
+    # Install Node.js
+    - apt-get update && \
+      apt-get install -y \
+        curl \
+        gnupg \
+        lsb-release && \
+      curl -fsSL -o get_nodejs.sh https://deb.nodesource.com/setup_16.x && bash get_nodejs.sh && \
+      apt-get install -y nodejs && \
+      rm -rf get_nodejs.sh # Cleanup
 
+    # Linting steps
     - echo "Linting Client..."
     - cd client
     - npm ci
@@ -64,6 +79,7 @@ eslint_job:
   only:
     - main
     - /^feature\/.*$/
+
 
 build_client:
   stage: build
