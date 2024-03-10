@@ -24,11 +24,20 @@ before_script:
 
 test_server:
   stage: test
+  image: docker:19.03.12  # Using Docker image for consistency
   services:
     - mongo:latest
   variables:
     MONGO_URL: "mongodb://mongo:27017/$DB_NAME"
   script:
+    - apt-get update && \
+      apt-get install -y \
+        curl \
+        gnupg \
+        lsb-release && \
+      curl -fsSL -o get_nodejs.sh https://deb.nodesource.com/setup_16.x && bash get_nodejs.sh && \
+      apt-get install -y nodejs && \
+      rm -rf get_nodejs.sh # Cleanup
     - cd server
     - rm -rf /root/.npm # Clear npm cache for the root user
     - npm ci 
@@ -49,7 +58,16 @@ test_client:
 
 eslint_job:
   stage: test
+  image: docker:19.03.12  # Using Docker image for consistency
   script:
+    - apt-get update && \
+      apt-get install -y \
+        curl \
+        gnupg \
+        lsb-release && \
+      curl -fsSL -o get_nodejs.sh https://deb.nodesource.com/setup_16.x && bash get_nodejs.sh && \
+      apt-get install -y nodejs && \
+      rm -rf get_nodejs.sh # Cleanup
     - echo "Linting Client..."
     - cd client
     - npm ci
