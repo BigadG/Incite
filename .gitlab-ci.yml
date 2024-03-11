@@ -76,11 +76,12 @@ deploy_server_to_heroku:
   stage: deploy
   image: node:16.20.0
   script:
-    - npm install -g heroku
-    - heroku git:remote -a $HEROKU_APP_NAME
+    - npx heroku-cli git:remote -a $HEROKU_APP_NAME
+    - git config --global user.email "bigadgaber@icloud.com"
+    - git config --global user.name "Bigad Gaber"
     - git add .
     - git commit -am "Deploy to Heroku"
-    - git push heroku main
+    - npx heroku-cli push heroku main
   only:
     - main
 
@@ -88,12 +89,13 @@ deploy_client_to_heroku:
   stage: deploy
   image: node:16.20.0
   script:
-    - npm install -g heroku
-    - heroku git:remote -a $HEROKU_CLIENT_APP_NAME
     - cd client
+    - npx heroku-cli git:remote -a $HEROKU_CLIENT_APP_NAME
     - git init
+    - git config user.email "bigadgaber@icloud.com"
+    - git config user.name "Bigad Gaber"
     - git add .
     - git commit -am "Deploy client to Heroku"
-    - git push heroku main
+    - npx heroku-cli push heroku main
   only:
     - main
