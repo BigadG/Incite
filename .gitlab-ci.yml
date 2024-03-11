@@ -75,27 +75,35 @@ build_client:
 deploy_server_to_heroku:
   stage: deploy
   image: node:16.20.0
-  script:
-    - eval $(ssh-agent -s)
-    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+  before_script:
+    - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ssh_key && chmod 600 ssh_key
+    - eval $(ssh-agent -s) && ssh-add ssh_key
     - ssh-keyscan -H heroku.com >> ~/.ssh/known_hosts
+  script:
     - git remote set-url heroku git@heroku.com:$HEROKU_APP_NAME.git
     - git push heroku HEAD:main
+  only:
+    - main
 
 deploy_client_to_heroku:
   stage: deploy
   image: node:16.20.0
   dependencies:
     - build_client
-  script:
-    - cd client
-    - eval $(ssh-agent -s)
-    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+  before_script:
+    - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ssh_key && chmod 600 ssh_key
+    - eval $(ssh-agent -s) && ssh-add ssh_key
     - ssh-keyscan -H heroku.com >> ~/.ssh/known_hosts
+    - cd client
     - git init
     - git remote add heroku git@heroku.com:$HEROKU_CLIENT_APP_NAME.git
+  script:
     - git fetch
     - git checkout -b main
     - git add .
     - git commit -am "Deploy client to Heroku"
     - git push -f heroku main
+  only:
+    - main
