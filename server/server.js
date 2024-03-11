@@ -36,7 +36,7 @@ app.use(cors({
 
 // Serve static files from the React app
 if (isProduction) {
-  app.use(express.static(path.join(__dirname, '../client/build')));
+  app.use(express.static(path.join(__dirname, '../client/dist')));
 }
 
 // Parse JSON bodies
@@ -53,7 +53,7 @@ app.get('/', (req, res) => {
 // Handle production case, serve the client's index.html
 if (isProduction) {
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/build/index.html'));
+    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
   });
 }
 
