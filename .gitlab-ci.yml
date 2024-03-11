@@ -76,26 +76,43 @@ deploy_server_to_heroku:
   stage: deploy
   image: node:16.20.0
   script:
-    - npx heroku-cli git:remote -a $HEROKU_APP_NAME
-    - git config --global user.email "bigadgaber@icloud.com"
-    - git config --global user.name "Bigad Gaber"
-    - git add .
-    - git commit -am "Deploy to Heroku"
-    - npx heroku-cli push heroku main
+    # Install Heroku CLI without assuming global installation
+    - npm install -g heroku
+    # Setup Git configuration for Heroku deployment
+    - git config --global user.email "you@example.com"
+    - git config --global user.name "GitLab CI/CD"
+    # Initialize Heroku if not already done
+    - heroku git:remote -a $HEROKU_APP_NAME
+    # Ensuring we're on the correct branch and the repository is updated
+    - git checkout main
+    # Add all changes (including potential artifacts from previous stages)
+    - git add -A
+    # Commit changes with a CI-specific message
+    - git commit -m "Deploying to Heroku via GitLab CI/CD" || echo "No changes to commit"
+    # Push to Heroku
+    - git push heroku main:master --force
   only:
     - main
 
 deploy_client_to_heroku:
   stage: deploy
   image: node:16.20.0
-  script:
+  before_script:
+    # Setup Git and Heroku configuration for Heroku deployment
+    - git config --global user.email "you@example.com"
+    - git config --global user.name "GitLab CI/CD"
+    - npm install -g heroku
+    - heroku git:remote -a $HEROKU_CLIENT_APP_NAME
+    # Navigate to client directory and initialize a Git repository for Heroku deployment
     - cd client
-    - npx heroku-cli git:remote -a $HEROKU_CLIENT_APP_NAME
     - git init
-    - git config user.email "bigadgaber@icloud.com"
-    - git config user.name "Bigad Gaber"
-    - git add .
-    - git commit -am "Deploy client to Heroku"
-    - npx heroku-cli push heroku main
+    - git remote add heroku https://git.heroku.com/$HEROKU_CLIENT_APP_NAME.git
+  script:
+    # Add and commit all files in the client directory
+    - git add -A
+    - git commit -m "Deploying client to Heroku via GitLab CI/CD" || echo "No changes to commit"
+    # Push the changes to Heroku
+    - git push heroku master --force
   only:
     - main
+
