@@ -77,11 +77,12 @@ deploy_server_to_heroku:
   image: node:16.20.0
   before_script:
     - mkdir -p ~/.ssh && chmod 700 ~/.ssh
-    - echo "$SSH_PRIVATE_KEY" > ssh_key && chmod 600 ssh_key
-    - eval $(ssh-agent -s) && ssh-add ssh_key
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
+    - eval $(ssh-agent -s)
+    - ssh-add ~/.ssh/id_rsa
     - ssh-keyscan -H heroku.com >> ~/.ssh/known_hosts
+    - git remote add heroku https://git.heroku.com/$HEROKU_APP_NAME.git || true
   script:
-    - git remote set-url heroku git@heroku.com:$HEROKU_APP_NAME.git
     - git push heroku HEAD:main
   only:
     - main
@@ -93,17 +94,19 @@ deploy_client_to_heroku:
     - build_client
   before_script:
     - mkdir -p ~/.ssh && chmod 700 ~/.ssh
-    - echo "$SSH_PRIVATE_KEY" > ssh_key && chmod 600 ssh_key
-    - eval $(ssh-agent -s) && ssh-add ssh_key
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
+    - eval $(ssh-agent -s)
+    - ssh-add ~/.ssh/id_rsa
     - ssh-keyscan -H heroku.com >> ~/.ssh/known_hosts
     - cd client
     - git init
-    - git remote add heroku git@heroku.com:$HEROKU_CLIENT_APP_NAME.git
+    - git config user.email "bigadgaber@icloud.com"
+    - git config user.name "Bigad Gaber"
+    - git remote add heroku https://git.heroku.com/$HEROKU_CLIENT_APP_NAME.git || true
   script:
-    - git fetch
-    - git checkout -b main
     - git add .
-    - git commit -am "Deploy client to Heroku"
-    - git push -f heroku main
+    - git commit -m "Deploy client to Heroku"
+    - git push heroku HEAD:main -f
   only:
     - main
+
