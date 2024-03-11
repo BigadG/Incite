@@ -3,6 +3,11 @@ stages:
   - build
   - deploy
 
+cache:
+  paths:
+    - client/node_modules/
+    - server/node_modules/
+
 variables:
   MONGO_ATLAS_PASSWORD: $MONGO_ATLAS_PASSWORD
   JWT_SECRET: $JWT_SECRET
@@ -14,15 +19,17 @@ variables:
 before_script:
   - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
   - eval $(ssh-agent -s)
-  - ssh-add <(echo "$SSH_PRIVATE_KEY")
+  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
   - mkdir -p ~/.ssh
   - chmod 700 ~/.ssh
   - ssh-keyscan -H heroku.com >> ~/.ssh/known_hosts
   - chmod 644 ~/.ssh/known_hosts
   - git config --global user.email "you@example.com"
   - git config --global user.name "Your GitLab CI/CD"
+  - 'which npm || ( curl -sL https://deb.nodesource.com/setup_16.x | bash - && apt-get install nodejs -y )'
 
 test_server:
+  stage: test
   image: node:16.20.0
   services:
     - mongo:latest
@@ -37,6 +44,7 @@ test_server:
     - /^feature\/.*$/
 
 test_client:
+  stage: test
   image: node:16.20.0
   script:
     - cd client
@@ -47,6 +55,7 @@ test_client:
     - /^feature\/.*$/
 
 eslint_job:
+  stage: test
   image: node:16.20.0
   script:
     - echo "Linting Client..."
@@ -62,6 +71,7 @@ eslint_job:
     - /^feature\/.*$/
 
 build_client:
+  stage: build
   image: node:16.20.0
   script:
     - cd client
@@ -76,25 +86,27 @@ build_client:
     - /^feature\/.*$/
 
 deploy_server_to_heroku:
+  stage: deploy
   image: node:16.20.0
   script:
-    - cd server
-    - git init
-    - git remote add heroku https://git.heroku.com/$HEROKU_APP_NAME.git
+    - npm install -g heroku
+    - heroku git:remote -a $HEROKU_APP_NAME
     - git add .
     - git commit -am "Deploy to Heroku"
-    - git push heroku main:master --force
+    - git push heroku main
   only:
     - main
 
 deploy_client_to_heroku:
+  stage: deploy
   image: node:16.20.0
   script:
+    - npm install -g heroku
+    - heroku git:remote -a $HEROKU_CLIENT_APP_NAME
     - cd client
     - git init
-    - git remote add heroku https://git.heroku.com/$HEROKU_CLIENT_APP_NAME.git
     - git add .
     - git commit -am "Deploy client to Heroku"
-    - git push heroku main:master --force
+    - git push heroku main
   only:
     - main
