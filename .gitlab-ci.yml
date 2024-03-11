@@ -75,11 +75,12 @@ build_client:
 deploy_server_to_heroku:
   stage: deploy
   image: node:16.20.0
+  before_script:
+    - ssh-keyscan -H heroku.com >> ~/.ssh/known_hosts
   script:
     - git config --global user.email "bigadgaber@icloud.com"
     - git config --global user.name "Bigad Gaber"
-    - git remote add heroku https://git.heroku.com/$HEROKU_APP_NAME.git || true
-    - git fetch --unshallow || true
+    - git remote set-url heroku git@heroku.com:$HEROKU_APP_NAME.git
     - git push heroku HEAD:main
   only:
     - main
@@ -87,6 +88,8 @@ deploy_server_to_heroku:
 deploy_client_to_heroku:
   stage: deploy
   image: node:16.20.0
+  dependencies:
+    - build_client
   script:
     - cd client
     - git init
@@ -94,8 +97,7 @@ deploy_client_to_heroku:
     - git config user.name "Bigad Gaber"
     - git add .
     - git commit -am "Deploy client to Heroku"
-    - git remote add heroku https://git.heroku.com/$HEROKU_CLIENT_APP_NAME.git || true
-    - git fetch --unshallow || true
+    - git remote add heroku git@heroku.com:$HEROKU_CLIENT_APP_NAME.git || true
     - git push heroku HEAD:main -f
   only:
     - main
