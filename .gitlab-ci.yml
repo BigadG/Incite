@@ -3,11 +3,6 @@ stages:
   - build
   - deploy
 
-cache:
-  paths:
-    - client/node_modules/
-    - server/node_modules/
-
 variables:
   MONGO_ATLAS_PASSWORD: $MONGO_ATLAS_PASSWORD
   JWT_SECRET: $JWT_SECRET
@@ -16,17 +11,11 @@ variables:
   VITE_API_BASE_URL: $VITE_API_BASE_URL
   HEROKU_CLIENT_APP_NAME: $HEROKU_CLIENT_APP_NAME
 
-before_script:
-  - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
-  - eval $(ssh-agent -s)
-  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
-  - mkdir -p ~/.ssh
-  - chmod 700 ~/.ssh
-  - ssh-keyscan -H heroku.com >> ~/.ssh/known_hosts
-  - chmod 644 ~/.ssh/known_hosts
-  - git config --global user.email "you@example.com"
-  - git config --global user.name "Your GitLab CI/CD"
-  - 'which npm || ( curl -sL https://deb.nodesource.com/setup_16.x | bash - && apt-get install nodejs -y )'
+cache:
+  paths:
+    - node_modules/
+    - client/node_modules/
+    - server/node_modules/
 
 test_server:
   stage: test
@@ -58,11 +47,9 @@ eslint_job:
   stage: test
   image: node:16.20.0
   script:
-    - echo "Linting Client..."
     - cd client
     - npm ci
     - npm run lint
-    - echo "Linting Server..."
     - cd ../server
     - npm ci
     - npm run lint
