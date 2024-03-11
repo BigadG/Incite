@@ -3,11 +3,6 @@ stages:
   - build
   - deploy
 
-cache:
-  paths:
-    - client/node_modules/
-    - server/node_modules/
-
 variables:
   MONGO_ATLAS_PASSWORD: $MONGO_ATLAS_PASSWORD
   JWT_SECRET: $JWT_SECRET
@@ -17,18 +12,17 @@ variables:
   HEROKU_CLIENT_APP_NAME: $HEROKU_CLIENT_APP_NAME
 
 before_script:
-  - apt-get update && apt-get install -y ssh-client git
+  - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
   - eval $(ssh-agent -s)
-  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+  - ssh-add <(echo "$SSH_PRIVATE_KEY")
   - mkdir -p ~/.ssh
   - chmod 700 ~/.ssh
   - ssh-keyscan -H heroku.com >> ~/.ssh/known_hosts
   - chmod 644 ~/.ssh/known_hosts
-  - git config --global user.email "bigadgaber@icloud.com"
-  - git config --global user.name "Bigad Gaber"
+  - git config --global user.email "you@example.com"
+  - git config --global user.name "Your GitLab CI/CD"
 
 test_server:
-  stage: test
   image: node:16.20.0
   services:
     - mongo:latest
@@ -43,7 +37,6 @@ test_server:
     - /^feature\/.*$/
 
 test_client:
-  stage: test
   image: node:16.20.0
   script:
     - cd client
@@ -54,7 +47,6 @@ test_client:
     - /^feature\/.*$/
 
 eslint_job:
-  stage: test
   image: node:16.20.0
   script:
     - echo "Linting Client..."
@@ -70,7 +62,6 @@ eslint_job:
     - /^feature\/.*$/
 
 build_client:
-  stage: build
   image: node:16.20.0
   script:
     - cd client
@@ -85,27 +76,25 @@ build_client:
     - /^feature\/.*$/
 
 deploy_server_to_heroku:
-  stage: deploy
   image: node:16.20.0
   script:
-    - git clone https://git.heroku.com/$HEROKU_APP_NAME.git heroku_deploy
-    - rsync -av --exclude=node_modules --exclude=.git ./ heroku_deploy/
-    - cd heroku_deploy
+    - cd server
+    - git init
+    - git remote add heroku https://git.heroku.com/$HEROKU_APP_NAME.git
     - git add .
     - git commit -am "Deploy to Heroku"
-    - git push heroku main
+    - git push heroku main:master --force
   only:
     - main
 
 deploy_client_to_heroku:
-  stage: deploy
   image: node:16.20.0
   script:
-    - git clone https://git.heroku.com/$HEROKU_CLIENT_APP_NAME.git heroku_client_deploy
-    - rsync -av --exclude=node_modules --exclude=.git ./client heroku_client_deploy/
-    - cd heroku_client_deploy
+    - cd client
+    - git init
+    - git remote add heroku https://git.heroku.com/$HEROKU_CLIENT_APP_NAME.git
     - git add .
     - git commit -am "Deploy client to Heroku"
-    - git push heroku main
+    - git push heroku main:master --force
   only:
     - main
