@@ -79,8 +79,8 @@ deploy_server_to_heroku:
     # Install Heroku CLI without assuming global installation
     - npm install -g heroku
     # Setup Git configuration for Heroku deployment
-    - git config --global user.email "you@example.com"
-    - git config --global user.name "GitLab CI/CD"
+    - git config --global user.email "bigadgaber@icloud.com"
+    - git config --global user.name "Bigad Gaber"
     # Initialize Heroku if not already done
     - heroku git:remote -a $HEROKU_APP_NAME
     # Ensuring we're on the correct branch and the repository is updated
@@ -99,8 +99,8 @@ deploy_client_to_heroku:
   image: node:16.20.0
   before_script:
     # Setup Git and Heroku configuration for Heroku deployment
-    - git config --global user.email "you@example.com"
-    - git config --global user.name "GitLab CI/CD"
+    - git config --global user.email "bigadgaber@icloud.com"
+    - git config --global user.name "Bigad Gaber"
     - npm install -g heroku
     - heroku git:remote -a $HEROKU_CLIENT_APP_NAME
     # Navigate to client directory and initialize a Git repository for Heroku deployment
