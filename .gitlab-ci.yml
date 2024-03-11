@@ -12,10 +12,20 @@ variables:
   MONGO_ATLAS_PASSWORD: $MONGO_ATLAS_PASSWORD
   JWT_SECRET: $JWT_SECRET
   DB_NAME: InciteDB
-  HEROKU_API_KEY: $HEROKU_API_KEY
   HEROKU_APP_NAME: $HEROKU_APP_NAME
   VITE_API_BASE_URL: $VITE_API_BASE_URL
-  HEROKU_CLIENT_APP_NAME: incite-client
+  HEROKU_CLIENT_APP_NAME: $HEROKU_CLIENT_APP_NAME
+
+before_script:
+  - apt-get update && apt-get install -y ssh-client git
+  - eval $(ssh-agent -s)
+  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+  - ssh-keyscan -H heroku.com >> ~/.ssh/known_hosts
+  - chmod 644 ~/.ssh/known_hosts
+  - git config --global user.email "bigadgaber@icloud.com"
+  - git config --global user.name "Bigad Gaber"
 
 test_server:
   stage: test
@@ -74,30 +84,28 @@ build_client:
     - main
     - /^feature\/.*$/
 
-deploy_client_to_heroku:
+deploy_server_to_heroku:
   stage: deploy
-  image: heroku/heroku:18
+  image: node:16.20.0
   script:
-    - heroku login --apikey $HEROKU_API_KEY
-    - heroku git:remote -a $HEROKU_CLIENT_APP_NAME
-    - cd client
-    - git init
-    - git config user.email "you@example.com"
-    - git config user.name "Your Name"
+    - git clone https://git.heroku.com/$HEROKU_APP_NAME.git heroku_deploy
+    - rsync -av --exclude=node_modules --exclude=.git ./ heroku_deploy/
+    - cd heroku_deploy
     - git add .
-    - git commit -am "Deploy Client"
-    - git push --force heroku master
+    - git commit -am "Deploy to Heroku"
+    - git push heroku main
   only:
     - main
 
-deploy_server_to_heroku:
+deploy_client_to_heroku:
   stage: deploy
-  image: heroku/heroku:18
+  image: node:16.20.0
   script:
-    - heroku login --apikey $HEROKU_API_KEY
-    - heroku container:login
-    - docker build -t registry.heroku.com/$HEROKU_APP_NAME/web .
-    - docker push registry.heroku.com/$HEROKU_APP_NAME/web
-    - heroku container:release web --app $HEROKU_APP_NAME
+    - git clone https://git.heroku.com/$HEROKU_CLIENT_APP_NAME.git heroku_client_deploy
+    - rsync -av --exclude=node_modules --exclude=.git ./client heroku_client_deploy/
+    - cd heroku_client_deploy
+    - git add .
+    - git commit -am "Deploy client to Heroku"
+    - git push heroku main
   only:
     - main
