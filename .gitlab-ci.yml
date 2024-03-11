@@ -95,7 +95,9 @@ deploy_client_to_heroku:
     - git config user.name "Bigad Gaber"
     - npx heroku-cli git:remote -a $HEROKU_CLIENT_APP_NAME
     - git add .
-    - git commit -am "Deploy client to Heroku"
-    - npx heroku-cli push heroku HEAD:main -f
+    # Allow the commit command to fail with || true, so the pipeline doesn't fail
+    - git commit -am "Deploy client to Heroku" || true
+    # Force push to heroku main branch even if there are no new commits
+    - git push heroku HEAD:main -f
   only:
     - main
