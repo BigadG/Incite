@@ -44,7 +44,7 @@ if (isProduction) {
 }
 
 // Error handling middleware
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   console.error('Server error:', err.stack);
   res.status(500).send({ error: err.message });
 });
