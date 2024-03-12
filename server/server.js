@@ -14,23 +14,9 @@ const port = process.env.PORT || 3001;
 
 console.log(`Starting server in ${isProduction ? 'production' : 'development'} mode on port ${port}`);
 
-// Allow CORS from your client app URL and the Chrome extension ID
-const allowedOrigins = [
-  'https://incite-client-77f7b261a1a7.herokuapp.com',
-  'chrome-extension://pljamknofgphbebllbhccjfbmdjmdfco',
-];
-
+// Temporarily allow requests from all origins for debugging purposes
 app.use(cors({
-  origin: function (origin, callback) {
-    // Log every request's origin for debugging
-    console.log('Origin of request allowed:', origin);
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    // If not found, log and block the request
-    console.error('Origin blocked by CORS:', origin);
-    callback(new Error('Not allowed by CORS'));
-  },
+  origin: '*', // Allow all origins
   credentials: true,
 }));
 
@@ -58,7 +44,7 @@ if (isProduction) {
 }
 
 // Error handling middleware
-app.use((err, req, res) => {
+app.use((err, req, res, next) => {
   console.error('Server error:', err.stack);
   res.status(500).send({ error: err.message });
 });
