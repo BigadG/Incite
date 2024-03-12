@@ -88,16 +88,22 @@ deploy_client_to_heroku:
   image: node:16.20.0
   dependencies:
     - build_client
+  before_script:
+    - apk add --no-cache git # Ensure git is installed; adjust if using a non-Alpine image
+    - echo "machine api.heroku.com" > ~/.netrc
+    - echo "  login $HEROKU_LOGIN" >> ~/.netrc
+    - echo "  password $HEROKU_API_KEY" >> ~/.netrc
+    - echo "machine git.heroku.com" >> ~/.netrc
+    - echo "  login $HEROKU_LOGIN" >> ~/.netrc
+    - echo "  password $HEROKU_API_KEY" >> ~/.netrc
+    - git config --global user.email "bigadgaber@icloud.com"
+    - git config --global user.name "Bigad Gaber"
   script:
     - cd client
     - git init
-    - git config user.email "bigadgaber@icloud.com"
-    - git config user.name "Bigad Gaber"
     - npx heroku-cli git:remote -a $HEROKU_CLIENT_APP_NAME
     - git add .
-    # Allow the commit command to fail with || true, so the pipeline doesn't fail
-    - git commit -am "Deploy client to Heroku" || true
-    # Force push to heroku main branch even if there are no new commits
-    - git push heroku HEAD:main -f
+    - git commit -m "Deploy client to Heroku" || true
+    - git push heroku HEAD:main --force
   only:
     - main
