@@ -89,7 +89,7 @@ deploy_client_to_heroku:
   dependencies:
     - build_client
   before_script:
-    - apk add --no-cache git # Ensure git is installed; adjust if using a non-Alpine image
+    - apt-get update && apt-get install -y git # Install git, adjust for non-Debian if needed
     - echo "machine api.heroku.com" > ~/.netrc
     - echo "  login $HEROKU_LOGIN" >> ~/.netrc
     - echo "  password $HEROKU_API_KEY" >> ~/.netrc
