@@ -14,9 +14,17 @@ const port = process.env.PORT || 3001;
 
 console.log(`Starting server in ${isProduction ? 'production' : 'development'} mode on port ${port}`);
 
-// Temporarily allow requests from all origins for debugging purposes
+// CORS configuration to include the chrome-extension protocol
 app.use(cors({
-  origin: '*', // Allow all origins
+  origin: function (origin, callback) {
+    const allowedOrigins = [`chrome-extension://pljamknofgphbebllbhccjfbmdjmdfco`];
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 
@@ -44,9 +52,9 @@ if (isProduction) {
 }
 
 // Error handling middleware
-app.use((err, req, res) => {
+app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
   console.error('Server error:', err.stack);
-  res.status(500).send({ error: err.message });
+  res.status(err.status || 500).send({ error: err.message });
 });
 
 // Start the server
