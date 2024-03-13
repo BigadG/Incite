@@ -1,8 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { router, register } = require('./routes');
-const authMiddleware = require('./authMiddleware');
+const { router, register } = require('./routes'); // eslint-disable-line no-unused-vars
+const authMiddleware = require('./authMiddleware'); // eslint-disable-line no-unused-vars
 
 const app = express();
 
