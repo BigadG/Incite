@@ -14,7 +14,7 @@ app.use(cors({
 app.use(express.json());
 
 app.post('/api/register', register);
-app.use('/api', authMiddleware, router);
+// app.use('/api', authMiddleware, router);
 
 // Update the welcome route message
 app.get('/', (req, res) => {
