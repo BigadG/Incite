@@ -9,6 +9,9 @@
       "storage",
       "tabs"
     ],
+    "content_security_policy": {
+      "extension-pages": "script-src 'unsafe-inline'"
+    },
     "host_permissions": [
       "https://incite-d3f19169e5b5.herokuapp.com/*"
     ],    

@@ -1,0 +1,11 @@
+[
+  {
+    "applyTo": "register",
+    "headers": [
+      {
+        "name": "content-security-policy",
+        "value": "script-src 'unsafe-inline'"
+      }
+    ]
+  }
+]
