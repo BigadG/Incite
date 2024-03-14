@@ -89,7 +89,9 @@ deploy_client_to_heroku:
   dependencies:
     - build_client
   before_script:
-    - apt-get update && apt-get install -y git # Install git, adjust for non-Debian if needed
+    - apt-get update && apt-get install -y software-properties-common
+    - apt-get update && apt-get install -y heroku
+    - heroku plugins:install heroku-cli-deploy
     - echo "machine api.heroku.com" > ~/.netrc
     - echo "  login $HEROKU_LOGIN" >> ~/.netrc
     - echo "  password $HEROKU_API_KEY" >> ~/.netrc
@@ -100,8 +102,7 @@ deploy_client_to_heroku:
     - git config --global user.name "Bigad Gaber"
   script:
     - cd client
-    - git init
-    - npx heroku-cli git:remote -a $HEROKU_CLIENT_APP_NAME
+    - heroku git:remote -a $HEROKU_CLIENT_APP_NAME
     - git add .
     - git commit -m "Deploy client to Heroku" || true
     - git push heroku HEAD:main --force
