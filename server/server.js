@@ -13,7 +13,7 @@ const allowedOrigins = [
   process.env.CHROME_ORIGIN || 'chrome-extension://pljamknofgphbebllbhccjfbmdjmdfco/'
 ];
 
-// Set up CORS to accept requests from your deployed client application and Chrome extension
+// Set up CORS to accept requests from deployed client application and Chrome extension
 app.use(cors({
   origin: function (origin, callback) {
     // allow requests with no origin (like mobile apps, curl requests, or the server itself)
