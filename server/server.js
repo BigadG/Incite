@@ -1,32 +1,71 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { router, register } = require('./routes'); // eslint-disable-line no-unused-vars
-const authMiddleware = require('./authMiddleware'); // eslint-disable-line no-unused-vars
+const { router } = require('./routes');
+const authMiddleware = require('./authMiddleware');
+const process = require('process');
+const path = require('path');
 
 const app = express();
 
-// Update CORS with the client's Heroku URL
+// Identify the environment and set the port
+const isProduction = process.env.NODE_ENV === 'production';
+const port = process.env.PORT || 3001;
+
+console.log(`Starting server in ${isProduction ? 'production' : 'development'} mode on port ${port}`);
+
+// Allow CORS from your client app URL and the Chrome extension ID
+const allowedOrigins = [
+  'https://incite-client-77f7b261a1a7.herokuapp.com',
+  'chrome-extension://pljamknofgphbebllbhccjfbmdjmdfco/',
+];
+
 app.use(cors({
-    origin: ['http://localhost:5173', 'https://incite-client-77f7b261a1a7.herokuapp.com'],
-    optionsSuccessStatus: 200,
+  origin: function (origin, callback) {
+    // Log every request's origin for debugging
+    console.log('Origin of request allowed:', origin);
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    // If not found, log and block the request
+    console.error('Origin blocked by CORS:', origin);
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
 }));
+
+// Serve static files from the React app
+if (isProduction) {
+  app.use(express.static(path.join(__dirname, '../client/dist')));
+}
+
+// Parse JSON bodies
 app.use(express.json());
 
-app.post('/api/register', register);
-// app.use('/api', authMiddleware, router);
+// Apply the authMiddleware to all API routes
+app.use('/api', authMiddleware, router);
 
-// Update the welcome route message
+// Default route for server check
 app.get('/', (req, res) => {
-    res.send('Incite Server is running on Heroku!');
+  res.send('Incite Server is running!');
 });
 
-// Use the PORT environment variable provided by Heroku
-if (process.env.NODE_ENV !== 'test') {
-    const port = process.env.PORT || 3001;
-    app.listen(port, () => {
-        console.log(`Server listening on port ${port}`);
-    });
+// Handle production case, serve the client's index.html
+if (isProduction) {
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+  });
 }
+
+// Error handling middleware
+app.use((err, req, res) => {
+  console.error('Server error:', err.stack);
+  res.status(500).send({ error: err.message });
+});
+
+// Start the server
+app.listen(port, () => {
+  console.log(`Server listening on port ${port}`);
+});
 
 module.exports = app;
