@@ -10,7 +10,7 @@
       "tabs"
     ],
     "host_permissions": [
-      "https://incite-d3f19169e5b5.herokuapp.com/*"
+      "https://incite-d3f19169e5b5.herokuapp.com/"
     ],    
     "action": {
       "default_popup": "popup/popup.html",
