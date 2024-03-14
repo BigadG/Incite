@@ -1,69 +1,46 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { router } = require('./routes');
+const { router, register } = require('./routes');
 const authMiddleware = require('./authMiddleware');
-const process = require('process');
 const path = require('path');
 
 const app = express();
 
-// Identify the environment and set the port
-const isProduction = process.env.NODE_ENV === 'production';
-const port = process.env.PORT || 3001;
-
-console.log(`Starting server in ${isProduction ? 'production' : 'development'} mode on port ${port}`);
-
-// Allow CORS from your client app URL and the Chrome extension ID
+// Define allowed origins for CORS
 const allowedOrigins = [
-  'https://incite-client-77f7b261a1a7.herokuapp.com',
-  'chrome-extension://pljamknofgphbebllbhccjfbmdjmdfco/',
+  process.env.CLIENT_ORIGIN || 'https://incite-client-77f7b261a1a7.herokuapp.com',
+  process.env.CHROME_ORIGIN || 'chrome-extension://pljamknofgphbebllbhccjfbmdjmdfco/'
 ];
 
+// Set up CORS to accept requests from your deployed client application and Chrome extension
 app.use(cors({
   origin: function (origin, callback) {
-    // Log every request's origin for debugging
-    console.log('Origin of request allowed:', origin);
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
+    // allow requests with no origin (like mobile apps, curl requests, or the server itself)
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Origin not allowed by CORS policy'));
     }
-    // If not found, log and block the request
-    console.error('Origin blocked by CORS:', origin);
-    callback(new Error('Not allowed by CORS'));
   },
-  credentials: true,
+  optionsSuccessStatus: 200,
 }));
 
-// Serve static files from the React app
-if (isProduction) {
-  app.use(express.static(path.join(__dirname, '../client/dist')));
-}
-
-// Parse JSON bodies
 app.use(express.json());
 
-// Apply the authMiddleware to all API routes
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, '..', 'client', 'dist')));
+
+app.post('/api/register', register);
 app.use('/api', authMiddleware, router);
 
-// Default route for server check
-app.get('/', (req, res) => {
-  res.send('Incite Server is running!');
+// The "catchall" handler: for any request that doesn't match one above, send back React's index.html file.
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'client', 'dist', 'index.html'));
 });
 
-// Handle production case, serve the client's index.html
-if (isProduction) {
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
-  });
-}
-
-// Error handling middleware
-app.use((err, req, res) => {
-  console.error('Server error:', err.stack);
-  res.status(500).send({ error: err.message });
-});
-
-// Start the server
+// Configure the server to listen on the port provided by Heroku environment
+const port = process.env.PORT || 3001;
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
