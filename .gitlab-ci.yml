@@ -67,7 +67,7 @@ build_client:
   artifacts:
     paths:
       - client/dist/
-    expire_in: 1 week
+    expire_in: 1 week 
   only:
     - main
     - /^feature\/.*$/
