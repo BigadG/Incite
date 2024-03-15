@@ -89,9 +89,8 @@ deploy_client_to_heroku:
   dependencies:
     - build_client
   before_script:
-    - apt-get update && apt-get install -y software-properties-common
-    - apt-get update && apt-get install -y heroku
-    - heroku plugins:install heroku-cli-deploy
+    - npm install -g heroku
+    - heroku --version # Optional, just to confirm it's installed
     - echo "machine api.heroku.com" > ~/.netrc
     - echo "  login $HEROKU_LOGIN" >> ~/.netrc
     - echo "  password $HEROKU_API_KEY" >> ~/.netrc
