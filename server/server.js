@@ -10,19 +10,28 @@ const app = express();
 // Define allowed origins for CORS
 const allowedOrigins = [
   process.env.CLIENT_ORIGIN || 'https://incite-client-77f7b261a1a7.herokuapp.com',
-  process.env.CHROME_ORIGIN || 'chrome-extension://pljamknofgphbebllbhccjfbmdjmdfco/'
+  process.env.CHROME_ORIGIN || 'chrome-extension://pljamknofgphbebllbhccjfbmdjmdfco/',
+  'http://localhost:5173' // Include this if you want to allow localhost for development
 ];
+
+// Set Referrer-Policy header for all responses
+app.use((req, res, next) => {
+  res.setHeader('Referrer-Policy', 'no-referrer-when-downgrade');
+  next();
+});
 
 // Set up CORS to accept requests from deployed client application and Chrome extension
 app.use(cors({
   origin: function (origin, callback) {
+    console.log('Origin received in CORS configuration:', origin); // Additional logging
     // allow requests with no origin (like mobile apps, curl requests, or the server itself)
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Origin not allowed by CORS policy'));
+      callback(new Error('Origin not allowed by CORS policy: ' + origin));
     }
   },
+  credentials: true, // If frontend needs to send cookies or authentication over CORS, enable this
   optionsSuccessStatus: 200,
 }));
 
