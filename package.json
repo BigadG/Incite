@@ -4,7 +4,9 @@
   "description": "Incite is a comprehensive project that includes a Chrome extension, a React front-end application, and a Node.js server. It's designed to enhance research and essay writing processes, offering functionalities like web page saving, essay generation using APIs, and automatic citation.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postbuild": "cd server && npm install",
+    "start": "npm start --prefix server"
   },
   "keywords": [],
   "author": "",
