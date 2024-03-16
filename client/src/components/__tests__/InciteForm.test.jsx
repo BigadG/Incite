@@ -54,7 +54,7 @@ describe('InciteForm Component', () => {
     await waitFor(() => {
       render(<InciteForm apiBaseUrl={API_BASE_URL} />);
       // It is now okay if there is no explicit assertion here.
-      // We're mainly concerned with making sure the axios call happens within an act scope.
+      // Main concern is making sure the axios call happens within an act scope.
     });
 
     // Check that axios.get was called correctly

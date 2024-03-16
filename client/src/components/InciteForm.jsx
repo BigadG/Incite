@@ -204,7 +204,6 @@ function InciteForm({ apiBaseUrl }) {
                 } catch (error) {
                     if (error.response && error.response.status === 404) {
                         // 404 is an expected response, indicating no recent essay was found
-                        // Set the state to reflect the "no data" state as appropriate for your application
                         setUrls([]);
                         setResult('');
                         setInputs(['', '', '', '']);
@@ -256,7 +255,7 @@ function InciteForm({ apiBaseUrl }) {
                     value={inputs[0]}
                     handleChange={handleChange}
                 />
-                <label htmlFor={`input1-Id`}>Body Premises:</label>
+                <label htmlFor={`input1-Id`}>Body Parts:</label>
                 {inputs.slice(1).map((input, index) => (
                     <InputField
                         key={`input-${index + 1}`}
