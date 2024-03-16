@@ -10,8 +10,7 @@ const app = express();
 // Define allowed origins for CORS
 const allowedOrigins = [
   process.env.CLIENT_ORIGIN || 'https://incite-client-77f7b261a1a7.herokuapp.com',
-  process.env.CHROME_ORIGIN || 'chrome-extension://pljamknofgphbebllbhccjfbmdjmdfco/',
-  'http://localhost:5173' // Include this if you want to allow localhost for development
+  process.env.CHROME_ORIGIN || 'chrome-extension://pljamknofgphbebllbhccjfbmdjmdfco/'
 ];
 
 // Set Referrer-Policy header for all responses

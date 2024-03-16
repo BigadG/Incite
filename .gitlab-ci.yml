@@ -81,9 +81,8 @@ deploy_server_to_heroku:
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
-    # Correcting the Heroku Git remote to use SSH protocol
     - git remote remove heroku || true
-    - git remote add heroku git@heroku.com:$HEROKU_APP_NAME.git
+    - git remote add heroku git@git.heroku.com:$HEROKU_APP_NAME.git # Corrected the remote URL
     - git fetch --unshallow || true
   script:
     - git push heroku HEAD:main --force
@@ -101,9 +100,8 @@ deploy_client_to_heroku:
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
-    # Correcting the Heroku Git remote to use SSH protocol for the client app
     - git remote remove heroku || true
-    - git remote add heroku git@heroku.com:$HEROKU_CLIENT_APP_NAME.git
+    - git remote add heroku git@git.heroku.com:$HEROKU_CLIENT_APP_NAME.git # Corrected the remote URL
     - git fetch --unshallow || true
     - cd client
   script:
