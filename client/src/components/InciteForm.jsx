@@ -255,7 +255,7 @@ function InciteForm({ apiBaseUrl }) {
                     value={inputs[0]}
                     handleChange={handleChange}
                 />
-                <label htmlFor={`input1-Id`}>Body Parts:</label>
+                <label htmlFor={`input1-Id`}>Body Premises:</label>
                 {inputs.slice(1).map((input, index) => (
                     <InputField
                         key={`input-${index + 1}`}
