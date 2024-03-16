@@ -1,5 +1,5 @@
 jest.mock('../../envConfig', () => ({
-  API_BASE_URL: 'http://localhost:3001'
+  API_BASE_URL: 'http://localhost:3001/api'
 }));
 
 import { render, waitFor } from '@testing-library/react';
