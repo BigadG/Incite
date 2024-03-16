@@ -24,7 +24,6 @@ app.use(cors({
       callback(new Error('Origin not allowed by CORS policy: ' + origin));
     }
   },
-  credentials: true, // If frontend needs to send cookies or authentication over CORS, enable this
   optionsSuccessStatus: 200,
 }));
 

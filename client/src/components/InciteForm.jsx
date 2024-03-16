@@ -23,9 +23,11 @@ function InciteForm({ apiBaseUrl }) {
     useEffect(() => {
         const queryParams = queryString.parse(window.location.search);
         if (queryParams.uuid) {
-            setUUID(queryParams.uuid);
+          setUUID(queryParams.uuid);
+        } else {
+          console.error('UUID not found in query parameters');
         }
-    }, []);
+      }, []);
 
     // Adjusted to not display the error message on initial render
     useEffect(() => {
@@ -69,7 +71,10 @@ function InciteForm({ apiBaseUrl }) {
     };
 
     const fetchSelections = useCallback(async () => {
-        if (!uuid) return;
+        if (!uuid) {
+            console.error('UUID is undefined. Cannot fetch selections.');
+            return;
+        }
         setIsLoading(true);
         try {
             const response = await axios.get(`${apiBaseUrl}/selections`, {

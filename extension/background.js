@@ -16,7 +16,9 @@ chrome.runtime.onInstalled.addListener(() => {
   }
   const uuid = generateUUID();
   console.log(`Generated UUID: ${uuid}`);
-  chrome.storage.local.set({ userId: uuid, selections: [] });
+  chrome.storage.local.set({ userId: uuid, selections: [] }, () => {
+    console.log('UUID and selections saved to storage.');
+  });
 
   const serverUrl = 'https://incite-d3f19169e5b5.herokuapp.com/api/register';
 

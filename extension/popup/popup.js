@@ -254,17 +254,17 @@ async function addSelection(url, title) {
   createButton.addEventListener('click', async function() {
     const selections = await getSelections();
     if (selections.length === 0) {
-        console.log('No selections to generate essay');
-        return;
+      console.log('No selections to generate essay');
+      return;
     }
     const uuid = await getUUID();
-    const selectionUrls = selections.map(selection => encodeURIComponent(selection.url)).join(',');
-
-    const inciteAppUrl = `https://incite-client-77f7b261a1a7.herokuapp.com`;
-
+    
+    // Append UUID as a query parameter
+    const inciteAppUrl = `https://incite-client-77f7b261a1a7.herokuapp.com/?uuid=${uuid}`;
+    
     console.log(`Opening React app with URL: ${inciteAppUrl}`);
     chrome.tabs.create({ url: inciteAppUrl });
-  });
+  });  
 
   clearButton.addEventListener('click', async function() {
     // Clear selections in storage
