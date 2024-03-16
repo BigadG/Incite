@@ -75,11 +75,16 @@ build_client:
 deploy_server_to_heroku:
   stage: deploy
   image: node:16.20.0
+  before_script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - git remote add heroku git@heroku.com:$HEROKU_APP_NAME.git || true
+    - git fetch --unshallow || true
   script:
-    - git config --global user.email "bigadgaber@icloud.com"
-    - git config --global user.name "Bigad Gaber"
-    - npx heroku-cli git:remote -a $HEROKU_APP_NAME
-    - npx heroku-cli push heroku HEAD:main
+    - git push heroku HEAD:main --force
   only:
     - main
 
@@ -89,20 +94,17 @@ deploy_client_to_heroku:
   dependencies:
     - build_client
   before_script:
-    - echo "machine api.heroku.com" > ~/.netrc
-    - echo "  login $HEROKU_LOGIN" >> ~/.netrc
-    - echo "  password $HEROKU_API_KEY" >> ~/.netrc
-    - echo "machine git.heroku.com" >> ~/.netrc
-    - echo "  login $HEROKU_LOGIN" >> ~/.netrc
-    - echo "  password $HEROKU_API_KEY" >> ~/.netrc
-    - git config --global user.email "bigadgaber@icloud.com"
-    - git config --global user.name "Bigad Gaber"
-  script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - git remote add heroku git@heroku.com:$HEROKU_CLIENT_APP_NAME.git || true
+    - git fetch --unshallow || true
     - cd client
-    - npx heroku git:remote -a $HEROKU_CLIENT_APP_NAME
+  script:
     - git add .
     - git commit -m "Deploy client to Heroku" || true
-    - npx heroku push heroku HEAD:main --force
+    - git push heroku HEAD:main --force
   only:
     - main
-
