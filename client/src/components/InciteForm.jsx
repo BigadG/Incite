@@ -163,6 +163,7 @@ function InciteForm({ apiBaseUrl }) {
         };
     
         try {
+            console.log(`UUID before request: ${uuid}`);
             const response = await axios.post(`${apiBaseUrl}/generateEssayWithSelections`, dataToSend, {
                 headers: {
                     'Authorization': `Bearer ${uuid}`
