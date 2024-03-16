@@ -77,11 +77,13 @@ deploy_server_to_heroku:
   image: node:16.20.0
   before_script:
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
-    - eval $(ssh-agent -s)
+    - eval "$(ssh-agent -s)"
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
-    - git remote add heroku git@heroku.com:$HEROKU_APP_NAME.git || true
+    # Correcting the Heroku Git remote to use SSH protocol
+    - git remote remove heroku || true
+    - git remote add heroku git@heroku.com:$HEROKU_APP_NAME.git
     - git fetch --unshallow || true
   script:
     - git push heroku HEAD:main --force
@@ -95,11 +97,13 @@ deploy_client_to_heroku:
     - build_client
   before_script:
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
-    - eval $(ssh-agent -s)
+    - eval "$(ssh-agent -s)"
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
-    - git remote add heroku git@heroku.com:$HEROKU_CLIENT_APP_NAME.git || true
+    # Correcting the Heroku Git remote to use SSH protocol for the client app
+    - git remote remove heroku || true
+    - git remote add heroku git@heroku.com:$HEROKU_CLIENT_APP_NAME.git
     - git fetch --unshallow || true
     - cd client
   script:
