@@ -10,7 +10,7 @@ import PropTypes from 'prop-types'; // Import PropTypes
 
 function InciteForm({ apiBaseUrl }) {
     // Updated initial state to include 3 body premise inputs in addition to the thesis premise input
-    const [inputs, setInputs] = useState(['', '', '', '']);
+    const [inputs, setInputs] = useState(['', '', '', '']); 
     const [result, setResult] = useState('');
     const [urls, setUrls] = useState([]);
     const [uuid, setUUID] = useState('');
@@ -71,10 +71,7 @@ function InciteForm({ apiBaseUrl }) {
     };
 
     const fetchSelections = useCallback(async () => {
-        if (!uuid) {
-            console.error('UUID is undefined. Cannot fetch selections.');
-            return;
-        }
+        if (!uuid) return;
         setIsLoading(true);
         try {
             const response = await axios.get(`${apiBaseUrl}/selections`, {
@@ -168,7 +165,6 @@ function InciteForm({ apiBaseUrl }) {
         };
     
         try {
-            console.log(`UUID before request: ${uuid}`);
             const response = await axios.post(`${apiBaseUrl}/generateEssayWithSelections`, dataToSend, {
                 headers: {
                     'Authorization': `Bearer ${uuid}`

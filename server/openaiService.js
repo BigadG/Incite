@@ -38,7 +38,7 @@ const generateEssayContent = async ({ thesis, bodyPremises }, contentFromPages, 
     const messages = [
         {
             role: "system",
-            content: "Compose a 700 or more word essay with an introductory thesis, body paragraphs on given premises, and a conclusion. Each paragraph should start with an indent. Include APA style citations and references."
+            content: "Compose a 700 or more word essay with an introductory thesis, body paragraphs on given premises, and a conclusion. Each paragraph should start with an indent. Include APA style citations and references. Each paragraph should be at least 7 full length sentences."
         },
         {
             role: "user",
