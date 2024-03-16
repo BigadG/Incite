@@ -22,6 +22,7 @@ async function authMiddleware(req, res, next) {
 
     // Attach UUID to the request object
     req.userId = uuid;
+    console.log(`Received Authorization Header: ${req.headers.authorization}`);
 
     // Pass control to the next middleware
     next();

@@ -34,7 +34,7 @@ function InciteForm({ apiBaseUrl }) {
 
     const saveEssay = async (essay) => {
         try {
-            await axios.post(`${apiBaseUrl}/saveRecentEssay`, {
+            await axios.post(`${apiBaseUrl}/api/saveRecentEssay`, {
                 uuid,
                 essay,
                 thesis: inputs[0],
@@ -72,7 +72,7 @@ function InciteForm({ apiBaseUrl }) {
         if (!uuid) return;
         setIsLoading(true);
         try {
-            const response = await axios.get(`${apiBaseUrl}/selections`, {
+            const response = await axios.get(`${apiBaseUrl}/api/selections`, {
                 headers: {
                     'Authorization': `Bearer ${uuid}`
                 }
@@ -126,7 +126,7 @@ function InciteForm({ apiBaseUrl }) {
         }));
     
         try {
-            const response = await axios.post(`${apiBaseUrl}/updateSelections`, {
+            const response = await axios.post(`${apiBaseUrl}/api/updateSelections`, {
                 uuid,
                 updatedSelections,
             }, {
@@ -171,11 +171,10 @@ function InciteForm({ apiBaseUrl }) {
     
             if (response.data.missingCitations && response.data.missingCitations.length > 0) {
                 setMissingCitations(response.data.missingCitations);
-                // Consider if you want to keep the loader here or not based on your UX preference
             } else {
                 setResult(response.data.essay); // Display the new essay
                 setMissingCitations([]);
-                await saveEssay(response.data.essay); // Optional: Save the essay as before
+                await saveEssay(response.data.essay); // Save the essay as before
             }
         } catch (error) {
             console.error('Error submitting essay:', error);
