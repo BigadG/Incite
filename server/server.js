@@ -13,12 +13,6 @@ const allowedOrigins = [
   process.env.CHROME_ORIGIN || 'chrome-extension://pljamknofgphbebllbhccjfbmdjmdfco'
 ];
 
-// Set Referrer-Policy header for all responses
-app.use((req, res, next) => {
-  res.setHeader('Referrer-Policy', 'no-referrer-when-downgrade');
-  next();
-});
-
 // Set up CORS to accept requests from deployed client application and Chrome extension
 app.use(cors({
   origin: function (origin, callback) {

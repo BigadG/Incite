@@ -34,7 +34,7 @@ function InciteForm({ apiBaseUrl }) {
 
     const saveEssay = async (essay) => {
         try {
-            await axios.post(`${apiBaseUrl}/api/saveRecentEssay`, {
+            await axios.post(`${apiBaseUrl}/saveRecentEssay`, {
                 uuid,
                 essay,
                 thesis: inputs[0],
@@ -72,7 +72,7 @@ function InciteForm({ apiBaseUrl }) {
         if (!uuid) return;
         setIsLoading(true);
         try {
-            const response = await axios.get(`${apiBaseUrl}/api/selections`, {
+            const response = await axios.get(`${apiBaseUrl}/selections`, {
                 headers: {
                     'Authorization': `Bearer ${uuid}`
                 }
@@ -126,7 +126,7 @@ function InciteForm({ apiBaseUrl }) {
         }));
     
         try {
-            const response = await axios.post(`${apiBaseUrl}/api/updateSelections`, {
+            const response = await axios.post(`${apiBaseUrl}/updateSelections`, {
                 uuid,
                 updatedSelections,
             }, {
@@ -163,7 +163,7 @@ function InciteForm({ apiBaseUrl }) {
         };
     
         try {
-            const response = await axios.post(`${apiBaseUrl}/api/generateEssayWithSelections`, dataToSend, {
+            const response = await axios.post(`${apiBaseUrl}/generateEssayWithSelections`, dataToSend, {
                 headers: {
                     'Authorization': `Bearer ${uuid}`
                 }
@@ -188,7 +188,7 @@ function InciteForm({ apiBaseUrl }) {
         if (uuid) {
             const fetchSavedEssay = async () => {
                 try {
-                    const response = await axios.get(`${apiBaseUrl}/api/getRecentEssay`, {
+                    const response = await axios.get(`${apiBaseUrl}/getRecentEssay`, {
                         headers: {
                             'Authorization': `Bearer ${uuid}`
                         }
