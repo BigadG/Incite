@@ -59,7 +59,7 @@ function InciteForm({ apiBaseUrl }) {
     };
 
     const handleCitationChange = (index, field, value) => {
-        const updatedCitations = [...missingCitations];
+        const updatedCitations = [...missingCitations]; 
         updatedCitations[index] = { ...updatedCitations[index], [field]: value };
         setMissingCitations(updatedCitations);
     };
