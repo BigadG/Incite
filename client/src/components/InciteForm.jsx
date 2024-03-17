@@ -61,7 +61,7 @@ function InciteForm({ apiBaseUrl }) {
     const handleCitationChange = (index, field, value) => {
         const updatedCitations = [...missingCitations]; 
         updatedCitations[index] = { ...updatedCitations[index], [field]: value };
-        setMissingCitations(updatedCitations); 
+        setMissingCitations(updatedCitations);
     };
 
     const addInput = () => {
