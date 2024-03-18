@@ -114,3 +114,8 @@ To run the application locally, use `localhost` URLs for the `CHROME_ORIGIN` and
 ## Usage
 
 After setting up the project, use the Chrome extension by clicking its icon while on a webpage to save it to your list of selections. The "Show selections" button displays saved pages, and the "Create" button initiates the essay generation process on a new page. Generate essays using saved pages, and automatically include citations. For missing citation information, you will be prompted to enter it before essay completion.
+
+## Additional Notes
+
+- The currently deployed version of Incite found on the Chrome Store uses the free tier of Heroku deployment. This fact, combined with the server's need for intensive processing for large amounts of data and API calls, can often lead to this error when generating essays: 'Error generating essay with latest selections. Please try again later.'
+- If you're experiencing frequent errors, consider mitigating the use of long articles for saved selections for essay generation.
