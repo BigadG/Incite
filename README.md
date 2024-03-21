@@ -68,11 +68,11 @@ Follow these steps to get your development environment running:
 
    - Start the client:
      ```bash
-     npm start
+     npm run dev
      ```
    - Start the server:
      ```bash
-     npm run server
+     npm start
      ```
 
 6. **Load the Chrome Extension**
@@ -91,7 +91,7 @@ This project uses GitLab CI/CD for continuous integration and deployment:
 
 - **Test Stage**: Runs automated tests for the server and client and lints the code.
 - **Build Stage**: Builds the React client application.
-- **Deploy Stage**: Deploys the server and client to Heroku. Make sure to set the necessary Heroku environment variables and SSH keys.
+- **Deploy Stage**: Deploys the server and client to Heroku. Make sure to set the necessary Heroku environment variables and SSH keys. If you're only running the application locally, delete both deployment stages.
 
 Refer to the `.gitlab-ci.yml` file for detailed configurations.
 
@@ -118,4 +118,4 @@ After setting up the project, use the Chrome extension by clicking its icon whil
 ## Additional Notes
 
 - The currently deployed version of Incite found on the Chrome Store uses the free tier of Heroku deployment. This fact, combined with the server's need for intensive processing for large amounts of data and API calls, can often lead to this error when generating essays: 'Error generating essay with latest selections. Please try again later.'
-- If you're experiencing frequent errors, consider mitigating the use of long articles for saved selections for essay generation.
+- If you're experiencing frequent errors, consider mitigating the use of long articles for saved selections for essay generation, or try running the application locally.
